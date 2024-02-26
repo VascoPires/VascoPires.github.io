@@ -14,7 +14,7 @@ breadcrumbs              : false # true, false (default)
 words_per_minute         : 160
 future                   : true
 read_more                : "disabled" # if enabled, adds "Read more" links to excerpts
-talkmap_link             : false #change to true to add link to talkmap on talks page
+talkmap_link             : true #change to true to add link to talkmap on talks page
 comments:
   provider               : # false (default), "disqus", "discourse", "facebook", "google-plus", "staticman", "custom"
   disqus:
@@ -79,7 +79,7 @@ author:
   avatar           : "Bio_photo_lama.jpg"
   bio              : "Your biography for the left-hand sidebar"
   location         : "Leoben, Austria"
-  employer         :
+  employer         : "University of Leoben"
   pubmed           : "https://www.ncbi.nlm.nih.gov/pubmed/?term=vasco+pires"
   googlescholar    : "https://scholar.google.com/citations?user=oQWtbgwAAAAJ&hl=en&oi=ao"
   email            :
