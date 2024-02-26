@@ -14,5 +14,5 @@ Moreover, developed the SLJ Designer application, an innovative tool designed to
 
 The SLJ Designer application allowed students to engage in hands-on learning experiences and explore various material combinations and conditions. With 88.9% of students identifying the application as a "safe space" to learn more about finite element methods and adhesive bonding, its impact on student learning and development in these areas was substantial.
 
-<video controls src="../images/SLJ_Designer_Features.mp4" title="SLJ Designer Features"></video>
+<video controls src="../images/SLJ_Designer_Features.mp4" title="SLJ Designer Features" width="200"></video>
 
