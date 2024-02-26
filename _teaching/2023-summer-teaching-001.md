@@ -13,7 +13,7 @@ Assisted in the preparation of practical and experimental classes for the "Aircr
 Moreover, developed the [SLJ Designer](https://vascopires.github.io/portfolio/SLJ_Designer/) application, an innovative tool designed to facilitate the generation of finite element models of single lap joints (SLJs). This application proved instrumental in enhancing the understanding of adhesive bonding concepts among students. Additionally, created comprehensive tutorials and guides to assist students in utilizing the SLJ Designer effectively.
 
 <p align="center">
-    <img src="/images/SLJ.gif" style="width:50%;">
+    <img src="/images/SLJ.gif" style="width:90%;">
 </p>
 <p align="center">
     Figure 1: Single lap joint simulation.
@@ -22,7 +22,7 @@ Moreover, developed the [SLJ Designer](https://vascopires.github.io/portfolio/SL
 Furthermore, the students can interact with the simulation results as shown in Figure 2.
 
 <p align="center">
-    <img src="/images/SLJ_PostProcessing.gif" style="width:50%;">
+    <img src="/images/SLJ_PostProcessing.gif" style="width:90%;">
 </p>
 <p align="center">
     Figure 2: Interactive interface of the results.
