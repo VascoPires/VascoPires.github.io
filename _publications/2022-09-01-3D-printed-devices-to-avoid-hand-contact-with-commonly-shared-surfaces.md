@@ -1,13 +1,14 @@
 ---
 title: "3D printed devices to avoid hand contact with commonly shared surfaces"
 collection: publications
-permalink: /publication/2022-07-28-002_3DP
-excerpt: 'Paper about some 3D printed prototypes developed to prevent the spread of COVID-19. '
-date: 2022-07-28
+permalink: /publication/2022-09-01-3D-printed-devices-to-avoid-hand-contact-with-commonly-shared-surfaces
+date: 2022-09-01
 venue: 'International Journal on Interactive Design and Manufacturing (IJIDeM)'
-paperurl: 'https://doi.org/10.1007/s12008-022-00935-9'
-citation: 'Pais, A., Ferreira, C., Pires, V. et al. (2022). &quot;3D printed devices to avoid hand contact with commonly shared surfaces&quot; Int J Interact Des Manuf 16.'
+paperurl: 'https://link.springer.com/10.1007/s12008-022-00935-9'
+citation: ' A. Pais,  C. Ferreira,  V. Pires,  V. Silva,  J. Alves,  J. Bastos,  J. Belinha, &quot;3D printed devices to avoid hand contact with commonly shared surfaces.&quot; International Journal on Interactive Design and Manufacturing (IJIDeM), 2022.'
 ---
+[Access paper here](https://link.springer.com/10.1007/s12008-022-00935-9){:target="_blank"}
+
 **Abstract:**
 
 In the context of the COVID-19 pandemic, public spaces had to be quickly adapted to the new circumstances especially under the uncertainty of the pandemic development. Door handles are some of the most touched surfaces and so, this point of contagion was chosen to be tackled and two solutions were developed that would prevent direct touch with the handle: a portable and a fixed device. The portable device (HYHOOK + HYTIP) is a hook-like device holding a finger cover, which permits to open doors and push buttons safely. The fixed device (HANDGENIC) is meant to be assembled in door handles to equip buildings, such as universities or schools. With the fixed device, the user can open the door using their forearm which makes them less likely to transfer any particles to eyes, nose or mouth. The 3D printing Fused Filament Fabrication (FFF) process was selected as manufacturing technique, which allows the fast production of prototypes. This work portrays the development process and design iterations taking into consideration the concerns about the functioning of the devices and possible failures or alternative uses. To assure structural integrity of the parts, finite element (FE) analysis was used to verify its mechanical response. As conclusion, it was found that FE analysis indicate that the devices are structurally sound to be used in public spaces and that 3D printing is a useful way to rapidly develop devices while testing several design possibilities.
