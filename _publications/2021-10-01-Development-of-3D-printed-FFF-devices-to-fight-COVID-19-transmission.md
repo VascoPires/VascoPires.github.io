@@ -5,7 +5,7 @@ permalink: /publication/2021-10-01-Development-of-3D-printed-FFF-devices-to-figh
 date: 2021-10-01
 venue: 'In the proceedings of Advances and Current Trends in Biomechanics'
 paperurl: 'https://www.taylorfrancis.com/books/9781003217152/chapters/10.1201/9781003217152-51'
-citation: 'A. Pais, V. Pires, C. Ferreira, J Silva, J.L. Alves, J. Bastos, J. Belinha'
+citation: '**A. Pais**, V. Pires, C. Ferreira, J Silva, J.L. Alves, J. Bastos, J. Belinha'
 ---
 [Access paper here](https://www.taylorfrancis.com/books/9781003217152/chapters/10.1201/9781003217152-51){:target="_blank"}
 
