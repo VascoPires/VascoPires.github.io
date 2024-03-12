@@ -1,13 +1,11 @@
 ---
 title: "3D printing solutions to fight COVID-19"
 collection: talks
-type: "Poster presentation"
-permalink: /talks/2020-09-28-EUGLOH
+type: "Conference poster"
+permalink: /talks/28/09/2020-EUGLOH
 venue: "EUGLOH Annual Student Research Conference"
-date: 2020-09-28
-location: ""
 ---
 
 [More information here](https://www.eugloh.eu/events/eugloh-annual-student-research-conference)
 
-Vasco Pires, Cristina Ferreira, José Silva, Ana Pais, Jorge Lino, Jorge Belinha
+Authors: Vasco D.C Pires, Cristina Ferreira, José Silva, Ana Pais, Jorge Lino, Jorge Belinha
