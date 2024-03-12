@@ -35,6 +35,11 @@ var addressPoints = [
     -47.1583944
   ],
   [
+    "Aveiro, Portugal",
+    40.640496,
+    -8.6537841
+  ],
+  [
     "Figueira da Foz, Portugal",
     40.1485808,
     -8.855655
