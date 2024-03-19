@@ -8,6 +8,6 @@ date: 17/01/2024
 location: "Alto, Finland"
 ---
 
-[More information here](https://spaceworkshop.fi)
+[Conference/Talk Website](https://spaceworkshop.fi)
 
 Authors: M5 Team - Vile Ludén, Cormac Larkin, Leonard Schulz,  Markus Baumgartner-Steinleitner, Marianne Brekkum, Adam Cegla, Pietro Dazzi, Alessia De Iuliis, Jonas Gesch, Sofia Lennerstrand, Sara Nesbit-Östman, Vasco D.C Pires, Inés Terraza Palanca, Daniel Teubenbacher, Florine Enengl, Marcus Hallmann
