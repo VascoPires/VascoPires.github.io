@@ -92,8 +92,8 @@ for row, item in talks.iterrows():
     md += "---\n"
     
     
-    if len(str(item.talk_url)) > 3:
-        md += "\n[Conference/Talk Website](" + item.talk_url + ")\n" 
+    #if len(str(item.talk_url)) > 3:
+    #    md += "\n[Conference/Talk Website](" + item.talk_url + ")\n" 
         
     
     if len(str(item.description)) > 3:

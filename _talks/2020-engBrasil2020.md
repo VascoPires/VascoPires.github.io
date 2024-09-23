@@ -6,6 +6,4 @@ permalink: /talks/03/11/2020-engBrasil2020
 venue: "engBRASIL2020 - lst Brazilian Engineering Congress of the PDIMat Network"
 ---
 
-[Conference/Talk Website](https://www.redepdimat.org/engbrasil2020)
-
 Authors: Vasco D.C Pires, Ana Pais, Cristina Ferreira, José Silva, Jorge Lino, Jorge Belinha

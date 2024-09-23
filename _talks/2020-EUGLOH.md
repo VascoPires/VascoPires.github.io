@@ -6,6 +6,4 @@ permalink: /talks/28/09/2020-EUGLOH
 venue: "EUGLOH Annual Student Research Conference"
 ---
 
-[Conference/Talk Website](https://www.eugloh.eu/events/eugloh-annual-student-research-conference)
-
 Authors: Vasco D.C Pires, Cristina Ferreira, José Silva, Ana Pais, Jorge Lino, Jorge Belinha
