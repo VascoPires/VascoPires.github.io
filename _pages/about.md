@@ -2,17 +2,13 @@
 layout: about
 title: about
 permalink: /
-subtitle: # <a href='#'>Affiliations</a>. Address. Contacts. Moto. Etc.
+subtitle: Researcher at MUL
 
 profile:
   align: right
   image: prof_pic.jpg
   image_circular: true # crops the image to make it circular
-  address: >
-    <p>Room 36-776A</p>
-    <p>50 Vassar St. </p>
-    <p>(MIT building 36) </p>
-    <p>Cambridge, MA 02139</p>
+  address: 
 
 news: true  # includes a list of news items
 latest_posts: false  # includes a list of the newest posts

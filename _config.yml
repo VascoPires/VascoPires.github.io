@@ -11,7 +11,9 @@ chinese_first_name:
 email: vasco.castro-pires@unileoben.ac.at
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   This is my website! Here you can stay up to date with all my activities.
-footer_text: >
+footer_text: Made with ❤️ in PT.<br>
+  Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
+  Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
 keywords: jekyll, jekyll-theme, academic-website, portfolio-website  # add your own keywords or leave empty
 
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
@@ -51,7 +53,7 @@ rss_icon: false
 # -----------------------------------------------------------------------------
 
 navbar_fixed: true
-footer_fixed: true
+footer_fixed: false
 
 # Dimensions
 max_width: 800px
@@ -104,7 +106,7 @@ facebook_id: # your facebook id
 youtube_id: # your youtube channel id (youtube.com/@<youtube_id>)
 discord_id: # your discord id (18-digit unique numerical identifier)
 
-contact_note: > 
+contact_note: E-mail is the best way to reach me. Feel free to contact me!
 # You can even add a little note about which of these is the best way to reach you.
 
 # -----------------------------------------------------------------------------
