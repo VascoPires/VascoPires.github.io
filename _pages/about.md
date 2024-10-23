@@ -9,8 +9,9 @@ profile:
   image: prof_pic.jpg
   image_circular: true # crops the image to make it circular
   address: >
-    <p>Room 222 , 2nd floor</p>
     <p>Institute of Designing Plastics and Composite Materials</p>
+    <p> </p>
+    <p>Room 222 , 2nd floor</p>
     <p>Otto-Glöckel-Straße 2</p>
     <p>8700 Leoben</p>
 
