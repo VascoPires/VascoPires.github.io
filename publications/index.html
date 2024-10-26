@@ -245,7 +245,35 @@
 <li>
 <!-- _layouts/bib.html -->
 <div class="row">
-  <div class="col-sm-2 abbr"></div>
+  <div class="col-sm-2 preview">
+<img id="M5_previewjpg" class="preview z-depth-1 rounded myImg" src="/assets/img/publication_preview/M5_preview.jpg"><div id="M5_previewjpg-modal" class="modal2">
+      <span class="closeimg" onclick="document.getElementById('M5_previewjpg-modal').style.display='none'">×</span>
+      <div class="myCaption"></div>
+      <img class="modal-content2" id="M5_previewjpg-modal-img">
+    </div>
+    <script>
+      // Get the modal
+      var modal = document.getElementById("M5_previewjpg-modal");
+      // Get the image and insert it inside the modal - use its "alt" text as a caption
+      var img = document.getElementById('M5_previewjpg');
+      var modalImg = document.getElementById("M5_previewjpg-modal-img");
+      var captionText = modal.getElementsByTagName('div')[0];
+      img.onclick = function () {
+        modal.style.display = "block";
+        modalImg.src = this.src;
+        captionText.innerHTML = "";
+      }
+      // Get the <span> element that closes the modal
+      var span = modal.getElementsByTagName('span')[0];
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function () {
+        modal.style.display = "none";
+      }
+      modal.onclick = function () {
+        modal.style.display = "none";
+      }
+    </script>
+</div>
 
   <!-- Entry bib key -->
   <div id="larkinM5MarsMagnetospheric2024" class="col-sm-8 col-md-9">
