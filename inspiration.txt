@@ -26,3 +26,6 @@ https://george-gca.github.io/
 
 # Check teaching, courses and supervised theses
 https://christianmainka.de/teaching/
+
+# very cool
+https://programming-group.com
