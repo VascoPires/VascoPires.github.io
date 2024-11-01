@@ -7,7 +7,7 @@ subtitle: Researcher at MUL and creator of <a href="https://www.youtube.com/@Mad
 
 profile:
   align: right
-  image: prof_pic.jpg
+  image: fotoVascoPires.jpg
   image_circular: true # crops the image to make it circular
   address: 
 
