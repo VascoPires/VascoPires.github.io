@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: Researcher at MUL and creator of [Made with Atoms](https://www.youtube.com/@MadewithAtoms) Youtube Channel 
+subtitle: Researcher at MUL and creator of <a href="https://www.youtube.com/@MadewithAtoms">Made with Atoms</a> Youtube Channel
 
 profile:
   align: right
