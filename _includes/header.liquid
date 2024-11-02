@@ -1,29 +1,22 @@
 <header>
   <!-- Nav Bar -->
   <nav id="navbar" class="navbar navbar-light navbar-expand-sm {% if site.navbar_fixed %}fixed-top{% else %}sticky-top{% endif %}" role="navigation">
-    <div class="container">
-      {% if page.permalink != '/' %}
-        <a class="navbar-brand title font-weight-lighter" href="{{ site.baseurl }}/">
-          {% if site.title == 'blank' %}
-            {% if site.first_name %}
-              <span class="font-weight-bold">
-                {{- site.first_name -}}
-              </span>
-            {% endif %}
-            {% if site.middle_name %}
-              {{- site.middle_name -}}
-            {% endif %}
-            {% if site.last_name %}
-              {{- site.last_name -}}
-            {% endif %}
-          {% else %}
-            {{- site.title -}}
-          {% endif %}
-        </a>
-      {% elsif site.enable_navbar_social %}
+    <div class="container px-md-3">
+      <a href="{{ '/' | relative_url }}" class="{% if page.title == 'Home' %}active{% endif %}">
+        <img src="{{ '/assets/img/vp-logo.svg' | relative_url }}" alt="{% if site.title != 'blank' %}{{ site.title }}{% else %}{{ site.first_name }} {{ site.middle_name }}  {{ site.last_name }}{% endif %}"/>
+      </a>
+      {% comment %}
+      {% if page.title != "about" %}
+      <a class="navbar-brand title font-weight-lighter" href="{{ site.baseurl | prepend: site.url }}/">
+       {% if site.title == blank %}{{ site.title }}{% else %}<span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }}  {{ site.last_name }}{% endif %}
+      </a>
+      {% elsif site.show_social_icons %}
         <!-- Social Icons -->
-        <div class="navbar-brand social">{% include social.liquid %}</div>
+        <div class="row ml-1 ml-sm-0">
+          {% include social.html %}
+        </div>
       {% endif %}
+      {% endcomment %}
       <!-- Navbar Toggle -->
       <button
         class="navbar-toggler collapsed ml-auto"
