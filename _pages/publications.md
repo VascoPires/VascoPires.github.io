@@ -7,6 +7,11 @@ nav: true
 nav_order: 2
 ---
 
+<div class="academic_social contact-icons">
+{% include academic_social.html %}
+</div>
+
+
 <!-- _pages/publications.md -->
 
 <!-- Bibsearch Feature -->
