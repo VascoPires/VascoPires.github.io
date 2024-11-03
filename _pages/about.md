@@ -23,6 +23,11 @@ social: true  # includes social icons at the bottom of the page
 > <i class="fas fa-quote-right"></i><br />
 > —&nbsp;Elijah Aron & Jordan Young
 
+> <i class="fas fa-quote-left"></i>
+> “Where should I go?” –&nbsp;Alice. <br />
+> “That depends on where you want to end up.” –&nbsp;The&nbsp;Cheshire&nbsp;Cat.
+> <i class="fas fa-quote-right"></i><br />
+> —&nbsp;Lewis Carroll
 
 Hi! I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). Most of my work revolves around simulating composite materials, diving into how they behave and finding ways to improve them. It is a fascinating area with a lot of challenges, and I hope my work, even in small ways, can contribute to advancements that make a difference — whether that's in exploring new planets, improving satellite surveillance, or reducing the weight and emissions of aircraft. It’s really rewarding to know that what I do could have such a broad impact.
 
