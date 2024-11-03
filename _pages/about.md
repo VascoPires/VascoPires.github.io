@@ -23,10 +23,9 @@ social: true  # includes social icons at the bottom of the page
 > <i class="fas fa-quote-right"></i><br />
 > —&nbsp;Elijah Aron & Jordan Young
 
-Hi! I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). Most of my work revolves around simulating composite materials, diving into how they behave and finding ways to improve them. It is a fascinating area with a lot of challenges, and I hope my work, even in small ways, can contribute to advancements that make a difference — whether that's in exploring new planets, improving satellite surveillance, or reducing the weight and emissions of aircraft. It’s really rewarding to know that what I do could have such a broad impact.
+Hi! I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). Most of my work revolves around simulating composite materials, diving into how they behave and finding ways to improve them. It is a fascinating area with a lot of challenges, and I hope my work, even in small ways, can contribute to advancements that make a difference — whether that's in exploring new planets, improving satellite surveillance, or reducing the weight and emissions of aircraft.
 
-I am very committed to teaching and mentoring, because
- , On the side, I also get into 3D modeling, design work, and a bit of machine learning when I can. 
+I’m passionate about teaching and mentoring, always looking for ways to make learning more engaging and interactive, especially through visualization techniques. This was the main reason for the creation of my YouTube channel. On the side, I enjoy exploring 3D modeling, design, and even dabbling in a bit of machine learning whenever I get the chance.
 
 <!--
 Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.test
