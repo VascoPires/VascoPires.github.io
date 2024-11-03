@@ -28,14 +28,14 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.2573366"
-     inkscape:cx="130.03678"
-     inkscape:cy="669.27186"
+     inkscape:cx="97.825833"
+     inkscape:cy="755.16771"
      inkscape:window-width="2560"
      inkscape:window-height="1367"
      inkscape:window-x="1911"
      inkscape:window-y="35"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g678-1"
+     inkscape:current-layer="layer1"
      showguides="true" /><defs
      id="defs31791"><inkscape:path-effect
        effect="powerstroke"
@@ -78,7 +78,7 @@
        id="g678-1"
        inkscape:label="Logo cor inline"
        transform="matrix(0.40486981,0,0,0.40486981,-230.27356,-87.895145)"
-       inkscape:export-filename=".\vp-logo.svg"
+       inkscape:export-filename="vp-logo_in_line.svg"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96"><g
          id="g666-1"
@@ -122,6 +122,6 @@
          inkscape:label="nome"><tspan
            x="2582"
            y="2639.9938"
-           id="tspan2331"><tspan
-             style="font-size:96px;font-family:'Bebas Neue';-inkscape-font-specification:'Bebas Neue Bold';fill:#000000"
-             id="tspan2329">vasco pires</tspan></tspan></text></g></g></svg>
+           id="tspan21027"><tspan
+             style="font-weight:normal;font-size:96px;font-family:'Bebas Neue';-inkscape-font-specification:'Bebas Neue';fill:#000000"
+             id="tspan21025">vasco pires</tspan></tspan></text></g></g></svg>
