@@ -11,6 +11,11 @@ nav_order: 2
 {% include academic_social.html %}
 </div>
 
+<div class="social">
+    <div class="contact-icons">
+    {% include academic_social.html %}
+    </div>
+</div>
 
 <!-- _pages/publications.md -->
 
