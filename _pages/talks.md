@@ -7,7 +7,7 @@ nav: true
 nav_order: 2
 ---
 
-Below you can find a list of talks that I gave or contributed throughout the years on conferences and other events. p style="text-decoration:underline;"><a href="/talkmap/map.html">Here's a map showcasing the places where these talks took place.
+Below you can find a list of talks that I gave or contributed throughout the years on conferences and other events. <a href="talkmap.md">Here's a map showcasing the places where these talks took place.
 
 {% include bib_search.liquid %}
 
