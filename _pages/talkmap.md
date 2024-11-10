@@ -3,7 +3,7 @@ layout: page
 permalink: /talkmap/
 title: talkmap
 description: Map of the talks or presentations that I did throughout the years. 
-nav: true
+nav: false
 nav_order: 8
 ---
 
