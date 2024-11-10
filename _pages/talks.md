@@ -10,10 +10,12 @@ nav_order: 2
 <iframe src="/talkmap/map.html" height="700" width="850" style="border:none;"></iframe>
 
 
+Below you can find a list of talks that I gave or contributed throughout the years on conferences and other events.
+
 {% include bib_search.liquid %}
 
 <div class="publications">
 
-{% bibliography -f papers %}
+{% bibliography -f talks %}
 
 </div>
