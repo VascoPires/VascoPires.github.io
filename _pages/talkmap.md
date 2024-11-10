@@ -1,6 +1,6 @@
 ---
 layout: page
-permalink: /talkmap/
+permalink: talks/talkmap/
 title: talkmap
 description: Map of the talks or presentations that I did throughout the years. 
 nav: false
