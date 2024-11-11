@@ -7,25 +7,3 @@
 
 "Vision":
   color: "#009f36"
-
-"ECCM21":
-<<<<<<< HEAD
-  url: https://eccm21.org
-
-"engBRASIL 2020":
-  url: https://www.redepdimat.org/engbrasil2020
-  color: "#009485"
-
-"CNB 2021":
-  url: https://cnbio2021.wixsite.com/cnb2021
-  color: "#009485"
-
-"CNB 2023":
-  color: "#009485"
-
-"EUGLOH":
-  url: https://www.eugloh.eu/events/eugloh-annual-student-research-conference
-  color: "#009485"
-=======
-  url: https://eccm21.org
->>>>>>> parent of f153572 (update talks covid19)
