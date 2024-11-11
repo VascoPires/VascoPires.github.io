@@ -9,6 +9,7 @@
   color: "#009f36"
 
 "ECCM21":
+<<<<<<< HEAD
   url: https://eccm21.org
 
 "engBRASIL 2020":
@@ -25,3 +26,6 @@
 "EUGLOH":
   url: https://www.eugloh.eu/events/eugloh-annual-student-research-conference
   color: "#009485"
+=======
+  url: https://eccm21.org
+>>>>>>> parent of f153572 (update talks covid19)
