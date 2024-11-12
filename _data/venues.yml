@@ -1,6 +1,7 @@
 "WSW2024":
+  url: https://aapt.scitation.org/journal/ajp
   color: "#00369f"
-
+  
 "EUGLOH":
   color: "#D0F1BF"
 
@@ -11,4 +12,4 @@
   color: "#D0F1BF"
 
 "CNB2023":
-  color: "#D0F1BF"
+  color: "#00369f"
