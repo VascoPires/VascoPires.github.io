@@ -4,7 +4,7 @@
 
 title: blank # the website title (if blank, full name will be used instead)
 first_name: Vasco
-middle_name: D.C
+middle_name: D. C.
 last_name: Pires
 email: vasco.castro-pires@unileoben.ac.at
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
@@ -320,7 +320,7 @@ scholar:
   source: /_bibliography/
   bibliography: papers.bib
   bibliography_template: bib
-  # Note: if you have latex math in your bibtex, the latex filter
+  # Note: if you have latex math in your bibtex, the latex filterApanhados na rede
   # preprocessing may conflict with MathJAX if the latter is enabled.
   # See https://github.com/alshedivat/al-folio/issues/357.
   bibtex_filters: [latex, smallcaps, superscript]
