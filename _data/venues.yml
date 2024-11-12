@@ -4,28 +4,59 @@
 
 
 "WSW2024":
-  url: https://aapt.scitation.org/journal/ajp
-  color: "#00369f"
+  url: https://spaceworkshop.fi/program2024.html
+  color: "#006dff"
 
 "EUGLOH":
-  url: https://journals.aps.org/
-  color: "#D0F1BF"
+  url: https://www.eugloh.eu/events/eugloh-annual-student-research-conference
+  color: "#007b0c"
 
 "Vision":
   color: "#009f36"
 
 "CNB2021":
-  url: https://journals.aps.org/
-  color: "#D0F1BF"
+  url: https://cnbio2021.wixsite.com/cnb2021
+  color: "#007b0c"
 
 "engBRASIL2020":
-  url: https://journals.aps.org/
-  color: "#D0F1BF"
+  url: https://www.redepdimat.org/engbrasil2020
+  color: "#007b0c"
 
 "CNB2023":
-  url: https://journals.aps.org/
-  color: "#00369f"
+  url: https://10cnb2023.pt/
+  color: "#007b0c"
 
-"Alpbach"
+"IAA2024":
+  url: https://www.fe.up.pt/iaa/2024/
+
+"VBE2023":
+  url: https://www.fe.up.pt/vbe/2023/
+
+"SMP2023":
+  url: https://spmateriais.pt/site/2023/11/17/dia-mundial-dos-materiais-em-revista/
+
+"IJUP2023":
+  url: https://www.up.pt/ijup/ijup-2023/
+
+"IAMAC2023":
+  url: https://iamac.eesc.usp.br/
+
+"EGU23":
+  url: https://egu23.eu
+  color: "#006dff"
+
+"Ab2023":
+  url: https://fe.up.pt/abconference/2023/
+
+"AJP2023":
+  url: https://www.fe.up.pt/ajp/2023/
+
+"M5AG2022":
+  url: https://ag2022.astronomische-gesellschaft.de/index.php)
+  color: "#006dff"
+
+"Alpbach":
   url: https://www.summerschoolalpbach.at
   color: "#006dff"
+
+
