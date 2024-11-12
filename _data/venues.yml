@@ -4,16 +4,19 @@
 
 "EUGLOH":
   url: https://journals.aps.org/
-  color: "#00369f"
+  color: "#D0F1BF"
 
 "Vision":
   color: "#009f36"
 
 "CNB2021":
+  url: https://journals.aps.org/
   color: "#D0F1BF"
 
 "engBRASIL2020":
+  url: https://journals.aps.org/
   color: "#D0F1BF"
 
 "CNB2023":
+  url: https://journals.aps.org/
   color: "#00369f"
