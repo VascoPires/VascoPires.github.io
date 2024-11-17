@@ -2,7 +2,6 @@
 layout: page
 permalink: /talks/
 title: talks
-description: Talks or oral and poster presentations that I did throughout the years. 
 nav: true
 nav_order: 2
 ---
