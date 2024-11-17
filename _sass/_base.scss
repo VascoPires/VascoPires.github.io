@@ -12,6 +12,7 @@
 
 
 p,
+h1,
 h2,
 h3,
 h4,
@@ -25,10 +26,6 @@ strong {
   color: var(--global-text-color);
 }
 
-h1 {
-  font-family: "Sedgwick Ave", serif;
-  color: var(--global-text-color);
-}
 
 hr {
   border-top: 1px solid var(--global-divider-color);
@@ -528,6 +525,7 @@ footer.sticky-bottom {
   padding-bottom: 3rem;
 
   h1 {
+    font-family: "Sedgwick Ave", serif;
     color: var(--global-theme-color);
     font-size: 5rem;
   }
