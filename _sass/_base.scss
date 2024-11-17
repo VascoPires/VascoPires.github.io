@@ -4,6 +4,13 @@
 
 // Typography
 
+.sedgwick-ave-regular {
+  font-family: "Sedgwick Ave", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
 p,
 h1,
 h2,
@@ -289,6 +296,7 @@ ul.task-list input[type="checkbox"] {
 
   .navbar-nav .nav-item .nav-link {
     color: var(--global-text-color);
+    font-family: "Sedgwick Ave", serif;
 
     &:hover {
       color: var(--global-hover-color);
