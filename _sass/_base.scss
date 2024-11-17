@@ -12,7 +12,6 @@
 
 
 p,
-h1,
 h2,
 h3,
 h4,
@@ -23,6 +22,11 @@ div,
 li,
 span,
 strong {
+  color: var(--global-text-color);
+}
+
+h1 {
+  font-family: "Sedgwick Ave", serif;
   color: var(--global-text-color);
 }
 
@@ -551,7 +555,6 @@ footer.sticky-bottom {
 .post-title {
   mjx-container[jax="CHTML"][display="true"] {
     display: unset;
-    font-family: "Sedgwick Ave", serif;
   }
 }
 
