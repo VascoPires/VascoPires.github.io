@@ -1,6 +1,6 @@
 ---
 layout: page
-title: submenus
+title: academic stuff
 nav: false
 nav_order: 8
 dropdown: false
@@ -8,9 +8,9 @@ children:
   - title: publications
     permalink: /publications/
   - title: divider
-  - title: projects
-    permalink: /projects/
+  - title: talks
+    permalink: /talks/
   - title: divider
-  - title: blog
-    permalink: /blog/
+  - title: cv
+    permalink: /cv/
 ---
