@@ -2,7 +2,7 @@
 layout: page
 permalink: /publications/
 title: publications
-nav: true
+nav: false
 nav_order: 2
 ---
 Here you can find a list of all my peer-reviewed publications. You can also find my citation profiles below.
