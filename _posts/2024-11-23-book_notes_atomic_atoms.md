@@ -1,25 +1,12 @@
 ---
 layout: distill
-title: a distill-style blog post
+title: Atomic Habits (James Clear) - Changing with Habits
 description: an example of a distill-style blog post and main elements
-tags: distill formatting
+tags: book notes
 giscus_comments: true
-date: 2021-05-22
+date: 2024-11-23
 featured: true
 
-authors:
-  - name: Albert Einstein
-    url: "https://en.wikipedia.org/wiki/Albert_Einstein"
-    affiliations:
-      name: IAS, Princeton
-  - name: Boris Podolsky
-    url: "https://en.wikipedia.org/wiki/Boris_Podolsky"
-    affiliations:
-      name: IAS, Princeton
-  - name: Nathan Rosen
-    url: "https://en.wikipedia.org/wiki/Nathan_Rosen"
-    affiliations:
-      name: IAS, Princeton
 
 bibliography: 2018-12-22-distill.bib
 
@@ -30,17 +17,13 @@ bibliography: 2018-12-22-distill.bib
 #   - we may want to automate TOC generation in the future using
 #     jekyll-toc plugin (https://github.com/toshimaru/jekyll-toc).
 toc:
-  - name: Equations
+  - name: The power of habits
     # if a section has subsections, you can add them as follows:
     # subsections:
     #   - name: Example Child Subsection 1
     #   - name: Example Child Subsection 2
-  - name: Citations
-  - name: Footnotes
-  - name: Code Blocks
-  - name: Interactive Plots
-  - name: Layouts
-  - name: Other Typography?
+  - name: Habits and Identity
+  - name: Getting Started with a New Habit
 
 # Below is an example of injecting additional post-specific styles.
 # If you use this post as a template, delete this _styles block.
@@ -61,261 +44,44 @@ _styles: >
   }
 ---
 
-## Equations
+## The power of habits
 
-This theme supports rendering beautiful math in inline and display modes using [MathJax 3](https://www.mathjax.org/) engine.
-You just need to surround your math expression with `$$`, like `$$ E = mc^2 $$`.
-If you leave it inside a paragraph, it will produce an inline expression, just like $$ E = mc^2 $$.
+Habits are the closest thing we humans have to a superpower. Most of the big or amazing things we admire — like launching a successful company, writing a book, finishing a degree, or winning a marathon — aren’t achieved in a single, grand effort. Yet, we often convince ourselves that big achievements demand equally big actions.
 
-To use display mode, again surround your expression with `$$` and place it as a separate paragraph.
-Here is an example:
+The truth is, to accomplish great things, we need a system that allows small contributions to build over time. That’s where habits come in. They’re the glue that binds together all those tiny decisions and actions, turning them into something much greater. Habits give us consistency, and consistency is the real key to progress.
 
-$$
-\left( \sum_{k=1}^n a_k b_k \right)^2 \leq \left( \sum_{k=1}^n a_k^2 \right) \left( \sum_{k=1}^n b_k^2 \right)
-$$
+As the book says, even a 1% improvement every day can make a massive difference in the long run. It’s just like how compound interest works: small gains, repeated over time, can create extraordinary results.
 
-Note that MathJax 3 is [a major re-write of MathJax](https://docs.mathjax.org/en/latest/upgrading/whats-new-3.0.html) that brought a significant improvement to the loading and rendering speed, which is now [on par with KaTeX](http://www.intmath.com/cg5/katex-mathjax-comparison.php).
+> Habits are the compound interest of self-improvement.
+> 
 
----
+Consistency is powerful, but it works both ways. While it’s ideal to stay consistent with positive habits — like exercising, reading, or spending quality time with loved ones — habits are a double-edged sword. Just as good habits can lead to incredible growth, toxic habits can drag us down and ripple across different areas of our lives.
 
-## Citations
+For instance, we all know that poor diet, bad sleep, and a sedentary lifestyle eventually take a toll on our physical health. But it’s not just our bodies at risk. Allowing stress, negative thoughts, and unprocessed frustrations to build up can severely impact our mental well-being too. And I personally struggled a good portion of my life with that. That’s why it’s not just about learning to build good habits — it is equally important  to identify and break the negative ones so that their affect is minimized in our lives.
 
-Citations are then used in the article body with the `<d-cite>` tag.
-The key attribute is a reference to the id provided in the bibliography.
-The key attribute can take multiple ids, separated by commas.
+## Habits and Identity
 
-The citation is presented inline like this: <d-cite key="gregor2015draw"></d-cite> (a number that displays more information on hover).
-If you have an appendix, a bibliography is automatically created and populated in it.
+Now that we’ve established the power of habits, you might be wondering: “Okay, but how do I build habits that actually stick? I always end up dropping them.” The key concept, in a nutshell, is this: for habits to stick, you need to change your identity.
+Instead of focusing on specific goals that are finite and might lose their pull once you reach them, try reframing your mindset so that ***you become*** the kind of person who naturally does those habits. Reaching the goal is simply a byproduct. For example, instead of thinking, “I want to lose fat, so I need to eat healthily and exercise,” which can lead to slipping back into old habits once the goal is achieved, try an identity-based approach. Tell yourself: “I am a healthy person.” When you see yourself as a healthy person, eating well and exercising regularly become natural parts of your lifestyle, because that’s what a healthy person does. Losing fat simply is a natural side effect. This shift in identity not only makes these actions sustainable but you are also much more likely to maintain such habits in the long term, since you are no longer focused on achieving a specific goal which is finite.
 
-Distill chose a numerical inline citation style to improve readability of citation dense articles and because many of the benefits of longer citations are obviated by displaying more information on hover.
-However, we consider it good style to mention author last names if you discuss something at length and it fits into the flow well — the authors are human and it’s nice for them to have the community associate them with their work.
+Another example to illustrate this ideas could be reading. You might think, “I try to read whenever I can,” but what if instead, you thought, “I am a reader”? Identifying as a reader makes it far more likely you’ll stick to the habit because it’s now part of who you are. Breaking or neglecting it would require extra effort because you’d be contradicting your own identity. You would generate a much higher amount of friction on this case than if you told yourself that you read whenever you can. 
 
----
+However, reaching this point requires intentionality and effort. If you want **to be a reader**, you need to set aside dedicated time each week for reading. If you want **to be fit**, you’ll need to commit to practicing some form of physical activity 2–3 times a week. And if you want **to be healthy** while enjoying tasty meals, you’ll have to invest time in finding recipes, buying fresh ingredients, and preparing those meals. 
 
-## Footnotes
+## Getting Started with a New Habit
 
-Just wrap the text you would like to show up in a footnote in a `<d-footnote>` tag.
-The number of the footnote will be automatically generated.<d-footnote>This will become a hoverable footnote.</d-footnote>
+The initial stage of building a new habit often requires a certain level of “sacrifice.” And, as with most things in life, the hardest part is simply getting started. Shifting your identity doesn’t happen overnight, so how do you begin?
 
----
+Before diving into the actionable tips from the book, the first step is to choose your identity. Think of it this way: your identity is inherently tied to your habits. Even before learning about habit formation, your current identity is shaped by the habits you’ve practiced throughout your life. Habits, in essence, are mental shortcuts your brain creates for specific circumstances. If X happens, then do Y. These shortcuts exist to conserve mental energy, which is why your brain is naturally inclined to form habits. 
 
-## Code Blocks
+In many ways, a habit is also a memory — a learned response to a particular setting. Your brain saves these "memories" because they help you better prepare for and predict the future. When you consistently perform a habit, it reinforces your identity as someone who engages in that behavior. It’s a two-way road — a self-reinforcing cycle.
 
-Syntax highlighting is provided within `<d-code>` tags.
-An example of inline code snippets: `<d-code language="html">let x = 10;</d-code>`.
-For larger blocks of code, add a `block` attribute:
+Here’s an analogy: every time you perform an action, you’re “casting a vote” for the type of person you want to become. For example, if you draw regularly, you’re casting votes toward being an artist. The more you draw, the stronger your identity as an artist becomes. No one would call themselves an artist after sketching once, but someone who draws every day naturally earns that title. It is that consistency that defines the identity. You convince yourself by voting enough times on something. And as any democratic election, you don’t need a flawless victory or unanimous votes, you only need the majority of votes. No one is perfect and sometimes we vote on other things. That is okay.
 
-<d-code block language="javascript">
-  var x = 25;
-  function(x) {
-    return x * x;
-  }
-</d-code>
+Of course, adopting new habits often means making time for them. This is the part of “sacrifice” that I mentioned earlier. For instance, scheduling these activities might mean spending less time scrolling on social media or watching Netflix. Since we all have the same 24 hours in a day, being intentional with how you allocate your time is crucial. You simply can’t do everything. And to be clear, I’m not saying scrolling or watching Netflix is inherently bad. If you’re intentionally choosing to unwind in these ways and they serve a purpose for you — like fuelling your creativity or helping you relax — then by all means, enjoy it. But if you find yourself binging TV shows or endlessly scrolling out of boredom, without planning to, then you’re acting reactively, not intentionally.
 
-**Note:** `<d-code>` blocks do not look good in the dark mode.
-You can always use the default code-highlight using the `highlight` liquid tag:
+This ties directly into habit-building. Living intentionally helps you prioritize the habits that matter most to you and makes space for them in your life. While I could dive deeper into intentional living (and perhaps I will in the future, and I will leave a link here on this post if I do), I want to maintain this post focused specifically on habits. 
 
-{% highlight javascript %}
-var x = 25;
-function(x) {
-return x \* x;
-}
-{% endhighlight %}
+Ultimately, the goal of habit-building is to align your actions with your chosen identity. You decide the type of person you want to become and then “vote” for that identity with your actions, over and over, until it becomes who you are. It’s a process that requires time and discipline, but the payoff is worth it. Once a habit is fully formed, it becomes second nature — as effortless as brushing your teeth. Interestingly, the more good habits you build, the more freedom you gain. While some argue that repeatedly doing the same things creates a boring, restricted life, it’s actually the opposite. Habits, especially foundational ones, free up your mental capacity. When these behaviours run on autopilot, they no longer require conscious thought, leaving you with more energy to explore new challenges, creative work or anything that you interesting. In this way, building habits isn’t just about providing structure to your life, it is the key for long lasting freedom. 
 
----
-
-## Interactive Plots
-
-You can add interative plots using plotly + iframes :framed_picture:
-
-<div class="l-page">
-  <iframe src="{{ '/assets/plotly/demo.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%" style="border: 1px dashed grey;"></iframe>
-</div>
-
-The plot must be generated separately and saved into an HTML file.
-To generate the plot that you see above, you can use the following code snippet:
-
-{% highlight python %}
-import pandas as pd
-import plotly.express as px
-df = pd.read_csv(
-'https://raw.githubusercontent.com/plotly/datasets/master/earthquakes-23k.csv'
-)
-fig = px.density_mapbox(
-df,
-lat='Latitude',
-lon='Longitude',
-z='Magnitude',
-radius=10,
-center=dict(lat=0, lon=180),
-zoom=0,
-mapbox_style="stamen-terrain",
-)
-fig.show()
-fig.write_html('assets/plotly/demo.html')
-{% endhighlight %}
-
----
-
-## Details boxes
-
-Details boxes are collapsible boxes which hide additional information from the user. They can be added with the `details` liquid tag:
-
-{% details Click here to know more %}
-Additional details, where math $$ 2x - 1 $$ and `code` is rendered correctly.
-{% enddetails %}
-
----
-
-## Layouts
-
-The main text column is referred to as the body.
-It is the assumed layout of any direct descendants of the `d-article` element.
-
-<div class="fake-img l-body">
-  <p>.l-body</p>
-</div>
-
-For images you want to display a little larger, try `.l-page`:
-
-<div class="fake-img l-page">
-  <p>.l-page</p>
-</div>
-
-All of these have an outset variant if you want to poke out from the body text a little bit.
-For instance:
-
-<div class="fake-img l-body-outset">
-  <p>.l-body-outset</p>
-</div>
-
-<div class="fake-img l-page-outset">
-  <p>.l-page-outset</p>
-</div>
-
-Occasionally you’ll want to use the full browser width.
-For this, use `.l-screen`.
-You can also inset the element a little from the edge of the browser by using the inset variant.
-
-<div class="fake-img l-screen">
-  <p>.l-screen</p>
-</div>
-<div class="fake-img l-screen-inset">
-  <p>.l-screen-inset</p>
-</div>
-
-The final layout is for marginalia, asides, and footnotes.
-It does not interrupt the normal flow of `.l-body` sized text except on mobile screen sizes.
-
-<div class="fake-img l-gutter">
-  <p>.l-gutter</p>
-</div>
-
----
-
-## Other Typography?
-
-Emphasis, aka italics, with _asterisks_ (`*asterisks*`) or _underscores_ (`_underscores_`).
-
-Strong emphasis, aka bold, with **asterisks** or **underscores**.
-
-Combined emphasis with **asterisks and _underscores_**.
-
-Strikethrough uses two tildes. ~~Scratch this.~~
-
-1. First ordered list item
-2. Another item
-   ⋅⋅\* Unordered sub-list.
-3. Actual numbers don't matter, just that it's a number
-   ⋅⋅1. Ordered sub-list
-4. And another item.
-
-⋅⋅⋅You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
-
-⋅⋅⋅To have a line break without a paragraph, you will need to use two trailing spaces.⋅⋅
-⋅⋅⋅Note that this line is separate, but within the same paragraph.⋅⋅
-⋅⋅⋅(This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
-
-- Unordered list can use asterisks
-
-* Or minuses
-
-- Or pluses
-
-[I'm an inline-style link](https://www.google.com)
-
-[I'm an inline-style link with title](https://www.google.com "Google's Homepage")
-
-[I'm a reference-style link][Arbitrary case-insensitive reference text]
-
-[You can use numbers for reference-style link definitions][1]
-
-Or leave it empty and use the [link text itself].
-
-URLs and URLs in angle brackets will automatically get turned into links.
-http://www.example.com or <http://www.example.com> and sometimes
-example.com (but not on Github, for example).
-
-Some text to show that the reference links can follow later.
-
-[arbitrary case-insensitive reference text]: https://www.mozilla.org
-[1]: http://slashdot.org
-[link text itself]: http://www.reddit.com
-
-Here's our logo (hover to see the title text):
-
-Inline-style:
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
-
-Reference-style:
-![alt text][logo]
-
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
-
-Inline `code` has `back-ticks around` it.
-
-```javascript
-var s = "JavaScript syntax highlighting";
-alert(s);
-```
-
-```python
-s = "Python syntax highlighting"
-print s
-```
-
-```
-No language indicated, so no syntax highlighting.
-But let's throw in a <b>tag</b>.
-```
-
-Colons can be used to align columns.
-
-| Tables        |      Are      |  Cool |
-| ------------- | :-----------: | ----: |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      |   centered    |   $12 |
-| zebra stripes |   are neat    |    $1 |
-
-There must be at least 3 dashes separating each header cell.
-The outer pipes (|) are optional, and you don't need to make the
-raw Markdown line up prettily. You can also use inline Markdown.
-
-| Markdown | Less      | Pretty     |
-| -------- | --------- | ---------- |
-| _Still_  | `renders` | **nicely** |
-| 1        | 2         | 3          |
-
-> Blockquotes are very handy in email to emulate reply text.
-> This line is part of the same quote.
-
-Quote break.
-
-> This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can _put_ **Markdown** into a blockquote.
-
-Here's a line for us to start with.
-
-This line is separated from the one above by two newlines, so it will be a _separate paragraph_.
-
-This line is also a separate paragraph, but...
-This line is only separated by a single newline, so it's a separate line in the _same paragraph_.
+Now that we’ve established some of the key ideas around identity and habit formation, let’s dive into the practical side. Thankfully, James Clear provides actionable tips and behavior-based laws to guide us through this process. I’ll cover those next.
