@@ -1,8 +1,8 @@
 ---
 layout: distill
-title: Atomic Habits (James Clear) - Changing with Habits
-description: an example of a distill-style blog post and main elements
-tags: book notes
+title: Atomic Habits (James Clear) - Book Notes
+description: Tiny changes for huge outcomes
+tags: book notes, habits
 giscus_comments: true
 date: 2024-11-23
 featured: true
