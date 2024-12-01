@@ -237,7 +237,7 @@ ul.task-list input[type="checkbox"] {
 
 @media (min-width: 576px) {
   .profile {
-    width: 30%;
+    width: 40%;
 
     .address {
       p {
@@ -289,10 +289,12 @@ ul.task-list input[type="checkbox"] {
 
 .dropdown-item {
   color: var(--global-text-color);
+  font-weight: 600;
 
   &:hover {
     color: var(--global-hover-color);
     background-color: var(--global-bg-color);
+    font-weight: 600;
   }
 }
 
@@ -309,7 +311,8 @@ ul.task-list input[type="checkbox"] {
 
   .navbar-nav .nav-item .nav-link {
     color: var(--global-text-color);
-    font-family: "Sedgwick Ave", serif;
+    font-family: "Manrope", sans-serif;
+    font-weight: 600;
 
     &:hover {
       color: var(--global-hover-color);
@@ -318,7 +321,7 @@ ul.task-list input[type="checkbox"] {
 
   .navbar-nav .nav-item.active > .nav-link {
     background-color: inherit;
-    font-weight: bolder;
+    font-weight: 600;
     color: var(--global-theme-color);
 
     &:hover {
@@ -1023,14 +1026,17 @@ progress::-moz-progress-bar {
 
   .dropdown-menu {
     background-color: var(--global-bg-color);
+    font-weight: 600;
   }
 
   .dropdown-item {
     background-color: var(--global-bg-color);
     color: var(--global-text-color);
+    font-weight: 600;
 
     &:hover {
       color: var(--global-hover-color);
+      font-weight: 600;
     }
   }
 
@@ -1038,9 +1044,11 @@ progress::-moz-progress-bar {
   .dropdown-item:active {
     background-color: var(--global-hover-color);
     color: var(--global-hover-text-color) !important;
+    font-weight: 600;
 
     &:hover {
       color: var(--global-hover-text-color);
+      font-weight: 600;
     }
   }
 }
