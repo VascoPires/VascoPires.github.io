@@ -85,3 +85,42 @@ This ties directly into habit-building. Living intentionally helps you prioritiz
 Ultimately, the goal of habit-building is to align your actions with your chosen identity. You decide the type of person you want to become and then “vote” for that identity with your actions, over and over, until it becomes who you are. It’s a process that requires time and discipline, but the payoff is worth it. Once a habit is fully formed, it becomes second nature — as effortless as brushing your teeth. Interestingly, the more good habits you build, the more freedom you gain. While some argue that repeatedly doing the same things creates a boring, restricted life, it’s actually the opposite. Habits, especially foundational ones, free up your mental capacity. When these behaviours run on autopilot, they no longer require conscious thought, leaving you with more energy to explore new challenges, creative work or anything that you interesting. In this way, building habits isn’t just about providing structure to your life, it is the key for long lasting freedom. 
 
 Now that we’ve established some of the key ideas around identity and habit formation, let’s dive into the practical side. Thankfully, James Clear provides actionable tips and behavior-based laws to guide us through this process. I’ll cover those next.
+
+```geojson
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -3.162613728707967
+            ],
+            [
+              -59.820894493858034,
+              -2.904625022183211
+            ],
+            [
+              -60.11363029935569,
+              -2.904625022183211
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      }
+    }
+  ]
+}
+```

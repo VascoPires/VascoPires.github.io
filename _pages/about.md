@@ -33,7 +33,7 @@ I am passionate about teaching and mentoring, always looking for ways to make le
 
 On the side, I enjoy writing about topics that excite me. My blog is where I share book reviews and personal lessons on various subjects, often focused on improving different areas of life. It’s a space where I reflect, learn, and connect with others who are on similar journeys.
 
-Thanks for stopping by, and I hope you find something here that resonates with you!
+Thanks for stopping by! If any of what I said resonated with you and want to hear more about me, feel free to sign up to my newsletter (my goal is to write something at least every week). 
 
 <!--
 Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.test
