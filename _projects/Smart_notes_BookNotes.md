@@ -43,7 +43,6 @@ _styles: >
 </div>
 
 
-
 ## 🪝Thoughts Before the Notes
 Everybody writes. From a young age, most of us were taught how to write in school and take notes. We note stuff down because we don’t want to forget them. In doing so, we acknowledge an important truth: our brains (at least for most people) are not great at storing information, especially knowledge that doesn’t seem immediately useful.
 
