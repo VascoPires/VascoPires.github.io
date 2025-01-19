@@ -1,14 +1,16 @@
 ---
 layout: distill
-title: Atomic Habits (James Clear) - Book Notes
-description: Tiny changes for huge outcomes
-tags: book notes, habits
+title: Atomic Habits (James Clear) - Summary and notes
+description: Small changes for huge outcomes
+img: assets/img/atomic_habits.jpg
+importance: 1
+category: productivity
 giscus_comments: true
 date: 2024-11-23
-featured: true
+related_publications: true
 
 
-bibliography: 2018-12-22-distill.bib
+# bibliography: 2018-12-22-distill.bib
 
 # Optionally, you can add a table of contents to your post.
 # NOTES:
@@ -44,7 +46,28 @@ _styles: >
   }
 ---
 
-## The power of habits
+## 🖋️ One Paragraph Book Summary
+<div style="display: flex; width: 100%; border-radius: 4px; border: 1px solid transparent; background: rgba(216, 164, 127, 0.2); padding: 12px 16px;">
+  <div style="margin-top: 4px;"></div>
+  <div style="display: flex; flex-direction: column; margin-left: 8px; width: 100%; min-height: 32px;">
+    <div style="width: 100%; margin-top: 2px;">
+      <div contenteditable="true" style="width: 100%; white-space: pre-wrap; word-break: break-word; padding: 3px 2px; outline: none;">Write your summary here</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<aside>
+💡
+
+Write your summary here
+
+</aside>
+
+### The power of habits
 
 Habits are the closest thing we humans have to a superpower. Most of the big or amazing things we admire — like launching a successful company, writing a book, finishing a degree, or winning a marathon — aren’t achieved in a single, grand effort. Yet, we often convince ourselves that big achievements demand equally big actions.
 
@@ -59,7 +82,7 @@ Consistency is powerful, but it works both ways. While it’s ideal to stay cons
 
 For instance, we all know that poor diet, bad sleep, and a sedentary lifestyle eventually take a toll on our physical health. But it’s not just our bodies at risk. Allowing stress, negative thoughts, and unprocessed frustrations to build up can severely impact our mental well-being too. And I personally struggled a good portion of my life with that. That’s why it’s not just about learning to build good habits — it is equally important  to identify and break the negative ones so that their affect is minimized in our lives.
 
-## Habits and Identity
+### Habits and Identity
 
 Now that we’ve established the power of habits, you might be wondering: “Okay, but how do I build habits that actually stick? I always end up dropping them.” The key concept, in a nutshell, is this: for habits to stick, you need to change your identity.
 Instead of focusing on specific goals that are finite and might lose their pull once you reach them, try reframing your mindset so that ***you become*** the kind of person who naturally does those habits. Reaching the goal is simply a byproduct. For example, instead of thinking, “I want to lose fat, so I need to eat healthily and exercise,” which can lead to slipping back into old habits once the goal is achieved, try an identity-based approach. Tell yourself: “I am a healthy person.” When you see yourself as a healthy person, eating well and exercising regularly become natural parts of your lifestyle, because that’s what a healthy person does. Losing fat simply is a natural side effect. This shift in identity not only makes these actions sustainable but you are also much more likely to maintain such habits in the long term, since you are no longer focused on achieving a specific goal which is finite.
@@ -68,7 +91,7 @@ Another example to illustrate this ideas could be reading. You might think, “I
 
 However, reaching this point requires intentionality and effort. If you want **to be a reader**, you need to set aside dedicated time each week for reading. If you want **to be fit**, you’ll need to commit to practicing some form of physical activity 2–3 times a week. And if you want **to be healthy** while enjoying tasty meals, you’ll have to invest time in finding recipes, buying fresh ingredients, and preparing those meals. 
 
-## Getting Started with a New Habit
+### Getting Started with a New Habit
 
 The initial stage of building a new habit often requires a certain level of “sacrifice.” And, as with most things in life, the hardest part is simply getting started. Shifting your identity doesn’t happen overnight, so how do you begin?
 
@@ -86,41 +109,3 @@ Ultimately, the goal of habit-building is to align your actions with your chosen
 
 Now that we’ve established some of the key ideas around identity and habit formation, let’s dive into the practical side. Thankfully, James Clear provides actionable tips and behavior-based laws to guide us through this process. I’ll cover those next.
 
-```geojson
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          [
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ]
-          ]
-        ],
-        "type": "Polygon"
-      }
-    }
-  ]
-}
-```

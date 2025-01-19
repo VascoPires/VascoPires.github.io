@@ -1,13 +1,27 @@
 ---
-layout: page
-title: projects
-permalink: /projects/
+layout: default
+title: book notes
+permalink: /books/
 description: A growing collection of your cool projects.
-nav: false
+nav: true
 nav_order: 3
-display_categories: [work, fun]
+display_categories: [productivity]
 horizontal: false
 ---
+
+<div class="post">
+
+{% assign blog_name_size = site.blog_name | size %}
+{% assign blog_description_size = site.blog_description | size %}
+
+{% if blog_name_size > 0 or blog_description_size > 0 %}
+
+  <div class="header-bar" style="border: none; margin-bottom: 0;">
+    <h1>{{ 'Made with Pages' }}</h1>
+    <h2>{{ 'Some notes and summaries about the best books I read.' }}</h2>
+  </div>
+  {% endif %}
+
 
 <!-- pages/projects.md -->
 <div class="projects">

@@ -1,4 +1,27 @@
-<div class="col">
+<style>
+  /* Add custom CSS */
+  .custom-box {
+    flex: 0 0 400px; /* Fixed width of 300px */
+    max-width: 400px; /* Ensures no overflow */
+    margin: 10px auto; /* Adds spacing and centers the card */
+  }
+
+  .card-img-top {
+    width: 100%; /* Ensures image fits the card width */
+    height: auto; /* Maintains aspect ratio */
+    border: 35px solid #f9f5ea; /* Adds a border with the specified color */
+  }
+
+  @media (min-width: 768px) {
+    /* Adjust for medium screens and larger */
+    .custom-box {
+      flex: 0 0 300px; /* Wider cards on medium screens */
+      max-width: 300px;
+    }
+  }
+</style>
+
+<div class="col custom-box">
   <a href="{% if project.redirect %}{{ project.redirect }}{% else %}{{ project.url | relative_url }}{% endif %}">
     <div class="card h-100 hoverable">
       {% if project.img %}
@@ -6,13 +29,13 @@
           include figure.liquid
           loading="eager"
           path=project.img
-          sizes = "250px"
+          sizes="250px"
           alt="project thumbnail"
           class="card-img-top"
         %}
       {% endif %}
       <div class="card-body">
-        <h2 class="card-title">{{ project.title }}</h2>
+        <h4 class="card-title">{{ project.title }}</h4>
         <p class="card-text">{{ project.description }}</p>
         <div class="row ml-1 mr-1 p-0">
           {% if project.github %}

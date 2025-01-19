@@ -1,11 +1,40 @@
 ---
-layout: page
-title: project 3 with very long name
-description: a project that redirects to another website
-img: assets/img/7.jpg
-redirect: https://unsplash.com
+layout: distill
+title: Show your Work
+description: You don't need to be an expert
+img: assets/img/show_your_work.jpg
 importance: 3
-category: work
+category: productivity
+giscus_comments: true
+date: 2024-11-23
+related_publications: true
+
+toc:
+  - name: The power of habits
+    # if a section has subsections, you can add them as follows:
+    # subsections:
+    #   - name: Example Child Subsection 1
+    #   - name: Example Child Subsection 2
+  - name: Habits and Identity
+  - name: Getting Started with a New Habit
+
+# Below is an example of injecting additional post-specific styles.
+# If you use this post as a template, delete this _styles block.
+_styles: >
+  .fake-img {
+    background: #bbb;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 12px;
+  }
+  .fake-img p {
+    font-family: monospace;
+    color: white;
+    text-align: left;
+    margin: 12px 0;
+    text-align: center;
+    font-size: 16px;
+  }
 ---
 
 Every project has a beautiful feature showcase page.
