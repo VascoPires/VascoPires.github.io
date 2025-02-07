@@ -17,13 +17,12 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
 ---
 
-<div class="quote-section">
-  <i class="fas fa-quote-left"></i>
+<i class="fas fa-quote-left"></i>
   Every day it gets a little easier…<br />
   But you gotta do it every day — that’s the hard part.–&nbsp;Jogging Baboon
-  <i class="fas fa-quote-right"></i><br />
+<i class="fas fa-quote-right"></i><br />
   —&nbsp;Elijah Aron & Jordan Young
-</div>
+
 
 
 Hi! Welcome to my corner of the internet. My name is Vasco and I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). If you’re interested in my academic and engineering work, you’ll find plenty to explore by checking the navigation bar.
