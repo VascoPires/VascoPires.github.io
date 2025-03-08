@@ -4,13 +4,13 @@ title: Atomic Habits (James Clear) - Summary and notes
 description: Small changes for huge outcomes
 img: assets/img/atomic_habits.jpg
 importance: 1
-category: productivity
+category: 
 giscus_comments: true
 date: 2024-11-23
 related_publications: true
 
 
-# bibliography: 2018-12-22-distill.bib
+# mudar a category to productivity
 
 # Optionally, you can add a table of contents to your post.
 # NOTES:

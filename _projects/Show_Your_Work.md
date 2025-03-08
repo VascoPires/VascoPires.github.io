@@ -4,7 +4,7 @@ title: Show your Work
 description: You don't need to be an expert
 img: assets/img/show_your_work.jpg
 importance: 3
-category: productivity
+category: 
 giscus_comments: true
 date: 2024-11-23
 related_publications: true
