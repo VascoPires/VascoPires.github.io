@@ -6,7 +6,7 @@ img: assets/img/how_to_take_smart_notes.jpg
 importance: 2
 category: 
 giscus_comments: true
-date: 2024-11-23
+date: 2025-05-13
 related_publications: true
 
 toc:

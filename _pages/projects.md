@@ -2,7 +2,7 @@
 layout: default
 title: book notes
 permalink: /books/
-description: A growing collection of your cool projects.
+description: Toughts about some books I have read.
 nav: true
 nav_order: 3
 display_categories: [productivity]
@@ -70,6 +70,7 @@ horizontal: false
   </div>
   {% else %}
   <div class="row row-cols-1 row-cols-md-3">
+    {% assign sorted_projects = site.courses | sort: "importance" %}
     {% for project in sorted_projects %}
       {% include projects.liquid %}
     {% endfor %}

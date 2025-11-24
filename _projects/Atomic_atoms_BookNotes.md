@@ -4,7 +4,7 @@ title: Atomic Habits (James Clear) - Summary and notes
 description: Small changes for huge outcomes
 img: assets/img/atomic_habits.jpg
 importance: 1
-category: 
+category: productivity
 giscus_comments: true
 date: 2024-11-23
 related_publications: true
@@ -56,14 +56,9 @@ _styles: >
   </div>
 </div>
 
-
-
-
-
 <aside>
-💡
 
-Write your summary here
+<img src="assets/img/atomic_habits.jpg" alt="Atomic Habits Book Cover" style="max-width: 180px; border-radius: 8px; margin: 0 auto; display: block;" />
 
 </aside>
 

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Stress Tensor Visualization</title>
+
+    <!-- Polyfill (optional, safe to keep) -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+    <!-- MathJax configuration -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$','$$'], ['\\[','\\]']]
+        },
+        svg: { fontCache: 'global' }
+    };
+    </script>
+    <!-- MathJax -->
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #111;
+            color: white;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* HUD Overlay / lateral panels */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 95vh;
+            overflow-y: auto;
+            z-index: 10;
+            padding-right: 10px;
+        }
+        #ui-layer::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            pointer-events: auto;
+            width: 330px;
+        }
+
+        h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #4fc3f7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        /* Matrix Styling */
+        .matrix-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+        .bracket {
+            font-size: 50px;
+            font-weight: lighter;
+            color: white;
+            line-height: 50px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: right;
+            margin: 0 10px;
+        }
+        .cell { width: 50px; }
+        .cell.diag { color: #4fc3f7; font-weight: bold; }
+        .cell.off { color: #ff8a65; }
+
+        /* Sliders */
+        .slider-group { margin-bottom: 8px; }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 2px;
+            color: #ccc;
+            align-items: center;
+        }
+        .math-label { font-size: 14px; }
+        .val-label { font-family: monospace; color: #4fc3f7; }
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #4fc3f7;
+        }
+
+        /* Equations / invariants */
+        .math-block {
+            font-size: 13px;
+            color: #ddd;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            align-items: center;
+        }
+
+        /* Legend */
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+            font-size: 18px;
+            color: #aaa;
+            pointer-events: none;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 10;
+            line-height: 1.25;
+        }
+        .legend-item {
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .color-box {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-left: 8px;
+            border-radius: 4px;
+        }
+
+        #view-controls {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        #view-controls button {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<div id="view-controls">
+    <button data-view="iso">Isometric</button>
+    <button data-view="posx">+X View</button>
+    <button data-view="posy">+Y View</button>
+    <button data-view="posz">+Z View</button>
+</div>
+
+<div id="ui-layer">
+    <!-- Local stress matrix -->
+    <div class="panel">
+        <h3>Local Stress</h3>
+        <div style="font-size: 12px; color: #bbb; margin-bottom:10px;">
+            Components projected onto the rotating cube basis.
+        </div>
+        <div class="matrix-container">
+            <div class="bracket">[</div>
+            <div class="grid" id="matrix-grid"></div>
+            <div class="bracket">]</div>
+        </div>
+    </div>
+
+    <!-- Global stress sliders -->
+    <div class="panel">
+        <h3>Global Stress State</h3>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\sigma_{xx}$</span>
+                <span id="lbl-sxx" class="val-label">5</span>
+            </div>
+            <input type="range" id="inp-sxx" min="-10" max="10" value="5">
+        </div>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\sigma_{yy}$</span>
+                <span id="lbl-syy" class="val-label">0</span>
+            </div>
+            <input type="range" id="inp-syy" min="-10" max="10" value="0">
+        </div>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\sigma_{zz}$</span>
+                <span id="lbl-szz" class="val-label">0</span>
+            </div>
+            <input type="range" id="inp-szz" min="-10" max="10" value="0">
+        </div>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\tau_{xy}$</span>
+                <span id="lbl-txy" class="val-label">0</span>
+            </div>
+            <input type="range" id="inp-txy" min="-10" max="10" value="0">
+        </div>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\tau_{yz}$</span>
+                <span id="lbl-tyz" class="val-label">0</span>
+            </div>
+            <input type="range" id="inp-tyz" min="-10" max="10" value="0">
+        </div>
+        <div class="slider-group">
+            <div class="slider-header">
+                <span class="math-label">$\tau_{xz}$</span>
+                <span id="lbl-txz" class="val-label">0</span>
+            </div>
+            <input type="range" id="inp-txz" min="-10" max="10" value="0">
+        </div>
+        <button onclick="resetRotation()"
+                style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#333; color:white; border:1px solid #555;">
+            Reset Cube View
+        </button>
+    </div>
+
+    <!-- Governing equations and invariants -->
+    <div class="panel">
+        <h3>Governing Equations</h3>
+        <div class="math-block">
+            <b>1. Cauchy's Law (Tractions):</b><br>
+            $$ \vec{t}^{(\vec{n})} = \boldsymbol{\sigma} \cdot \vec{n} $$
+            The red vectors $\vec{t}$ change as the surface normal $\vec{n}$ rotates.
+        </div>
+        <div class="math-block">
+            <b>2. Tensor Transformation:</b><br>
+            $$ \boldsymbol{\sigma}_{\text{local}} = \mathbf{R}^T \, \boldsymbol{\sigma}_{\text{global}} \, \mathbf{R} $$
+        </div>
+        <hr style="border-color:#444">
+        <div class="math-block" style="margin-bottom:0">
+            <b>3. Invariants (Constant):</b>
+            <div class="stat-row">
+                <span>Trace ($I_1$):</span>
+                <span id="val-trace" class="val-label" style="color:#ffd54f">0.00</span>
+            </div>
+            <div class="stat-row">
+                <span>Von Mises ($\sigma_{vm}$):</span>
+                <span id="val-vm" class="val-label" style="color:#ffd54f">0.00</span>
+            </div>
+            <div class="stat-row">
+                <span>Determinant ($I_3$):</span>
+                <span id="val-det" class="val-label" style="color:#ffd54f">0.00</span>
+            </div>
+        </div>
+        <button id="btn-toggle-principal"
+                style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#333; color:white; border:1px solid #555;">
+            Show Principal Stresses
+        </button>
+    </div>
+</div>
+
+<div id="legend">
+    <div class="legend-item">
+        Global Fixed Axes (X,Y,Z)
+        <span class="color-box" style="background:linear-gradient(45deg, red, green, blue);"></span>
+    </div>
+    <div class="legend-item">
+        Principal Stresses
+        <span class="color-box" style="background:#ffd700;"></span>
+    </div>
+    <div style="margin-top:10px; font-style:italic; color:#bbb; border-top:1px solid #444; padding-top:5px;">
+        Left Drag: Rotate Camera<br>
+        Right Drag: Rotate Cube<br>
+        Mouse Wheel: Zoom
+    </div>
+</div>
+
+<div id="container"></div>
+
+<script>
+// --- SCENE SETUP ---
+const container = document.getElementById('container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a1a);
+scene.fog = new THREE.Fog(0x1a1a1a, 10, 30);
+
+// Camera
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(7, 5, 7);
+camera.lookAt(0, 0, 0);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+container.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x606060);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+dirLight2.position.set(-5, -5, -5);
+scene.add(dirLight2);
+
+// GLOBAL REFERENCE AXES
+const globalAxes = new THREE.AxesHelper(3.5);
+scene.add(globalAxes);
+
+const axisLabels = [];
+
+function createAxisLabel(text, position, color) {
+    const size = 96;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    ctx.font = 'bold 40px "Segoe UI", sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, size / 2, size / 2);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(0.3, 0.3, 0.3);
+    sprite.position.copy(position);
+    return sprite;
+}
+
+const axisLabelConfigs = [
+    { text: 'X', position: new THREE.Vector3(3.4, 0.2, 0), color: '#ff4040', axisDir: new THREE.Vector3(1, 0, 0) },
+    { text: 'Y', position: new THREE.Vector3(0.2, 3.4, 0), color: '#4cff4c', axisDir: new THREE.Vector3(0, 1, 0) },
+    { text: 'Z', position: new THREE.Vector3(0.2, 0, 3.4), color: '#4c7dff', axisDir: new THREE.Vector3(0, 0, 1) }
+];
+
+axisLabelConfigs.forEach(cfg => {
+    const sprite = createAxisLabel(cfg.text, cfg.position, cfg.color);
+    sprite.userData.axisDir = cfg.axisDir;
+    scene.add(sprite);
+    axisLabels.push(sprite);
+});
+
+// Cube
+const geometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+const material = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.05,
+    depthWrite: false,
+    side: THREE.DoubleSide
+});
+const cube = new THREE.Mesh(geometry, material);
+const edges = new THREE.EdgesGeometry(geometry);
+const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x777777, linewidth: 2 }));
+cube.add(line);
+
+// Local axes inside cube
+const localAxes = new THREE.AxesHelper(1.0);
+cube.add(localAxes);
+
+scene.add(cube);
+
+const axisColors = {
+    x: { arrow: 0xff4040, component: 0xcc2f2f, face: 0xffdada },
+    y: { arrow: 0x4cff4c, component: 0x2a992a, face: 0xdbffdf },
+    z: { arrow: 0x4c7dff, component: 0x2a48aa, face: 0xdbe5ff }
+};
+
+const facePlanes = [];
+const tractionArrows = [];
+const tractionComponentArrows = [];
+const faceData = [
+    { axis: 'x', normal: new THREE.Vector3(1, 0, 0), center: new THREE.Vector3(1.25, 0, 0) },
+    { axis: 'y', normal: new THREE.Vector3(0, 1, 0), center: new THREE.Vector3(0, 1.25, 0) },
+    { axis: 'z', normal: new THREE.Vector3(0, 0, 1), center: new THREE.Vector3(0, 0, 1.25) }
+];
+
+// Highlight positive faces with lighter tones for orientation cues
+faceData.forEach(face => {
+    const planeGeom = new THREE.PlaneGeometry(2.5, 2.5);
+    const planeMat = new THREE.MeshBasicMaterial({
+        color: axisColors[face.axis].face,
+        transparent: true,
+        opacity: 0.80,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+    const plane = new THREE.Mesh(planeGeom, planeMat);
+    const quat = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        face.normal.clone().normalize()
+    );
+    plane.quaternion.copy(quat);
+    plane.position.copy(face.center);
+    cube.add(plane);
+    facePlanes.push(plane);
+});
+
+faceData.forEach(face => {
+    const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(0, 0, 0),
+        1,
+        axisColors[face.axis].arrow,
+        0.25,
+        0.15
+    );
+    scene.add(arrow);
+    tractionArrows.push(arrow);
+
+    const compArrows = [];
+    ['x', 'y', 'z'].forEach(() => {
+        const compArrow = new THREE.ArrowHelper(
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(0, 0, 0),
+            0.5,
+            axisColors[face.axis].component,
+            0.3,
+            0.18
+        );
+        compArrow.visible = false;
+        scene.add(compArrow);
+        compArrows.push(compArrow);
+    });
+    tractionComponentArrows.push(compArrows);
+});
+
+// Principal stress arrows
+const principalArrows = [];
+const principalGroup = new THREE.Group();
+scene.add(principalGroup);
+
+for (let i = 0; i < 3; i++) {
+    const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(0, 0, 0),
+        1,
+        0xffd700,
+        0.35,
+        0.22
+    );
+    principalGroup.add(arrow);
+    principalArrows.push(arrow);
+}
+principalGroup.visible = false;
+
+// Global Stress Tensor (S)
+let S = new THREE.Matrix3();
+let state = {
+    sxx: 5, syy: 0, szz: 0,
+    txy: 0, tyz: 0, txz: 0
+};
+
+let isDragging = false;
+let isRightClick = false;
+let previousMousePosition = { x: 0, y: 0 };
+const orbitTarget = new THREE.Vector3(0, 0, 0);
+const orbitSpherical = new THREE.Spherical();
+const ORBIT_SPEED = 0.005;
+const MIN_POLAR = 0.05;
+const MAX_POLAR = Math.PI - 0.05;
+
+// --- MATH LOGIC ---
+function updateStressTensor() {
+    S.set(
+        state.sxx, state.txy, state.txz,
+        state.txy, state.syy, state.tyz,
+        state.txz, state.tyz, state.szz
+    );
+
+    updatePrincipalVis();
+    updateScene(true);
+}
+
+function updatePrincipalVis() {
+    const result = jacobi(S);
+
+    for (let i = 0; i < 3; i++) {
+        const mag = result.eigenvalues[i];
+        const vec = result.eigenvectors[i].normalize();
+        const lengthAbs = Math.abs(mag) * 0.2;
+        const arrow = principalArrows[i];
+
+        if (lengthAbs < 0.05) {
+            arrow.visible = false;
+            continue;
+        }
+
+        arrow.visible = true;
+
+        const dir = mag >= 0 ? vec : vec.clone().negate();
+        arrow.setDirection(dir);
+        arrow.setLength(lengthAbs);
+    }
+}
+
+const globalAxisVectors = [
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, 0, 1)
+];
+
+let principalVisible = false;
+const principalToggleBtn = document.getElementById('btn-toggle-principal');
+const viewButtons = document.querySelectorAll('#view-controls button');
+
+const cameraViews = {
+    iso: { position: new THREE.Vector3(7, 5, 7), up: new THREE.Vector3(0, 1, 0) },
+    posx: { position: new THREE.Vector3(10, 0, 0), up: new THREE.Vector3(0, 1, 0) },
+    posy: { position: new THREE.Vector3(0.0001, 10, 0.0001), up: new THREE.Vector3(0, 0, 1) },
+    posz: { position: new THREE.Vector3(0, 0, 10), up: new THREE.Vector3(0, 1, 0) }
+};
+
+function setCameraView(viewKey) {
+    const config = cameraViews[viewKey];
+    if (!config) return;
+    camera.position.copy(config.position);
+    camera.up.copy(config.up);
+    camera.lookAt(0, 0, 0);
+    updateScene(true);
+    updateAxisLabelVisibility();
+}
+
+function setPrincipalVisibility(show) {
+    principalVisible = show;
+    principalGroup.visible = show;
+    facePlanes.forEach(plane => {
+        plane.material.opacity = show ? 0.4 : 0.8;
+    });
+    if (principalToggleBtn) {
+        principalToggleBtn.innerText = show ? 'Hide Principal Stresses' : 'Show Principal Stresses';
+    }
+}
+
+function updateAxisLabelVisibility() {
+    const camDir = camera.position.clone().normalize();
+    axisLabels.forEach(label => {
+        const axisDir = label.userData.axisDir;
+        const dot = Math.abs(camDir.dot(axisDir));
+        label.visible = dot < 0.9;
+    });
+}
+
+function updateScene(forceUpdate = false) {
+    if (!isDragging && !forceUpdate) return;
+
+    const R = new THREE.Matrix3();
+    R.setFromMatrix4(cube.matrixWorld);
+
+    // Tractions on positive faces
+    for (let i = 0; i < faceData.length; i++) {
+        const face = faceData[i];
+        const worldN = face.normal.clone().applyMatrix3(R).normalize();
+        const worldC = face.center.clone().applyMatrix3(R);
+
+        const traction = worldN.clone().applyMatrix3(S);
+        const mag = traction.length();
+        const arrow = tractionArrows[i];
+        arrow.position.copy(worldC);
+
+        if (mag < 0.01) {
+            arrow.visible = false;
+            tractionComponentArrows[i].forEach(compArrow => compArrow.visible = false);
+            continue;
+        }
+
+        arrow.visible = true;
+        arrow.setColor(axisColors[face.axis].arrow);
+        arrow.setDirection(traction.clone().normalize());
+        arrow.setLength(mag * 0.2);
+
+        // Component arrows projected on global axes
+        const compArrows = tractionComponentArrows[i];
+        for (let j = 0; j < globalAxisVectors.length; j++) {
+            const component = traction.dot(globalAxisVectors[j]);
+            const compMag = Math.abs(component);
+            const compArrow = compArrows[j];
+            compArrow.position.copy(worldC);
+
+            if (compMag < 0.01) {
+                compArrow.visible = false;
+                continue;
+            }
+
+            compArrow.visible = true;
+            compArrow.setColor(axisColors[face.axis].component);
+            const dir = component >= 0 ? globalAxisVectors[j] : globalAxisVectors[j].clone().negate();
+            compArrow.setDirection(dir);
+            compArrow.setLength(compMag * 0.2);
+        }
+    }
+
+    // Local matrix: S_local = R^T S R
+    const Rt = R.clone().transpose();
+    const temp = Rt.clone().multiply(S);
+    const S_local = temp.multiply(R);
+
+    updateDOM(S_local, S);
+    updateAxisLabelVisibility();
+}
+
+function updateDOM(localMatrix, globalMatrix) {
+    const grid = document.getElementById('matrix-grid');
+    grid.innerHTML = '';
+    const el = localMatrix.elements;
+
+    const rows = [
+        [el[0], el[3], el[6]],
+        [el[1], el[4], el[7]],
+        [el[2], el[5], el[8]]
+    ];
+
+    rows.forEach((row, rIndex) => {
+        row.forEach((val, cIndex) => {
+            const div = document.createElement('div');
+            div.className = 'cell ' + (rIndex === cIndex ? 'diag' : 'off');
+            let displayVal = val.toFixed(1);
+            if (displayVal === "-0.0") displayVal = "0.0";
+            div.innerText = displayVal;
+            grid.appendChild(div);
+        });
+    });
+
+    // Invariants
+    const trace = globalMatrix.elements[0]
+                + globalMatrix.elements[4]
+                + globalMatrix.elements[8];
+
+    const s11 = globalMatrix.elements[0],
+          s22 = globalMatrix.elements[4],
+          s33 = globalMatrix.elements[8];
+    const s12 = globalMatrix.elements[3],
+          s23 = globalMatrix.elements[7],
+          s13 = globalMatrix.elements[6];
+
+    const vm = Math.sqrt(0.5 * (
+        Math.pow(s11 - s22, 2) +
+        Math.pow(s22 - s33, 2) +
+        Math.pow(s33 - s11, 2) +
+        6 * (s12 * s12 + s23 * s23 + s13 * s13)
+    ));
+
+    const det = globalMatrix.determinant();
+
+    document.getElementById('val-trace').innerText = trace.toFixed(2);
+    document.getElementById('val-vm').innerText = vm.toFixed(2);
+    document.getElementById('val-det').innerText = det.toFixed(2);
+}
+
+// Jacobi eigen decomposition
+function jacobi(matrixIn) {
+    let a = matrixIn.elements.slice();
+    const get  = (r, c) => a[c * 3 + r];
+    const set  = (r, c, v) => a[c * 3 + r] = v;
+    let v = [1,0,0, 0,1,0, 0,0,1];
+    const getV = (r, c) => v[c * 3 + r];
+    const setV = (r, c, val) => v[c * 3 + r] = val;
+
+    const maxIter = 50;
+    for (let iter = 0; iter < maxIter; iter++) {
+        let maxOff = 0; let p = 0, q = 1;
+        for (let i = 0; i < 3; i++) {
+            for (let j = i + 1; j < 3; j++) {
+                if (Math.abs(get(i, j)) > maxOff) {
+                    maxOff = Math.abs(get(i, j));
+                    p = i; q = j;
+                }
+            }
+        }
+        if (maxOff < 1e-9) break;
+
+        let phi = 0;
+        if (Math.abs(get(p, p) - get(q, q)) < 1e-10) {
+            phi = Math.PI / 4;
+        } else {
+            phi = 0.5 * Math.atan(2 * get(p, q) / (get(p, p) - get(q, q)));
+        }
+        const c = Math.cos(phi), s = Math.sin(phi);
+
+        const app = c * c * get(p, p) - 2 * s * c * get(p, q) + s * s * get(q, q);
+        const aqq = s * s * get(p, p) + 2 * s * c * get(p, q) + c * c * get(q, q);
+
+        for (let i = 0; i < 3; i++) {
+            if (i !== p && i !== q) {
+                const aip = c * get(i, p) - s * get(i, q);
+                const aiq = s * get(i, p) + c * get(i, q);
+                set(i, p, aip); set(p, i, aip);
+                set(i, q, aiq); set(q, i, aiq);
+            }
+        }
+        set(p, p, app); set(q, q, aqq);
+        set(p, q, 0);   set(q, p, 0);
+
+        for (let i = 0; i < 3; i++) {
+            const vip = c * getV(i, p) - s * getV(i, q);
+            const viq = s * getV(i, p) + c * getV(i, q);
+            setV(i, p, vip);
+            setV(i, q, viq);
+        }
+    }
+
+    return {
+        eigenvalues: [get(0,0), get(1,1), get(2,2)],
+        eigenvectors: [
+            new THREE.Vector3(getV(0,0), getV(1,0), getV(2,0)),
+            new THREE.Vector3(getV(0,1), getV(1,1), getV(2,1)),
+            new THREE.Vector3(getV(0,2), getV(1,2), getV(2,2))
+        ]
+    };
+}
+
+// EVENTS
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    updateScene(true);
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#ui-layer')) return;
+    isDragging = true;
+    isRightClick = (e.button === 2);
+    previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    updateScene(true);
+});
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const deltaMove = {
+        x: e.clientX - previousMousePosition.x,
+        y: e.clientY - previousMousePosition.y
+    };
+
+    if (!isRightClick) {
+        const offset = camera.position.clone().sub(orbitTarget);
+        orbitSpherical.setFromVector3(offset);
+        orbitSpherical.theta -= deltaMove.x * ORBIT_SPEED;
+        orbitSpherical.phi -= deltaMove.y * ORBIT_SPEED;
+        orbitSpherical.phi = THREE.MathUtils.clamp(orbitSpherical.phi, MIN_POLAR, MAX_POLAR);
+        offset.setFromSpherical(orbitSpherical);
+        camera.position.copy(orbitTarget).add(offset);
+        camera.lookAt(orbitTarget);
+    } else {
+        const rotationSpeed = 0.3;
+        const deltaRotationQuaternion = new THREE.Quaternion()
+            .setFromEuler(new THREE.Euler(
+                toRad(deltaMove.y * rotationSpeed),
+                toRad(deltaMove.x * rotationSpeed),
+                0,
+                'XYZ'
+            ));
+        cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+    }
+    previousMousePosition = { x: e.clientX, y: e.clientY };
+    updateScene();
+});
+
+document.addEventListener('wheel', (e) => {
+    if (e.target.closest('#ui-layer')) return;
+    e.preventDefault();
+    const delta = e.deltaY * 0.01;
+    const direction = camera.position.clone().normalize();
+    let distance = camera.position.length();
+    distance = THREE.MathUtils.clamp(distance + delta, 3, 20);
+    camera.position.copy(direction.multiplyScalar(distance));
+    camera.lookAt(0, 0, 0);
+    updateAxisLabelVisibility();
+});
+
+function toRad(deg) { return deg * (Math.PI / 180); }
+
+function bindSlider(id, key) {
+    const el = document.getElementById('inp-' + id);
+    const lbl = document.getElementById('lbl-' + id);
+    el.value = state[key];
+    lbl.innerText = state[key];
+
+    el.addEventListener('input', (e) => {
+        state[key] = parseFloat(e.target.value);
+        lbl.innerText = state[key];
+        updateStressTensor();
+    });
+}
+
+bindSlider('sxx', 'sxx');
+bindSlider('syy', 'syy');
+bindSlider('szz', 'szz');
+bindSlider('txy', 'txy');
+bindSlider('tyz', 'tyz');
+bindSlider('txz', 'txz');
+
+if (principalToggleBtn) {
+    principalToggleBtn.addEventListener('click', () => {
+        setPrincipalVisibility(!principalVisible);
+    });
+}
+setPrincipalVisibility(false);
+updateAxisLabelVisibility();
+
+viewButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        setCameraView(btn.dataset.view);
+    });
+});
+
+function resetRotation() {
+    cube.rotation.set(0, 0, 0);
+    cube.updateMatrixWorld(true);
+    setCameraView('iso');
+    updateScene(true);
+}
+
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+
+// Init
+updateStressTensor();
+animate();
+setTimeout(() => updateScene(true), 100);
+
+// Once everything is loaded, ensure MathJax typesets the page
+window.addEventListener('load', () => {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise();
+    }
+});
+</script>
+
+</body>
+</html>

@@ -2,7 +2,8 @@
 layout: about
 title: about
 permalink: /
-subtitle: Researcher and creator of <a href="https://www.youtube.com/@MadewithAtoms">Made with Atoms</a> Youtube Channel
+subtitle: Researcher & PhD candidate
+
 
 
 profile:
@@ -16,6 +17,9 @@ latest_posts: false  # includes a list of the newest posts
 selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
 ---
+
+
+<!-- Before I had this and creator of <a href="https://www.youtube.com/@MadewithAtoms">Made with Atoms</a> Youtube Channel
 
 <!--
 <i class="fas fa-quote-left"></i>
@@ -35,8 +39,9 @@ It is a fascinating area with a lot of challenges, and I hope my work, even in s
 I am passionate about teaching and mentoring, always looking for ways to make learning more engaging and interactive, especially through visualization and animations. This was the main reason for the creation of my YouTube channel, where I am planning to post content soon - so stay tuned for that. 
 -->
 
-On the side, I enjoy writing about topics that excite me. My blog is where I share book reviews and personal lessons on various subjects, often focused on improving different areas of life. It’s a space where I reflect, learn, and connect with others who are on similar journeys.
+On the side, I enjoy writing about topics that excite me. My blog is where I share book reviews and personal lessons on various subjects, often focused on improving workflows or different areas of life.
 
+<!--
 Thanks for stopping by! If any of what I said resonated with you and want to hear more about me, feel free to sign up to my newsletter (my goal is to write something at least every week). 
 
 <!--
