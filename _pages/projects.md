@@ -3,7 +3,7 @@ layout: default
 title: book notes
 permalink: /books/
 description: Toughts about some books I have read.
-nav: true
+nav: false
 nav_order: 3
 display_categories: [productivity]
 horizontal: false

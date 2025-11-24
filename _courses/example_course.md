@@ -5,9 +5,11 @@ description: Teaching resources and materials for the Introduction to Composites
 img: assets/img/composites_example.jpg
 importance: 2
 category: materials
+tags: ["Course"]
 giscus_comments: true
 date: 2024-09-01
 related_publications: false
+hidden: true
 
 toc:
   - name: Course Overview
