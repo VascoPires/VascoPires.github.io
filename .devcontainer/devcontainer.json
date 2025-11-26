@@ -13,7 +13,9 @@
   },
 
   // Optionally: run jekyll serve automatically on container entering using the Docker entrypoint
-  "postAttachCommand": "./bin/entry_point.sh",
+  // Run from the mounted workspace so the script is found (default shell starts in /home/vscode)
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postAttachCommand": "cd ${containerWorkspaceFolder} && ./bin/entry_point.sh",
 
   "customizations": {
     "vscode": {

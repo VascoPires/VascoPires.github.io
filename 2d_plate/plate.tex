@@ -1,0 +1,38 @@
+\documentclass{article}
+\input{header}
+\addbibresource{bibliography.bib}
+\title{2D Plate with a Hole}
+\graphicspath{{Files/}}
+\begin{document}
+\maketitle
+
+\section{2D Plate with a Hole}
+\label{loc:2d_plate_with_a_hole}
+Now that we have covered some fundamentals and learned how to operate within Abaqus/CAE, let's start with a simple example: a plate with a hole, as shown in Figure~\Cref{loc:fig:plate_with_hole}.
+
+% TODO: add the plate-with-hole figure and label it loc:fig:plate_with_hole
+
+\subsection{Setting up the Project}
+\label{loc:2d_plate_with_a_hole_setting_up_the_project}
+The first step is to set up the working directory. After opening Abaqus, either manually select the working directory from the top of the GUI or open the command prompt in the desired folder and type:
+\begin{verbatim}
+abaqus cae
+\end{verbatim}
+After that, in the \textbf{Start Session} dialog, choose \texttt{Standard/Explicit Model} to begin. Figure~\Cref{loc:fig:welcome_window} shows the initial window of Abaqus/CAE.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{Files/welcome_window.png}
+  \caption{Start-up dialog in Abaqus/CAE 2023.\label{loc:fig:welcome_window}}
+\end{figure}
+
+\subsection{Geometry}
+\label{loc:2d_plate_with_a_hole_geometry}
+The first step of any model is defining the geometry. In the \textbf{Part} module, select:
+\begin{equation*}
+\text{Create Part} \; \rightarrow \; \text{2D Planar} \; \rightarrow \; \text{Deformable} \; \rightarrow \text{Shell}.
+\end{equation*}
+
+% Add more content and figures here as needed
+
+\printbibliography
+\end{document}
