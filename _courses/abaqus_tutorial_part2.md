@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: distill
 title: "Part 2: Taking Advantage of Symmetries"
 description: "Exploit symmetry to cut model size, apply correct boundary conditions, and validate equivalence."
 permalink: /courses/abaqus_tutorial_part2/

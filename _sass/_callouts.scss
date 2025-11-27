@@ -1,0 +1,67 @@
+.callout {
+  position: relative;
+  margin: 1.25rem 0;
+  padding: 0.9rem 1rem 1rem 1rem;
+  border-left: 4px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.callout .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #111827;
+}
+
+.callout .callout-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.callout .callout-body {
+  margin: 0;
+  color: #1f2937;
+}
+
+.callout.info {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.callout.info .callout-title {
+  color: #1d4ed8;
+}
+
+.callout.tip {
+  border-color: #16a34a;
+  background: #ecfdf3;
+}
+
+.callout.tip .callout-title {
+  color: #15803d;
+}
+
+.callout.warning {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.callout.warning .callout-title {
+  color: #b45309;
+}
+
+.callout.danger {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.callout.danger .callout-title {
+  color: #b91c1c;
+}

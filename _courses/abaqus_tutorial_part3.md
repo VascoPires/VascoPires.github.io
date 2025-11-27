@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: distill
 title: "Part 3: Getting a Good Mesh"
 description: "Element choice, seeding strategy, quality checks, and convergence for the plate-with-hole."
 permalink: /courses/abaqus_tutorial_part3/

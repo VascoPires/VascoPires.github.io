@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: distill
 title: "Part 5: Different Material Behaviours"
 description: "Swap elastic properties, test plasticity/viscoelasticity, and compare responses."
 permalink: /courses/abaqus_tutorial_part5/

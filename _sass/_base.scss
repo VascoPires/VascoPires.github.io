@@ -35,7 +35,17 @@ li,
 span,
 strong {
   color: var(--global-text-color);
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", "Manrope", sans-serif;
+}
+
+/* Emphasis styling for body content (blog posts and distill courses) */
+.post .post-content em,
+.post .post-content i,
+d-article em,
+d-article i {
+  color: #2272a6;
+  font-style: italic;
+  font-weight: 500;
 }
 
 

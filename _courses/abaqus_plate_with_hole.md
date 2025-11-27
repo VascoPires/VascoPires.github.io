@@ -1,11 +1,10 @@
 ---
-layout: distill
+layout: page
 title: "Abaqus Tutorial: 2D Plate with a Hole"
-description: Overview of the multi-part Abaqus/CAE walkthrough using the classic plate-with-hole example.
 img: assets/img/teaching/2d_plate/files/plate_part.png
 importance: 4
 tags: ["ABAQUS", "Tutorial"]
-giscus_comments: true
+giscus_comments: false
 date: 2025-10-03
 
 # Hide the distill table of contents on this overview page
@@ -14,7 +13,7 @@ toc: false
 
 # 2D Plate with a Hole — Tutorial Overview
 
-This series walks through building, refining, and analyzing a plate-with-hole model in Abaqus/CAE. Start with the quick model, then dive into symmetry, meshing, stress concentration, and material behavior variations in later parts.
+This series walks through building, refining, and analyzing a plate-with-hole model in Abaqus/CAE. 
 
 ## Tutorial Parts
 <style>
@@ -23,7 +22,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
 .part-tag { display: inline-block; padding: 3px 8px; margin-bottom: 6px; background: #eef2ff; color: #314b8c; border-radius: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; }
 </style>
 
-<div class="row row-cols-1 row-cols-md-3 g-3 part-card">
+<div class="row row-cols-1 row-cols-md-3 g-3 part-card mb-4">
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part1/' | relative_url }}">
       <div class="card h-100 hoverable">
@@ -80,6 +79,8 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
     </a>
   </div>
 </div>
+
+
 
 ### What you’ll learn
 

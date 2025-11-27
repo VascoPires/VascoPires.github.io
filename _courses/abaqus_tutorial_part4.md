@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: distill
 title: "Part 4: Analyzing the Stress Concentration"
 description: "Extracting stresses, plotting along paths, and interpreting concentration factors."
 permalink: /courses/abaqus_tutorial_part4/
