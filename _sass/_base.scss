@@ -48,6 +48,55 @@ d-article i {
   font-weight: 500;
 }
 
+/* Make optional wide figures stretch further when requested */
+.post .post-content img.wide-figure,
+d-article img.wide-figure {
+  width: 100%;
+  max-width: 900px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Figure captions (opt-in via .article-figure) */
+.post .post-content,
+d-article {
+  counter-reset: article-figure;
+}
+
+.post .post-content figure.article-figure,
+d-article figure.article-figure {
+  counter-increment: article-figure;
+}
+
+.post .post-content figure.article-figure > .caption,
+d-article figure.article-figure > .caption,
+/* Also support captions implemented as a sibling DIV immediately after the figure */
+.post .post-content figure.article-figure + .caption,
+d-article figure.article-figure + .caption {
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.9rem;
+  text-align: center;
+  color: var(--global-text-color);
+}
+
+.post .post-content figure.article-figure > .caption::before,
+d-article figure.article-figure > .caption::before {
+  content: "Figure " counter(article-figure) ": ";
+  font-weight: 700;
+}
+
+/* Also insert numbering for sibling captions placed outside the figure */
+.post .post-content figure.article-figure + .caption::before,
+d-article figure.article-figure + .caption::before {
+  content: "Figure " counter(article-figure) ": ";
+  font-weight: 700;
+}
+
+.table-caption {
+  margin-top: 0.25rem;
+}
+
 
 hr {
   border-top: 1px solid var(--global-divider-color);
@@ -188,9 +237,9 @@ ul.task-list input[type="checkbox"] {
 // Caption
 
 .caption {
-  font-size: 0.875rem;
-  margin-top: 0.75rem;
-  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 

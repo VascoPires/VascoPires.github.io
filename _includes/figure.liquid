@@ -6,6 +6,14 @@
   {% if include.slot %}
     slot="{{ include.slot }}"
   {% endif %}
+  {% if include.id %}
+    id="{{ include.id }}"
+  {% endif %}
+  {% if include.class %}
+    class="{{ include.class }}{% if include.caption %} article-figure{% endif %}"
+  {% elsif include.caption %}
+    class="article-figure"
+  {% endif %}
 >
   <picture>
     <!-- Auto scaling with imagemagick -->

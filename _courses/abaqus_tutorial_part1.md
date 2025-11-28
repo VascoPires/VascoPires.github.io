@@ -5,7 +5,7 @@ description: "Full step-by-step Abaqus/CAE walkthrough for the plate-with-hole: 
 img: assets/img/teaching/2d_plate/files/plate_part.png
 importance: 4
 tags: ["ABAQUS", "Tutorial"]
-giscus_comments: true
+giscus_comments: false
 date: 2025-10-03
 hidden: true
 nav: false
@@ -16,8 +16,10 @@ nav: false
 Now that we have covered some fundamentals and learned how to operate within Abaqus/CAE, let’s walk through a complete example: a plate with a central hole under tension, as shown in [Figure 1](#fig:plate-with-hole).
 
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/plate.png" title="Sketch of the 2D plate with a central hole." class="img-fluid rounded" id="fig:plate-with-hole" %}
-<div class="caption">Figure 1: Sketch of the 2D plate with a central hole.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/plate.png" title="Sketch of the 2D plate with a central hole." class="img-fluid rounded article-figure" id="fig:plate-with-hole" %}
+<div class="caption">*Figure 1:* Sketch of the 2D plate with a central hole.</div>
+
+<div id="tab-plate_dimensions"></div>
 
 | ⚙️ Parameter       | 📏 Value |
 | ------------------ | -------- |
@@ -25,8 +27,7 @@ Now that we have covered some fundamentals and learned how to operate within Aba
 | Plate height, $H$  | 20 mm    |
 | Hole diameter, $D$ | 10 mm    |
 
-
-<div class="caption">Table 1: Geometric dimensions of the 2D plate with a hole.</div>
+<div class="caption table-caption">*Table 1:* Geometric dimensions of the 2D plate with a hole.</div>
 
 ## 🗂️ Sketch & Setup
 
@@ -38,8 +39,8 @@ abaqus cae
 
 In the **Start Session** dialog, choose `Standard/Explicit Model` to begin.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/welcome_window.png" title="Abaqus/CAE start window." class="img-fluid rounded" %}
-<div class="caption">Start Session dialog in Abaqus/CAE.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/welcome_window.png" title="Abaqus/CAE start window." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 2:* Start Session dialog in Abaqus/CAE.</div>
 
 ## 🧩 Geometry
 
@@ -57,39 +58,39 @@ This means we are creating a 2D deformable part using the *Shell* option, which 
   <div class="callout-body">2D Planar shells use solid sections/elements; 3D shell parts use shell sections/elements. Pick 2D Planar here.</div>
 </div>
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/part_module.png" title="Abaqus Part module." class="img-fluid rounded" %}
-<div class="caption">Part module and sketch toolbar (rectangle, construction lines, circle).</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/part_module.png" title="Abaqus Part module." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 3:* Part module and sketch toolbar (rectangle, construction lines, circle).</div>
 
 First, select the 🟦 rectangle tool (*Create Lines: Rectangle (4 Lines)*) and draw it roughly at the center.  Next, add horizontal and vertical construction lines ➕ through the midpoint of the sketch. These construction lines serve as auxiliary references and do not form part of the geometry.  
 
-At this point, your sketch should look similar to Figure [[#fig:sketch_2d]].  
+At this point, your sketch should look similar to [Figure 2](#fig-sketch_2d).  
 Now, add a circular hole at the center by selecting the circle tool and clicking in the middle of the plate.  Ensure the sketch forms a closed contour - Abaqus requires closed profiles for part creation. Open profiles will cause an error.
 
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_2d.png" title="Initial sketch with rectangle and construction lines." class="img-fluid rounded" %}
-<div class="caption">Plate outline with construction lines through the midpoint.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_2d.png" title="Initial sketch with rectangle and construction lines." class="img-fluid rounded article-figure" id="fig-sketch_2d" %}
+<div class="caption">*Figure 4:* Plate outline with construction lines through the midpoint.</div>
 
-Next, apply the dimensions according to Table [[#tab:plate_dimensions]].  
+Next, apply the dimensions according to [Table 1](#tab-plate_dimensions).  
 Use the dimension tool (*second column, fourth row*) from the sketch toolbar.
 
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_dim.png" title="Applying dimensions to the sketch." class="img-fluid rounded" %}
-<div class="caption">Apply dimensions to match the target sizes.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_dim.png" title="Applying dimensions to the sketch." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 5:* Apply dimensions to match the target sizes.</div>
 
 
 Finally, center the sketch at the origin.  Create a point at $(0,0)$, apply the **Fixed** constraint to it, and then use the **Coincident** constraint to align the circle center with this point.  
 
-When a sketch is *fully defined*, all lines appear green (see Figure [[#fig:sketch_fully_defined]]).  If it becomes *overdefined* ⚠️ (e.g., due to conflicting constraints), the lines turn yellow and the conflicting constraints appear in purple.
+When a sketch is *fully defined*, all lines appear green (see [Figure 3](#fig-sketch_fully_defined)).  If it becomes *overdefined* ⚠️ (e.g., due to conflicting constraints), the lines turn yellow and the conflicting constraints appear in purple.
 
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_fully_defined.png" title="Fully defined sketch (all green) at the end of constraining." class="img-fluid rounded" %}
-<div class="caption">Fully defined sketch; yellow would mean overdefined.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/sketch_fully_defined.png" title="Fully defined sketch (all green) at the end of constraining." class="img-fluid rounded article-figure" id="fig-sketch_fully_defined" %}
+<div class="caption">*Figure 6:* Fully defined sketch; yellow would mean overdefined.</div>
 
 Press **Done** ✔️ at the bottom of the sketch window to create the part.  
-At this point, you have your part created inside the Part module, as shown in Figure [[#fig:plate_part]].   With this, the geometry section of the model is complete.
+At this point, you have your part created inside the Part module, as shown in [Figure 4](#fig-plate_part). With this, the geometry section of the model is complete.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/plate_part.png" title="Part created after finishing the sketch." class="img-fluid rounded" %}
-<div class="caption">Part after exiting the sketch.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/plate_part.png" title="Part created after finishing the sketch." class="img-fluid rounded article-figure" id="fig-plate_part" %}
+<div class="caption">*Figure 7:* Part after exiting the sketch.</div>
 
 ## 🧪 Material and Section
 
@@ -101,16 +102,17 @@ $$
 
 as shown in Figure [[Files/material_property.png]]. Then, select "Isotropic" (as shown in [[Files/material_prop2.png]]) as the type and insert the young's modulus and the poison coefficient. Pay attention to the **units** ⚠️! Since we are working in **millimeters (mm)** and **newtons (N)**, our elastic properties must be in **megapascals (MPa)** to maintain dimensional consistency 📏.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/material_property.png" title="Defining an elastic material." class="img-fluid rounded" %}
-<div class="caption">Mechanical → Elasticity → Elastic.</div>
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/material_prop2.png" title="Selecting isotropic elasticity and entering properties." class="img-fluid rounded" %}
-<div class="caption">Enter properties in MPa to stay consistent with mm/N units.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/material_property.png" title="Defining an elastic material." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 8:* Mechanical → Elasticity → Elastic.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/material_prop2.png" title="Selecting isotropic elasticity and entering properties." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 9:* Enter properties in MPa to stay consistent with mm/N units.</div>
 
 The second step is defining a **section**.  A section is, in essence, the _middle layer_ between the material definition and the geometry. While the **material** defines _how_ a material behaves, the **section** specifies _how_ that material will be represented or simplified in your model. For instance, with the same material, you could create a **solid**, **shell**, or **beam** section - each producing different structural behaviors depending on the modeling assumptions. So even if this feels a bit abstract now, it’s enough to remember that the _section_ combines both the material and the modeling approach. Every element in your model must be assigned a section, and this step ensures that Abaqus knows how to interpret the material response of your geometry.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/section.png" title="Creating a solid section." class="img-fluid rounded" %}
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/section_assign.png" title="Assigning the section to the part." class="img-fluid rounded" %}
-<div class="caption">Sections bridge materials to geometry; every element needs one.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/section.png" title="Creating a solid section." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 10:* Creating a solid section.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/section_assign.png" title="Assigning the section to the part." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 11:* Assigning the section to the part; sections bridge materials to geometry.</div>
 
 ## 🧩 Assembly and Mesh
 
@@ -118,18 +120,32 @@ Moving on to the **assembly** and **mesh** steps.  The assembly module represent
 
 To do this, create an **Instance**.  An instance is a placed copy of a part within the assembly. You can have multiple instances of the same part, for example, a connection with 10 identical bolts can be modeled using one bolt geometry and section, but repeated as multiple instances.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/assembly.png" title="Part instance placed in the assembly." class="img-fluid rounded" %}
-<div class="caption">Use a dependent instance so meshing stays at part level.</div>
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/mesh.png" title="Mesh generated for the plate with a hole." class="img-fluid rounded" %}
-<div class="caption">Coarse seed (≈1.5) for a quick run; refine later if needed.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/assembly.png" title="Part instance placed in the assembly." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 12:* Use a dependent instance so meshing stays at part level.</div>
+
+When creating an instance, Abaqus will ask whether it should be **dependent** or **independent**.  A **dependent instance** means the mesh is created at the _part level_, while an **independent instance** allows meshing at the _assembly level_.
+
+The distinction mainly affects how nodes and elements are numbered:
+
+- In an **independent instance**, all nodes and elements share a _global numbering system_ across the entire assembly (no duplicates).
+
+- In a **dependent instance**, each part maintains its own numbering (so, for example, Element ID = 1 could exist in multiple parts).
+
+See [Figure 5](#fig-independent-dependent) for a quick visual.
+
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/independent_dependent_mesh.svg" title="Independent vs. dependent instances for meshing." class="img-fluid rounded wide-figure article-figure" id="fig-independent-dependent" %}
+<div class="caption">*Figure 13:* Dependent instances share the part mesh; independent instances mesh per assembly instance.</div>
+
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/mesh.png" title="Mesh generated for the plate with a hole." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 14:* Coarse seed (≈1.5) for a quick run; refine later if needed.</div>
 At this stage you can change element types, meshing schemes, or seed sizes; we’ll keep the defaults for this intro run.
 
 ## 🧷 Boundary Conditions
 
 First, create a static general step (General → Static, General). Static time is a loading parameter, not real time; dynamic analyses track physical time. Name it (e.g., `loading_step`) and keep the default ramp amplitude unless you need a custom loading curve.
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/step.png" title="Static general step creation." class="img-fluid rounded" %}
-<div class="caption">General → Static, General.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/step.png" title="Static general step creation." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 15:* General → Static, General.</div>
 
 Apply displacement BCs on left and right edges: $u_x = -1.5$ mm (left) and $u_x = +1.5$ mm (right) to apply tension.
 
@@ -138,22 +154,23 @@ Apply displacement BCs on left and right edges: $u_x = -1.5$ mm (left) and $u_x 
   <div class="callout-body">U1 follows the assembly x-axis. Use a negative sign on the left side and a positive sign on the right side to pull the plate in tension.</div>
 </div>
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/bc_config.png" title="Boundary condition dialog." class="img-fluid rounded" %}
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/disp_BC.png" title="Applying symmetric displacement boundary conditions." class="img-fluid rounded" %}
-<div class="caption">Ensure U1 is along the x-axis; use opposite signs on each side.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/bc_config.png" title="Boundary condition dialog." class="img-fluid rounded article-figure" %}
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/disp_BC.png" title="Applying symmetric displacement boundary conditions." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 16:* Ensure U1 is along the x-axis; use opposite signs on each side.</div>
 
 ### Extra detail screenshot
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/attachments/497c3bb48578a877295dc14df83ca994.png" title="Displacement BCs with opposite signs." class="img-fluid rounded" %}
+{% include figure.liquid path="assets/img/teaching/2d_plate/attachments/497c3bb48578a877295dc14df83ca994.png" title="Displacement BCs with opposite signs." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 17:* Displacement BCs with opposite signs.</div>
 
 ## 🚀 Job and Output
 
 Create and submit a job (e.g., `plate_with_hole`), monitor it in the Job Monitor, then open the Visualization module to inspect results (e.g., von Mises stress).
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/job_creation.png" title="Job creation dialog." class="img-fluid rounded" %}
-<div class="caption">Create a job and point it to the current model.</div>
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/submit_job.png" title="Submitting the job." class="img-fluid rounded" %}
-<div class="caption">Submit and watch the Job Monitor for progress/warnings.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/job_creation.png" title="Job creation dialog." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 18:* Create a job and point it to the current model.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/submit_job.png" title="Submitting the job." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 19:* Submit and watch the Job Monitor for progress/warnings.</div>
 
-{% include figure.liquid path="assets/img/teaching/2d_plate/files/mises_2d_plate.png" title="Von Mises stress contour showing stress concentration around the hole." class="img-fluid rounded" %}
-<div class="caption">Von Mises stress contours highlighting the stress concentration at the hole.</div>
+{% include figure.liquid path="assets/img/teaching/2d_plate/files/mises_2d_plate.png" title="Von Mises stress contour showing stress concentration around the hole." class="img-fluid rounded article-figure" %}
+<div class="caption">*Figure 20:* Von Mises stress contours highlighting the stress concentration at the hole.</div>
