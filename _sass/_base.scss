@@ -48,6 +48,12 @@ d-article i {
   font-weight: 500;
 }
 
+.post .post-content strong,
+d-article strong {
+  color: var(--global-theme-color);
+  font-weight: 700;
+}
+
 /* Make optional wide figures stretch further when requested */
 .post .post-content img.wide-figure,
 d-article img.wide-figure {
@@ -73,11 +79,7 @@ d-article figure.article-figure > .caption,
 /* Also support captions implemented as a sibling DIV immediately after the figure */
 .post .post-content figure.article-figure + .caption,
 d-article figure.article-figure + .caption {
-  font-size: 1.05rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.9rem;
-  text-align: center;
-  color: var(--global-text-color);
+  @extend .caption;
 }
 
 .post .post-content figure.article-figure > .caption::before,
@@ -93,8 +95,11 @@ d-article figure.article-figure + .caption::before {
   font-weight: 700;
 }
 
+.table caption,
+caption.table-caption,
 .table-caption {
-  margin-top: 0.25rem;
+  @extend .caption;
+  caption-side: bottom;
 }
 
 
@@ -237,10 +242,20 @@ ul.task-list input[type="checkbox"] {
 // Caption
 
 .caption {
-  font-size: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
+  display: block;
+  margin: 0.75rem auto 1.25rem;
+  padding: 0.85rem 1rem;
+  max-width: 720px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--global-divider-color);
+  border-radius: 12px;
+  color: var(--global-text-color);
   text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 // Card
