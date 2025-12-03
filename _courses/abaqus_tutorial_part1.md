@@ -2,7 +2,7 @@
 layout: distill
 title: "Part 1: Setting a Quick Model"
 description: "Full step-by-step Abaqus/CAE walkthrough for the plate-with-hole: geometry, materials, meshing, BCs, run, and results."
-img: assets/img/teaching/2d_plate/files/plate_part.png
+img: assets/img/plate_hole/tut1.svg
 importance: 4
 tags: ["ABAQUS", "Tutorial"]
 giscus_comments: false

@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "Abaqus Tutorial: 2D Plate with a Hole"
-img: assets/img/teaching/2d_plate/files/plate_part.png
+img: assets/img/plate_hole/cover.svg
 importance: 4
 tags: ["ABAQUS", "Tutorial"]
 giscus_comments: false
@@ -15,6 +15,8 @@ toc: false
 
 This series walks through building, refining, and analyzing a plate-with-hole model in Abaqus/CAE. 
 
+{% include figure.liquid path="assets/img/plate_hole/cover.svg" class="img-fluid rounded mb-3" alt="Abaqus plate-with-hole tutorial cover" %}
+
 ## Tutorial Parts
 <style>
 .part-card .card { border: 1px solid #e5e7eb; }
@@ -26,6 +28,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part1/' | relative_url }}">
       <div class="card h-100 hoverable">
+        <img class="card-img-top" src="{{ 'assets/img/plate_hole/tut1.svg' | relative_url }}" alt="Part 1 thumbnail">
         <div class="card-body">
           <span class="part-tag">Part 1</span>
           <h5 class="card-title mb-2">Setting a Quick Model</h5>
@@ -37,6 +40,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part2/' | relative_url }}">
       <div class="card h-100 hoverable">
+        <img class="card-img-top" src="{{ 'assets/img/plate_hole/tut2.svg' | relative_url }}" alt="Part 2 thumbnail">
         <div class="card-body">
           <span class="part-tag">Part 2</span>
           <h5 class="card-title mb-2">Taking Advantage of Symmetries</h5>
@@ -48,6 +52,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part3/' | relative_url }}">
       <div class="card h-100 hoverable">
+        <img class="card-img-top" src="{{ 'assets/img/plate_hole/tut3.svg' | relative_url }}" alt="Part 3 thumbnail">
         <div class="card-body">
           <span class="part-tag">Part 3</span>
           <h5 class="card-title mb-2">Getting a Good Mesh</h5>
@@ -59,6 +64,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part4/' | relative_url }}">
       <div class="card h-100 hoverable">
+        <img class="card-img-top" src="{{ 'assets/img/plate_hole/tut4.svg' | relative_url }}" alt="Part 4 thumbnail">
         <div class="card-body">
           <span class="part-tag">Part 4</span>
           <h5 class="card-title mb-2">Analyzing the Stress Concentration</h5>
@@ -70,6 +76,7 @@ This series walks through building, refining, and analyzing a plate-with-hole mo
   <div class="col d-flex">
     <a class="w-100" href="{{ '/courses/abaqus_tutorial_part5/' | relative_url }}">
       <div class="card h-100 hoverable">
+        <img class="card-img-top" src="{{ 'assets/img/plate_hole/tut5.svg' | relative_url }}" alt="Part 5 thumbnail">
         <div class="card-body">
           <span class="part-tag">Part 5</span>
           <h5 class="card-title mb-2">Different Material Behaviours</h5>
