@@ -23,6 +23,81 @@
   font-family: "Excalifont", "Inter", "Manrope", sans-serif;
 }
 
+/* Tutorial navigation buttons */
+.tutorial-nav {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+
+  .btn {
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    border-color: var(--global-theme-color) !important;
+    color: var(--global-bg-color) !important;
+    background-color: var(--global-theme-color) !important;
+
+    &:hover,
+    &:focus {
+      background-color: var(--global-theme-color) !important;
+      color: var(--global-bg-color) !important;
+      filter: brightness(0.92);
+    }
+  }
+
+  .btn-outline-primary {
+    background-color: transparent !important;
+    color: var(--global-theme-color) !important;
+    border-color: var(--global-theme-color) !important;
+
+    &:hover,
+    &:focus {
+      background-color: rgba(0, 0, 0, 0.03) !important;
+      color: var(--global-theme-color) !important;
+    }
+  }
+}
+
+/* Override Bootstrap primary button to use the site theme color */
+.btn-primary,
+.btn-primary:visited {
+  background-color: var(--global-theme-color);
+  border-color: var(--global-theme-color);
+  color: var(--global-bg-color);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.show > .btn-primary.dropdown-toggle {
+  background-color: var(--global-theme-color);
+  border-color: var(--global-theme-color);
+  color: var(--global-bg-color);
+  filter: brightness(0.92);
+}
+
+/* Override outline primary to use theme red instead of default blue */
+.btn-outline-primary,
+.btn-outline-primary:visited {
+  color: var(--global-theme-color) !important;
+  border-color: var(--global-theme-color) !important;
+  background-color: transparent !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.show > .btn-outline-primary.dropdown-toggle {
+  color: var(--global-theme-color) !important;
+  border-color: var(--global-theme-color) !important;
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  filter: brightness(0.95);
+}
+
 // <uniquifier>: Use a unique and descriptive class name
 // <weight>: Use a value from 200 to 800
 

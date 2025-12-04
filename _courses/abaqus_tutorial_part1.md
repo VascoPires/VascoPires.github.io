@@ -13,6 +13,11 @@ nav: false
 
 # 2D Plate with a Hole
 
+<div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mb-3">
+  <a class="btn btn-outline-primary" href="{{ '/courses/abaqus_plate_with_hole/' | relative_url }}">← Back to tutorial overview</a>
+  <a class="btn btn-primary" href="{{ '/courses/abaqus_tutorial_part2/' | relative_url }}">Next: Part 2 →</a>
+</div>
+
 Now that we have covered some fundamentals and learned how to operate within Abaqus/CAE, let’s walk through a complete example: a plate with a central hole under tension, as shown in [Figure 1](#fig:plate-with-hole).
 
 
@@ -133,11 +138,11 @@ The second step is defining a **section**.  A section is, in essence, the _middl
 {% include figure.liquid path="assets/img/teaching/2d_plate/files/section.png" title="Creating a solid section." class="img-fluid rounded article-figure" %}
 <div class="caption">Creating a solid section.</div>
 {% include figure.liquid path="assets/img/teaching/2d_plate/files/section_assign.png" title="Assigning the section to the part." class="img-fluid rounded article-figure" %}
-<div class="caption">Assigning the section to the part; sections bridge materials to geometry.</div>
+<div class="caption">Assigning the section to the part.</div>
 
 ## 🧩 Assembly
 
-Moving on to the **assembly** step.  The assembly module represents what the **solver actually sees** . You might create several parts in the Part module, but only those you create instances of it in the assembly will be used for simulation. Even if you have just one part, you still need to create an assembly instance. You’re essentially telling the solver: “here’s the part I want to analyze.
+Moving on to the **assembly** step.  The assembly module represents what the **solver actually sees** . You might create several parts in the Part module, but only those you create instances of it in the assembly will be used for simulation. Even if you have just one part, you still need to create an assembly instance. You’re essentially telling the solver: “here’s the part I want to analyze".
 
 To do this, create an **Instance**.  An instance is a placed copy of a part within the assembly. You can have multiple instances of the same part, for example, a connection with 10 identical bolts can be modeled using one bolt geometry and section, but repeated as multiple instances.
 
@@ -224,3 +229,8 @@ Once everything is ready, click **Submit** ▶️ to start the analysis. You can
 <div class="caption">Von Mises stress contours highlighting the stress concentration at the hole.</div>
 
 When the analysis finishes, open the **Visualization module** to check the results. [Figure 20](#fig-mises) shows the **von Mises stress contour** for the plate under tension and the stress concentration around the hole is clearly visible, as expected.
+
+<div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mt-4">
+  <a class="btn btn-outline-primary" href="{{ '/courses/abaqus_plate_with_hole/' | relative_url }}">← Back to tutorial overview</a>
+  <a class="btn btn-primary" href="{{ '/courses/abaqus_tutorial_part2/' | relative_url }}">Next: Part 2 →</a>
+</div>
