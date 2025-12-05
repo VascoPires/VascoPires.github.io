@@ -8,6 +8,8 @@ permalink: /tensor-vis/
 <head>
     <meta charset="UTF-8">
     <title>Interactive Stress Tensor Visualization</title>
+    <link rel="icon" href="/assets/img/web_icon.ico">
+    <link rel="shortcut icon" href="/assets/img/web_icon.ico">
 
     <!-- Polyfill (optional, safe to keep) -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -46,8 +48,8 @@ permalink: /tensor-vis/
 
         .back-home {
             position: fixed;
-            top: 12px;
-            left: 12px;
+            top: 16px;
+            right: 16px;
             z-index: 20;
             background: rgba(0,0,0,0.7);
             color: #fff;
@@ -203,6 +205,32 @@ permalink: /tensor-vis/
             cursor: pointer;
             font-size: 14px;
             pointer-events: auto;
+            position: relative;
+        }
+        /* Tooltip */
+        .tooltip-bubble {
+            position: absolute;
+            top: 42px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #555;
+            font-size: 12px;
+            min-width: 220px;
+            max-width: 260px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .tooltip-bubble.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(4px);
+            pointer-events: auto;
         }
     </style>
 
@@ -217,6 +245,9 @@ permalink: /tensor-vis/
     <button data-view="posx">+X View</button>
     <button data-view="posy">+Y View</button>
     <button data-view="posz">+Z View</button>
+    <div id="view-tooltip" class="tooltip-bubble">
+        According to the global axes. The cube keeps its relative rotation; views align camera to the chosen axis.
+    </div>
 </div>
 
 <div id="ui-layer">
@@ -239,9 +270,9 @@ permalink: /tensor-vis/
         <div class="slider-group">
             <div class="slider-header">
                 <span class="math-label">$\sigma_{xx}$</span>
-                <span id="lbl-sxx" class="val-label">5</span>
+                <span id="lbl-sxx" class="val-label">10</span>
             </div>
-            <input type="range" id="inp-sxx" min="-10" max="10" value="5">
+            <input type="range" id="inp-sxx" min="-10" max="10" value="10">
         </div>
         <div class="slider-group">
             <div class="slider-header">
@@ -260,16 +291,16 @@ permalink: /tensor-vis/
         <div class="slider-group">
             <div class="slider-header">
                 <span class="math-label">$\tau_{xy}$</span>
-                <span id="lbl-txy" class="val-label">0</span>
+                <span id="lbl-txy" class="val-label">5</span>
             </div>
-            <input type="range" id="inp-txy" min="-10" max="10" value="0">
+            <input type="range" id="inp-txy" min="-10" max="10" value="5">
         </div>
         <div class="slider-group">
             <div class="slider-header">
                 <span class="math-label">$\tau_{yz}$</span>
-                <span id="lbl-tyz" class="val-label">0</span>
+                <span id="lbl-tyz" class="val-label">5</span>
             </div>
-            <input type="range" id="inp-tyz" min="-10" max="10" value="0">
+            <input type="range" id="inp-tyz" min="-10" max="10" value="5">
         </div>
         <div class="slider-group">
             <div class="slider-header">
@@ -290,7 +321,7 @@ permalink: /tensor-vis/
         <div class="math-block">
             <b>1. Cauchy's Law (Tractions):</b><br>
             $$ \vec{t}^{(\vec{n})} = \boldsymbol{\sigma} \cdot \vec{n} $$
-            The red vectors $\vec{t}$ change as the surface normal $\vec{n}$ rotates.
+            The vectors $\vec{t}$ change as the surface normal $\vec{n}$ rotates.
         </div>
         <div class="math-block">
             <b>2. Tensor Transformation:</b><br>
@@ -511,8 +542,8 @@ principalGroup.visible = false;
 // Global Stress Tensor (S)
 let S = new THREE.Matrix3();
 let state = {
-    sxx: 5, syy: 0, szz: 0,
-    txy: 0, tyz: 0, txz: 0
+    sxx: 10, syy: 0, szz: 0,
+    txy: 0, tyz: 5, txz: 5
 };
 
 let isDragging = false;
@@ -567,6 +598,8 @@ const globalAxisVectors = [
 let principalVisible = false;
 const principalToggleBtn = document.getElementById('btn-toggle-principal');
 const viewButtons = document.querySelectorAll('#view-controls button');
+const viewTooltip = document.getElementById('view-tooltip');
+let tooltipTimer;
 
 const cameraViews = {
     iso: { position: new THREE.Vector3(7, 5, 7), up: new THREE.Vector3(0, 1, 0) },
@@ -583,6 +616,13 @@ function setCameraView(viewKey) {
     camera.lookAt(0, 0, 0);
     updateScene(true);
     updateAxisLabelVisibility();
+}
+
+function showViewTooltip() {
+    clearTimeout(tooltipTimer);
+    if (!viewTooltip) return;
+    viewTooltip.classList.add('show');
+    tooltipTimer = setTimeout(() => viewTooltip.classList.remove('show'), 2200);
 }
 
 function setPrincipalVisibility(show) {
@@ -869,9 +909,11 @@ setPrincipalVisibility(false);
 updateAxisLabelVisibility();
 
 viewButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        setCameraView(btn.dataset.view);
-    });
+    btn.addEventListener('mouseenter', showViewTooltip);
+    btn.addEventListener('focus', showViewTooltip);
+    btn.addEventListener('mouseleave', () => viewTooltip && viewTooltip.classList.remove('show'));
+    btn.addEventListener('blur', () => viewTooltip && viewTooltip.classList.remove('show'));
+    btn.addEventListener('click', () => setCameraView(btn.dataset.view));
 });
 
 function resetRotation() {
