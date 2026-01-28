@@ -8,7 +8,7 @@ subtitle: Researcher & PhD candidate
 
 profile:
   align: right
-  image: fotoVascoPires.png
+  image: vasco_cut.png
   image_circular: false # crops the image to make it circular
   address: 
 
@@ -31,6 +31,12 @@ social: true  # includes social icons at the bottom of the page
 
 Hi! Welcome to my corner of the internet. My name is Vasco and I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). If you’re interested in my academic and engineering work, you’ll find plenty to explore by checking the navigation bar.
 
+This site is a mix of things I work on and things I enjoy sharing: my academic and engineering projects, teaching materials, notes, code, small tools, and the occasional write-up. 
+
+If you’re looking for something specific, the navigation bar is the best place to start. Unless stated otherwise, everything here is open-source and free to use.
+
+Thanks for stopping by! :)
+
 <!--
 It is a fascinating area with a lot of challenges, and I hope my work, even in small ways, can contribute to advancements that make a difference — whether that's in exploring new planets, improving satellite surveillance, or reducing the weight and emissions of aircraft.
 -->
@@ -39,6 +45,7 @@ It is a fascinating area with a lot of challenges, and I hope my work, even in s
 I am passionate about teaching and mentoring, always looking for ways to make learning more engaging and interactive, especially through visualization and animations. This was the main reason for the creation of my YouTube channel, where I am planning to post content soon - so stay tuned for that. 
 -->
 
+<!--
 On the side, I enjoy writing about topics that excite me. My blog is where I share book reviews and personal lessons on various subjects, often focused on improving workflows or different areas of life.
 
 <!--
