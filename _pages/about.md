@@ -29,7 +29,7 @@ social: true  # includes social icons at the bottom of the page
   —&nbsp;Elijah Aron & Jordan Young
 -->
 
-Hi! Welcome to my corner of the internet. My name is Vasco and I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). If you’re interested in my academic and engineering work, you’ll find plenty to explore by checking the navigation bar.
+Hi! Welcome to my corner of the internet. My name is Vasco and I am currently doing my Ph.D. and working as a researcher at the [Institute of Designing Plastics and Composite Materials](https://www.kunststofftechnik.at/en/konstruieren) and lecturer at [MUL](https://www.unileoben.ac.at/en/). 
 
 This site is a mix of things I work on and things I enjoy sharing: my academic and engineering projects, teaching materials, notes, code, small tools, and the occasional write-up. 
 

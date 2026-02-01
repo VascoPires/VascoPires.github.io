@@ -2,13 +2,13 @@
 layout: page
 permalink: /teaching/
 title: teaching & resources
-description: Materials for courses you taught. Replace this text with your description.
+description: 
 nav: true
 nav_order: 6
 horizontal: false
 ---
 
-Welcome—this page collects courses, tutorials, and interactive demos. 
+Welcome! This page collects courses, tutorials, and interactive demos. 
 <style>
 .teaching-tag {
   display: inline-block;
