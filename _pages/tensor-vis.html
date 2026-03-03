@@ -7,9 +7,13 @@ permalink: /tensor-vis/
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Stress Tensor Visualization</title>
     <link rel="icon" href="/assets/img/web_icon.ico">
     <link rel="shortcut icon" href="/assets/img/web_icon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Polyfill (optional, safe to keep) -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -33,9 +37,14 @@ permalink: /tensor-vis/
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: "Inter", "Manrope", sans-serif;
             background: #111;
             color: white;
+        }
+        button,
+        input,
+        select {
+            font-family: inherit;
         }
         #container {
             width: 100vw;
@@ -232,11 +241,276 @@ permalink: /tensor-vis/
             transform: translateX(-50%) translateY(4px);
             pointer-events: auto;
         }
+
+        #btn-toggle-mohr {
+            position: fixed;
+            top: 64px;
+            right: 16px;
+            z-index: 24;
+            padding: 8px 12px;
+            border: 1px solid #555;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+        }
+
+        #mohr-window {
+            position: fixed;
+            top: 106px;
+            right: 20px;
+            width: 340px;
+            max-height: calc(100vh - 130px);
+            z-index: 22;
+            overflow: hidden;
+        }
+        #intro-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            background: rgba(0, 0, 0, 0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #intro-modal.hidden {
+            display: none;
+        }
+        #intro-dialog {
+            width: min(520px, calc(100vw - 32px));
+            background: #181818;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 16px 16px 14px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+        }
+        #intro-dialog h3 {
+            margin: 0 0 8px;
+            font-size: 17px;
+        }
+        #intro-dialog p {
+            margin: 0;
+            color: #c8c8c8;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        #btn-close-intro {
+            margin-top: 12px;
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #666;
+            border-radius: 6px;
+            background: #2e2e2e;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .mohr-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .mohr-title-row h3 {
+            margin: 0;
+        }
+        .mohr-theory-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+        .mohr-theory-wrap.hidden {
+            display: none;
+        }
+        .mohr-theory-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid #5a5a5a;
+            background: #222;
+            color: #d8d8d8;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: help;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+        }
+        .mohr-theory-tip {
+            position: absolute;
+            top: 30px;
+            right: 0;
+            width: 250px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            border: 1px solid #4a4a4a;
+            background: rgba(10, 10, 10, 0.92);
+            color: #e2e2e2;
+            font-size: 11px;
+            line-height: 1.35;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity 140ms ease, transform 140ms ease;
+            z-index: 26;
+        }
+        .mohr-theory-wrap:hover .mohr-theory-tip,
+        .mohr-theory-wrap:focus-within .mohr-theory-tip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #mohr-plane-controls {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        #mohr-plane-controls button {
+            padding: 6px 0;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #252525;
+            color: #d5d5d5;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+        }
+        #mohr-plane-controls button.active {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+            color: #111;
+            font-weight: 600;
+        }
+        #mohr-plane-controls button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        #mohr-status {
+            min-height: 36px;
+            font-size: 11px;
+            line-height: 1.35;
+            color: #9bb6c7;
+            margin-bottom: 6px;
+        }
+        #mohr-status.error {
+            color: #ffb4a1;
+        }
+        #mohr-canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #121212;
+            margin-top: 2px;
+        }
+        #mohr-coords {
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            max-height: 190px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .coord-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .coord-name {
+            color: #9dd8ff;
+            font-weight: 600;
+        }
+        .coord-val {
+            color: #ffd54f;
+            font-family: "Courier New", monospace;
+        }
+
+        .rotation-mode-wrapper {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #3f3f3f;
+        }
+        .rotation-mode-title {
+            font-size: 12px;
+            color: #bbb;
+            margin-bottom: 6px;
+        }
+        #rotation-mode-controls {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+        }
+        #rotation-mode-controls button {
+            padding: 6px 0;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #252525;
+            color: #d5d5d5;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+        }
+        #rotation-mode-controls button.active {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+            color: #111;
+            font-weight: 600;
+        }
+        .rotation-mode-hint {
+            margin-top: 6px;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #9a9a9a;
+        }
+
+        @media (max-width: 980px) {
+            #ui-layer {
+                top: 12px;
+                left: 12px;
+                max-width: calc(100vw - 24px);
+            }
+            .panel {
+                width: min(330px, calc(100vw - 24px));
+            }
+            #btn-toggle-mohr {
+                right: 12px;
+                top: 56px;
+            }
+            #mohr-window {
+                width: min(340px, calc(100vw - 24px));
+                right: 12px;
+                top: auto;
+                bottom: 12px;
+                max-height: min(52vh, 420px);
+            }
+            .mohr-theory-tip {
+                width: min(250px, calc(100vw - 60px));
+            }
+            #legend {
+                display: none;
+            }
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+
+<div id="intro-modal" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+    <div id="intro-dialog">
+        <h3 id="intro-title">Quick Start</h3>
+        <p>
+            Use left-drag to rotate the camera and right-drag to rotate the cube. Toggle between 2D and 3D Mohr views from the top-right button. Close this window to start interacting.
+        </p>
+        <button id="btn-close-intro" type="button">Start Exploring</button>
+    </div>
+</div>
 
 <a class="back-home" href="{{ '/teaching/' | relative_url }}">← Back to Teaching & Resources</a>
 
@@ -298,9 +572,9 @@ permalink: /tensor-vis/
         <div class="slider-group">
             <div class="slider-header">
                 <span class="math-label">$\tau_{yz}$</span>
-                <span id="lbl-tyz" class="val-label">5</span>
+                <span id="lbl-tyz" class="val-label">0</span>
             </div>
-            <input type="range" id="inp-tyz" min="-10" max="10" value="5">
+            <input type="range" id="inp-tyz" min="-10" max="10" value="0">
         </div>
         <div class="slider-group">
             <div class="slider-header">
@@ -311,8 +585,18 @@ permalink: /tensor-vis/
         </div>
         <button onclick="resetRotation()"
                 style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#333; color:white; border:1px solid #555;">
-            Reset Cube View
+            Reset Cube
         </button>
+        <div class="rotation-mode-wrapper">
+            <div class="rotation-mode-title">Controlled Rotation Axis</div>
+            <div id="rotation-mode-controls">
+                <button type="button" data-rot-mode="free">Free</button>
+                <button type="button" data-rot-mode="x">X only</button>
+                <button type="button" data-rot-mode="y">Y only</button>
+                <button type="button" data-rot-mode="z">Z only</button>
+            </div>
+            <div class="rotation-mode-hint">Right-drag rotates only around the selected axis.</div>
+        </div>
     </div>
 
     <!-- Governing equations and invariants -->
@@ -348,6 +632,29 @@ permalink: /tensor-vis/
             Show Principal Stresses
         </button>
     </div>
+</div>
+
+<button id="btn-toggle-mohr">Switch to 3D Mohr</button>
+
+<div id="mohr-window" class="panel">
+    <div class="mohr-title-row">
+        <h3>Mohr Circle</h3>
+        <div class="mohr-theory-wrap">
+            <button type="button" class="mohr-theory-btn" aria-label="3D Mohr theory">i</button>
+            <div class="mohr-theory-tip">
+                3D circles use principal stresses: Cᵢⱼ=(σᵢ+σⱼ)/2, Rᵢⱼ=|σᵢ−σⱼ|/2, τmax=(σ₁−σ₃)/2.
+            </div>
+        </div>
+    </div>
+    <div class="rotation-mode-title">2D Plane Selection</div>
+    <div id="mohr-plane-controls">
+        <button type="button" data-plane="xy">XY</button>
+        <button type="button" data-plane="xz">XZ</button>
+        <button type="button" data-plane="yz">YZ</button>
+    </div>
+    <div id="mohr-status" aria-live="polite"></div>
+    <canvas id="mohr-canvas" width="320" height="230"></canvas>
+    <div id="mohr-coords"></div>
 </div>
 
 <div id="legend">
@@ -408,7 +715,7 @@ function createAxisLabel(text, position, color) {
     canvas.width = canvas.height = size;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, size, size);
-    ctx.font = 'bold 40px "Segoe UI", sans-serif';
+    ctx.font = 'bold 40px "Inter", "Manrope", sans-serif';
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -543,7 +850,7 @@ principalGroup.visible = false;
 let S = new THREE.Matrix3();
 let state = {
     sxx: 10, syy: 0, szz: 0,
-    txy: 0, tyz: 5, txz: 5
+    txy: 5, tyz: 0, txz: 0
 };
 
 let isDragging = false;
@@ -555,8 +862,17 @@ const ORBIT_SPEED = 0.005;
 const MIN_POLAR = 0.05;
 const MAX_POLAR = Math.PI - 0.05;
 
+const stressInputMap = [
+    ['sxx', 'sxx'],
+    ['syy', 'syy'],
+    ['szz', 'szz'],
+    ['txy', 'txy'],
+    ['tyz', 'tyz'],
+    ['txz', 'txz']
+];
+
 // --- MATH LOGIC ---
-function updateStressTensor() {
+function rebuildStressTensor() {
     S.set(
         state.sxx, state.txy, state.txz,
         state.txy, state.syy, state.tyz,
@@ -564,7 +880,20 @@ function updateStressTensor() {
     );
 
     updatePrincipalVis();
+}
+
+function updateStressTensor() {
+    rebuildStressTensor();
     updateScene(true);
+}
+
+function syncStressControlsFromState() {
+    stressInputMap.forEach(([id, key]) => {
+        const input = document.getElementById('inp-' + id);
+        const label = document.getElementById('lbl-' + id);
+        if (input) input.value = state[key];
+        if (label) label.innerText = state[key];
+    });
 }
 
 function updatePrincipalVis() {
@@ -597,9 +926,80 @@ const globalAxisVectors = [
 
 let principalVisible = false;
 const principalToggleBtn = document.getElementById('btn-toggle-principal');
+const mohrToggleBtn = document.getElementById('btn-toggle-mohr');
+const mohrCanvas = document.getElementById('mohr-canvas');
+const mohrCtx = mohrCanvas ? mohrCanvas.getContext('2d') : null;
+const mohrCoords = document.getElementById('mohr-coords');
+const mohrStatus = document.getElementById('mohr-status');
+const mohrPlaneButtons = document.querySelectorAll('#mohr-plane-controls button');
+const mohrTheoryWrap = document.querySelector('.mohr-theory-wrap');
+const introModal = document.getElementById('intro-modal');
+const introCloseBtn = document.getElementById('btn-close-intro');
 const viewButtons = document.querySelectorAll('#view-controls button');
 const viewTooltip = document.getElementById('view-tooltip');
+const rotationModeButtons = document.querySelectorAll('#rotation-mode-controls button');
 let tooltipTimer;
+let mohrMode = '2d';
+let mohrPlane = 'xy';
+let rotationMode = 'free';
+let introModalOpen = true;
+
+const TWO_D_FREE_MODE_MESSAGE = '2D Mohr Circle not available in Free 3D rotation. For that use the 3D mohr circle. To see the 2D Mohr Circle select a controlled rotation axis normal to that plane.';
+
+const mohrPlaneConfig = {
+    xy: {
+        label: 'XY',
+        requiredAxis: 'z',
+        sigmaAKey: 'sxx',
+        sigmaBKey: 'syy',
+        tauKey: 'txy',
+        pairLabel: 'xy',
+        color: '#4c7dff'
+    },
+    xz: {
+        label: 'XZ',
+        requiredAxis: 'y',
+        sigmaAKey: 'sxx',
+        sigmaBKey: 'szz',
+        tauKey: 'txz',
+        pairLabel: 'xz',
+        color: '#4cff4c'
+    },
+    yz: {
+        label: 'YZ',
+        requiredAxis: 'x',
+        sigmaAKey: 'syy',
+        sigmaBKey: 'szz',
+        tauKey: 'tyz',
+        pairLabel: 'yz',
+        color: '#ff4040'
+    }
+};
+
+const axisToPlane = {
+    x: 'yz',
+    y: 'xz',
+    z: 'xy'
+};
+
+const rotationModeLabel = {
+    x: 'X only',
+    y: 'Y only',
+    z: 'Z only',
+    free: 'Free'
+};
+
+const lockedRotationAxes = {
+    x: new THREE.Vector3(1, 0, 0),
+    y: new THREE.Vector3(0, 1, 0),
+    z: new THREE.Vector3(0, 0, 1)
+};
+
+const axisRotationAngles = {
+    x: 0,
+    y: 0,
+    z: 0
+};
 
 const cameraViews = {
     iso: { position: new THREE.Vector3(7, 5, 7), up: new THREE.Vector3(0, 1, 0) },
@@ -633,6 +1033,159 @@ function setPrincipalVisibility(show) {
     });
     if (principalToggleBtn) {
         principalToggleBtn.innerText = show ? 'Hide Principal Stresses' : 'Show Principal Stresses';
+    }
+}
+
+function setMohrStatus(message = '', isError = false) {
+    if (!mohrStatus) return;
+    mohrStatus.innerText = message;
+    mohrStatus.classList.toggle('error', isError);
+}
+
+function setIntroModal(open) {
+    introModalOpen = !!open;
+    if (!introModal) return;
+    introModal.classList.toggle('hidden', !introModalOpen);
+}
+
+function applyPlaneStressPreset(planeKey, options = {}) {
+    const { skipScene = false } = options;
+
+    if (planeKey === 'xy') {
+        state.sxx = 10;
+        state.syy = 0;
+        state.szz = 0;
+        state.txy = 5;
+        state.txz = 0;
+        state.tyz = 0;
+    } else if (planeKey === 'xz') {
+        state.sxx = 10;
+        state.syy = 0;
+        state.szz = 0;
+        state.txy = 0;
+        state.tyz = 0;
+        state.txz = 5;
+    } else if (planeKey === 'yz') {
+        state.sxx = 0;
+        state.syy = 10;
+        state.szz = 0;
+        state.txy = 0;
+        state.txz = 0;
+        state.tyz = 5;
+    }
+
+    syncStressControlsFromState();
+    rebuildStressTensor();
+
+    if (!skipScene) {
+        updateScene(true);
+    }
+}
+
+function setMohrPlane(plane, options = {}) {
+    const { skipScene = false, syncRotation = true } = options;
+    if (!mohrPlaneConfig[plane]) return;
+    mohrPlane = plane;
+    mohrPlaneButtons.forEach(btn => {
+        const isActive = btn.dataset.plane === mohrPlane;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+    });
+
+    if (syncRotation && mohrMode === '2d') {
+        const requiredAxis = mohrPlaneConfig[mohrPlane].requiredAxis;
+        if (rotationMode !== requiredAxis) {
+            setRotationMode(requiredAxis, { syncMohr: false, syncPlane: false, skipScene: true });
+        }
+    }
+
+    if (mohrMode === '2d') {
+        applyPlaneStressPreset(mohrPlane, { skipScene: true });
+    }
+
+    if (!skipScene) {
+        updateScene(true);
+    }
+}
+
+function setMohrMode(mode, options = {}) {
+    const { syncRotation = true, skipScene = false } = options;
+    mohrMode = mode === '3d' ? '3d' : '2d';
+
+    if (mohrToggleBtn) {
+        mohrToggleBtn.innerText = mohrMode === '3d' ? 'Switch to 2D Mohr' : 'Switch to 3D Mohr';
+    }
+
+    if (mohrTheoryWrap) {
+        mohrTheoryWrap.classList.toggle('hidden', mohrMode !== '3d');
+    }
+
+    mohrPlaneButtons.forEach(btn => {
+        btn.disabled = mohrMode === '3d';
+    });
+
+    if (mohrMode === '3d' && syncRotation && rotationMode !== 'free') {
+        setRotationMode('free', { syncMohr: false, skipScene: true });
+    }
+
+    if (mohrMode === '2d' && syncRotation) {
+        const requiredAxis = mohrPlaneConfig[mohrPlane].requiredAxis;
+        if (rotationMode !== requiredAxis) {
+            setRotationMode(requiredAxis, { syncMohr: false, syncPlane: false, skipScene: true });
+        }
+    }
+
+    if (mohrMode === '2d') {
+        applyPlaneStressPreset(mohrPlane, { skipScene: true });
+    }
+
+    if (!skipScene) {
+        updateScene(true);
+    }
+}
+
+function applyControlledAxisRotation(axis) {
+    const lockAxis = lockedRotationAxes[axis];
+    if (!lockAxis) return;
+    const q = new THREE.Quaternion().setFromAxisAngle(lockAxis, axisRotationAngles[axis]);
+    cube.quaternion.copy(q);
+    cube.updateMatrixWorld(true);
+}
+
+function isPureAxisRotation(axis, tolerance = 1e-4) {
+    const q = cube.quaternion.clone().normalize();
+    if (axis === 'x') return Math.abs(q.y) < tolerance && Math.abs(q.z) < tolerance;
+    if (axis === 'y') return Math.abs(q.x) < tolerance && Math.abs(q.z) < tolerance;
+    if (axis === 'z') return Math.abs(q.x) < tolerance && Math.abs(q.y) < tolerance;
+    return false;
+}
+
+function setRotationMode(mode, options = {}) {
+    const { syncMohr = true, syncPlane = true, skipScene = false } = options;
+    rotationMode = ['free', 'x', 'y', 'z'].includes(mode) ? mode : 'free';
+    rotationModeButtons.forEach(btn => {
+        const isActive = btn.dataset.rotMode === rotationMode;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+    });
+
+    if (rotationMode === 'free' && syncMohr && mohrMode !== '3d') {
+        setMohrMode('3d', { syncRotation: false, skipScene: true });
+    }
+
+    if (rotationMode !== 'free' && syncPlane && mohrMode === '2d') {
+        const mappedPlane = axisToPlane[rotationMode];
+        if (mappedPlane && mohrPlane !== mappedPlane) {
+            setMohrPlane(mappedPlane, { syncRotation: false, skipScene: true });
+        }
+    }
+
+    if (rotationMode !== 'free' && mohrMode === '2d') {
+        applyControlledAxisRotation(rotationMode);
+    }
+
+    if (!skipScene) {
+        updateScene(true);
     }
 }
 
@@ -749,6 +1302,301 @@ function updateDOM(localMatrix, globalMatrix) {
     document.getElementById('val-trace').innerText = trace.toFixed(2);
     document.getElementById('val-vm').innerText = vm.toFixed(2);
     document.getElementById('val-det').innerText = det.toFixed(2);
+
+    updateMohrWindow(localMatrix);
+}
+
+function formatMohrValue(value) {
+    const cleaned = Math.abs(value) < 1e-8 ? 0 : value;
+    return cleaned.toFixed(2);
+}
+
+function getLocalStressComponents(localMatrix) {
+    const el = localMatrix.elements;
+    return {
+        sxx: el[0],
+        syy: el[4],
+        szz: el[8],
+        txy: el[3],
+        tyz: el[7],
+        txz: el[6]
+    };
+}
+
+function resetMohrCanvas() {
+    if (!mohrCtx || !mohrCanvas) return;
+    mohrCtx.clearRect(0, 0, mohrCanvas.width, mohrCanvas.height);
+    mohrCtx.fillStyle = '#111';
+    mohrCtx.fillRect(0, 0, mohrCanvas.width, mohrCanvas.height);
+}
+
+function drawMohrAxes(toX, toY, width, height, pad) {
+    const yZero = toY(0);
+    const xZero = toX(0);
+
+    mohrCtx.strokeStyle = '#454545';
+    mohrCtx.lineWidth = 1;
+    mohrCtx.beginPath();
+    mohrCtx.moveTo(pad, yZero);
+    mohrCtx.lineTo(width - pad, yZero);
+    mohrCtx.stroke();
+
+    mohrCtx.fillStyle = '#9a9a9a';
+    mohrCtx.font = '11px "Inter", "Manrope", sans-serif';
+    mohrCtx.fillText('σ', width - pad - 16, yZero - 6);
+
+    if (xZero >= pad && xZero <= width - pad) {
+        mohrCtx.beginPath();
+        mohrCtx.moveTo(xZero, pad);
+        mohrCtx.lineTo(xZero, height - pad);
+        mohrCtx.stroke();
+        mohrCtx.fillText('τ', xZero + 6, pad + 10);
+    }
+
+    return { yZero };
+}
+
+function renderMohrUnavailable(message) {
+    setMohrStatus(message, true);
+    if (mohrCoords) {
+        mohrCoords.innerHTML = '';
+    }
+    if (!mohrCtx || !mohrCanvas) return;
+
+    resetMohrCanvas();
+    mohrCtx.fillStyle = '#8e8e8e';
+    mohrCtx.font = '13px "Inter", "Manrope", sans-serif';
+    mohrCtx.textAlign = 'center';
+    mohrCtx.fillText('2D Mohr unavailable', mohrCanvas.width * 0.5, mohrCanvas.height * 0.5);
+    mohrCtx.textAlign = 'left';
+}
+
+function render3DMohr(localMatrix) {
+    const principal = jacobi(localMatrix).eigenvalues.slice().sort((a, b) => b - a);
+    const s1 = principal[0], s2 = principal[1], s3 = principal[2];
+
+    const circles = [
+        { label: 'C13', center: 0.5 * (s1 + s3), radius: 0.5 * Math.abs(s1 - s3), color: '#ffd54f' },
+        { label: 'C12', center: 0.5 * (s1 + s2), radius: 0.5 * Math.abs(s1 - s2), color: '#4fc3f7' },
+        { label: 'C23', center: 0.5 * (s2 + s3), radius: 0.5 * Math.abs(s2 - s3), color: '#ff8a65' }
+    ];
+
+    const sigmaCandidates = [0, s1, s2, s3];
+    circles.forEach(circle => {
+        sigmaCandidates.push(circle.center - circle.radius);
+        sigmaCandidates.push(circle.center + circle.radius);
+    });
+
+    const tauCandidates = [0, ...circles.map(circle => circle.radius)];
+
+    const sigmaMin = Math.min(...sigmaCandidates);
+    const sigmaMax = Math.max(...sigmaCandidates);
+    const tauMax = Math.max(...tauCandidates, 1);
+
+    const sigmaHalfRange = Math.max((sigmaMax - sigmaMin) * 0.5, 1);
+    const sigmaCenter = 0.5 * (sigmaMax + sigmaMin);
+    const tauHalfRange = Math.max(tauMax, 1);
+
+    const width = mohrCanvas.width;
+    const height = mohrCanvas.height;
+    const pad = 22;
+    const scale = Math.min(
+        (width - 2 * pad) / (2.25 * sigmaHalfRange),
+        (height - 2 * pad) / (2.25 * tauHalfRange)
+    );
+
+    const toX = (sigma) => width * 0.5 + (sigma - sigmaCenter) * scale;
+    const toY = (tau) => height * 0.5 - tau * scale;
+
+    resetMohrCanvas();
+    const { yZero } = drawMohrAxes(toX, toY, width, height, pad);
+
+    circles.forEach(circle => {
+        const radiusPx = circle.radius * scale;
+        mohrCtx.strokeStyle = circle.color;
+        mohrCtx.lineWidth = 1.6;
+        mohrCtx.beginPath();
+        mohrCtx.arc(toX(circle.center), yZero, radiusPx, 0, Math.PI * 2);
+        mohrCtx.stroke();
+        mohrCtx.fillStyle = circle.color;
+        mohrCtx.font = '10px "Inter", "Manrope", sans-serif';
+        mohrCtx.fillText(circle.label, toX(circle.center + circle.radius) + 4, yZero - 6);
+    });
+
+    setMohrStatus('3D Mohr Circle from principal stresses: Cij=(σi+σj)/2, Rij=|σi-σj|/2.', false);
+
+    const coordsRows = [
+        `<div class="coord-row"><span class="coord-name">σ1,σ2,σ3</span><span class="coord-val">(${formatMohrValue(s1)}, ${formatMohrValue(s2)}, ${formatMohrValue(s3)})</span></div>`
+    ];
+
+    circles.forEach(circle => {
+        coordsRows.push(
+            `<div class="coord-row"><span class="coord-name">${circle.label}: (C,R)</span><span class="coord-val">(${formatMohrValue(circle.center)}, ${formatMohrValue(circle.radius)})</span></div>`
+        );
+    });
+    coordsRows.push(
+        `<div class="coord-row"><span class="coord-name">τmax</span><span class="coord-val">${formatMohrValue(circles[0].radius)}</span></div>`
+    );
+
+    mohrCoords.innerHTML = coordsRows.join('');
+}
+
+function validate2DMohr(components, plane) {
+    if (rotationMode === 'free') {
+        return { ok: false, reason: 'free' };
+    }
+
+    if (rotationMode !== plane.requiredAxis) {
+        return { ok: false, reason: 'axis' };
+    }
+
+    if (!isPureAxisRotation(rotationMode)) {
+        return { ok: false, reason: 'orientation' };
+    }
+
+    return { ok: true };
+}
+
+function render2DMohr(components, plane) {
+    const sigmaA = components[plane.sigmaAKey];
+    const sigmaB = components[plane.sigmaBKey];
+    const tau = components[plane.tauKey];
+
+    const center = 0.5 * (sigmaA + sigmaB);
+    const radius = Math.sqrt(Math.pow(0.5 * (sigmaA - sigmaB), 2) + tau * tau);
+    const sigma1 = center + radius;
+    const sigma2 = center - radius;
+
+    const points = [
+        { label: `P${plane.pairLabel}+`, sigma: sigmaA, tau, color: plane.color },
+        { label: `P${plane.pairLabel}-`, sigma: sigmaB, tau: -tau, color: plane.color }
+    ];
+
+    const sigmaCandidates = [0, sigmaA, sigmaB, sigma1, sigma2, center - radius, center + radius];
+    const tauCandidates = [0, Math.abs(tau), radius];
+
+    const sigmaMin = Math.min(...sigmaCandidates);
+    const sigmaMax = Math.max(...sigmaCandidates);
+    const tauMax = Math.max(...tauCandidates, 1);
+
+    const sigmaHalfRange = Math.max((sigmaMax - sigmaMin) * 0.5, 1);
+    const sigmaCenter = 0.5 * (sigmaMax + sigmaMin);
+    const tauHalfRange = Math.max(tauMax, 1);
+
+    const width = mohrCanvas.width;
+    const height = mohrCanvas.height;
+    const pad = 22;
+    const scale = Math.min(
+        (width - 2 * pad) / (2.25 * sigmaHalfRange),
+        (height - 2 * pad) / (2.25 * tauHalfRange)
+    );
+
+    const toX = (sigma) => width * 0.5 + (sigma - sigmaCenter) * scale;
+    const toY = (shear) => height * 0.5 - shear * scale;
+
+    resetMohrCanvas();
+    const { yZero } = drawMohrAxes(toX, toY, width, height, pad);
+
+    mohrCtx.strokeStyle = plane.color;
+    mohrCtx.lineWidth = 1.8;
+    mohrCtx.beginPath();
+    mohrCtx.arc(toX(center), yZero, radius * scale, 0, Math.PI * 2);
+    mohrCtx.stroke();
+
+    const pointA = { x: toX(points[0].sigma), y: toY(points[0].tau) };
+    const pointB = { x: toX(points[1].sigma), y: toY(points[1].tau) };
+    mohrCtx.strokeStyle = 'rgba(220, 220, 220, 0.75)';
+    mohrCtx.lineWidth = 1.2;
+    mohrCtx.setLineDash([6, 4]);
+    mohrCtx.beginPath();
+    mohrCtx.moveTo(pointA.x, pointA.y);
+    mohrCtx.lineTo(pointB.x, pointB.y);
+    mohrCtx.stroke();
+    mohrCtx.setLineDash([]);
+
+    mohrCtx.fillStyle = '#ffffff';
+    mohrCtx.beginPath();
+    mohrCtx.arc(toX(center), yZero, 3, 0, Math.PI * 2);
+    mohrCtx.fill();
+    mohrCtx.font = '11px "Inter", "Manrope", sans-serif';
+    mohrCtx.fillText('C', toX(center) + 5, yZero - 5);
+
+    [
+        { label: 'σ1', sigma: sigma1 },
+        { label: 'σ2', sigma: sigma2 }
+    ].forEach(principalPoint => {
+        const x = toX(principalPoint.sigma);
+        mohrCtx.fillStyle = '#ffffff';
+        mohrCtx.beginPath();
+        mohrCtx.arc(x, yZero, 3, 0, Math.PI * 2);
+        mohrCtx.fill();
+        mohrCtx.fillText(principalPoint.label, x + 5, yZero - 5);
+    });
+
+    points.forEach(point => {
+        const x = toX(point.sigma);
+        const y = toY(point.tau);
+        mohrCtx.fillStyle = point.color;
+        mohrCtx.beginPath();
+        mohrCtx.arc(x, y, 4, 0, Math.PI * 2);
+        mohrCtx.fill();
+
+        mohrCtx.strokeStyle = '#111';
+        mohrCtx.lineWidth = 1;
+        mohrCtx.stroke();
+
+        mohrCtx.fillStyle = '#d9d9d9';
+        mohrCtx.font = '11px "Inter", "Manrope", sans-serif';
+        mohrCtx.fillText(point.label, x + 7, y - 6);
+    });
+
+    setMohrStatus(`2D Mohr Circle active in ${plane.label} plane (${rotationModeLabel[rotationMode]} rotation).`, false);
+
+    mohrCoords.innerHTML = [
+        `<div class="coord-row"><span class="coord-name">Plane</span><span class="coord-val">${plane.label}</span></div>`,
+        `<div class="coord-row"><span class="coord-name">${points[0].label} (σ,τ)</span><span class="coord-val">(${formatMohrValue(points[0].sigma)}, ${formatMohrValue(points[0].tau)})</span></div>`,
+        `<div class="coord-row"><span class="coord-name">${points[1].label} (σ,τ)</span><span class="coord-val">(${formatMohrValue(points[1].sigma)}, ${formatMohrValue(points[1].tau)})</span></div>`,
+        `<div class="coord-row"><span class="coord-name">C = (σ_avg, 0)</span><span class="coord-val">(${formatMohrValue(center)}, 0.00)</span></div>`,
+        `<div class="coord-row"><span class="coord-name">R</span><span class="coord-val">${formatMohrValue(radius)}</span></div>`,
+        `<div class="coord-row"><span class="coord-name">σ1,σ2</span><span class="coord-val">(${formatMohrValue(sigma1)}, ${formatMohrValue(sigma2)})</span></div>`
+    ].join('');
+}
+
+function updateMohrWindow(localMatrix) {
+    if (!mohrCtx || !mohrCoords || !mohrCanvas) return;
+
+    const components = getLocalStressComponents(localMatrix);
+
+    if (mohrMode === '3d') {
+        render3DMohr(localMatrix);
+        return;
+    }
+
+    const plane = mohrPlaneConfig[mohrPlane] || mohrPlaneConfig.xy;
+    const validation = validate2DMohr(components, plane);
+
+    if (!validation.ok) {
+        if (validation.reason === 'free') {
+            renderMohrUnavailable(TWO_D_FREE_MODE_MESSAGE);
+            return;
+        }
+
+        if (validation.reason === 'axis') {
+            renderMohrUnavailable(
+                `2D Mohr Circle for ${plane.label} plane requires ${rotationModeLabel[plane.requiredAxis]} controlled rotation. Use Reset Cube if needed.`
+            );
+            return;
+        }
+
+        if (validation.reason === 'orientation') {
+            renderMohrUnavailable(
+                `2D Mohr Circle unavailable: current cube orientation is not a pure ${rotationModeLabel[plane.requiredAxis]} rotation. Use Reset Cube.`
+            );
+            return;
+        }
+    }
+
+    render2DMohr(components, plane);
 }
 
 // Jacobi eigen decomposition
@@ -814,6 +1662,19 @@ function jacobi(matrixIn) {
 }
 
 // EVENTS
+function isPointerOnUi(target) {
+    if (introModalOpen) return true;
+    if (!(target instanceof Element)) return false;
+    return !!(
+        target.closest('#intro-modal') ||
+        target.closest('#ui-layer') ||
+        target.closest('#view-controls') ||
+        target.closest('#mohr-window') ||
+        target.closest('#btn-toggle-mohr') ||
+        target.closest('.back-home')
+    );
+}
+
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -822,7 +1683,8 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#ui-layer')) return;
+    if (introModalOpen) return;
+    if (isPointerOnUi(e.target)) return;
     isDragging = true;
     isRightClick = (e.button === 2);
     previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -835,6 +1697,7 @@ document.addEventListener('mouseup', () => {
 document.addEventListener('contextmenu', event => event.preventDefault());
 
 document.addEventListener('mousemove', (e) => {
+    if (introModalOpen) return;
     if (!isDragging) return;
 
     const deltaMove = {
@@ -853,21 +1716,39 @@ document.addEventListener('mousemove', (e) => {
         camera.lookAt(orbitTarget);
     } else {
         const rotationSpeed = 0.3;
-        const deltaRotationQuaternion = new THREE.Quaternion()
-            .setFromEuler(new THREE.Euler(
-                toRad(deltaMove.y * rotationSpeed),
-                toRad(deltaMove.x * rotationSpeed),
-                0,
-                'XYZ'
-            ));
-        cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+        if (rotationMode === 'free') {
+            const deltaRotationQuaternion = new THREE.Quaternion()
+                .setFromEuler(new THREE.Euler(
+                    toRad(deltaMove.y * rotationSpeed),
+                    toRad(deltaMove.x * rotationSpeed),
+                    0,
+                    'XYZ'
+                ));
+            cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+        } else {
+            const dragComponent = rotationMode === 'x' ? -deltaMove.y : deltaMove.x;
+            const angle = toRad(dragComponent * rotationSpeed);
+
+            if (mohrMode === '2d') {
+                axisRotationAngles[rotationMode] += angle;
+                applyControlledAxisRotation(rotationMode);
+            } else {
+                const lockAxis = lockedRotationAxes[rotationMode];
+                if (lockAxis) {
+                    const deltaRotationQuaternion = new THREE.Quaternion().setFromAxisAngle(lockAxis, angle);
+                    cube.quaternion.premultiply(deltaRotationQuaternion);
+                    cube.updateMatrixWorld(true);
+                }
+            }
+        }
     }
     previousMousePosition = { x: e.clientX, y: e.clientY };
     updateScene();
 });
 
 document.addEventListener('wheel', (e) => {
-    if (e.target.closest('#ui-layer')) return;
+    if (introModalOpen) return;
+    if (isPointerOnUi(e.target)) return;
     e.preventDefault();
     const delta = e.deltaY * 0.01;
     const direction = camera.position.clone().normalize();
@@ -905,7 +1786,36 @@ if (principalToggleBtn) {
         setPrincipalVisibility(!principalVisible);
     });
 }
+if (mohrToggleBtn) {
+    mohrToggleBtn.addEventListener('click', () => {
+        const nextMode = mohrMode === '3d' ? '2d' : '3d';
+        setMohrMode(nextMode);
+    });
+}
+if (rotationModeButtons.length) {
+    rotationModeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setRotationMode(btn.dataset.rotMode);
+        });
+    });
+}
+if (mohrPlaneButtons.length) {
+    mohrPlaneButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setMohrPlane(btn.dataset.plane);
+        });
+    });
+}
+if (introCloseBtn) {
+    introCloseBtn.addEventListener('click', () => {
+        setIntroModal(false);
+    });
+}
 setPrincipalVisibility(false);
+setMohrPlane('xy', { skipScene: true });
+setRotationMode('z', { skipScene: true });
+setMohrMode('2d', { skipScene: true });
+setIntroModal(true);
 updateAxisLabelVisibility();
 
 viewButtons.forEach(btn => {
@@ -917,6 +1827,9 @@ viewButtons.forEach(btn => {
 });
 
 function resetRotation() {
+    axisRotationAngles.x = 0;
+    axisRotationAngles.y = 0;
+    axisRotationAngles.z = 0;
     cube.rotation.set(0, 0, 0);
     cube.updateMatrixWorld(true);
     setCameraView('iso');
