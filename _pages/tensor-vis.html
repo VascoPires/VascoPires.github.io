@@ -34,6 +34,14 @@ permalink: /tensor-vis/
     </script>
 
     <style>
+        :root {
+            --app-viewport-height: 100vh;
+        }
+        @supports (height: 100dvh) {
+            :root {
+                --app-viewport-height: 100dvh;
+            }
+        }
         body {
             margin: 0;
             overflow: hidden;
@@ -79,7 +87,7 @@ permalink: /tensor-vis/
             display: flex;
             flex-direction: column;
             gap: 15px;
-            max-height: 95vh;
+            max-height: calc(var(--app-viewport-height) - 24px);
             overflow-y: auto;
             z-index: 10;
             padding-right: 10px;
@@ -96,7 +104,7 @@ permalink: /tensor-vis/
             border: 1px solid #444;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             pointer-events: auto;
-            width: 330px;
+            width: clamp(280px, 30vw, 330px);
         }
 
         h3 {
@@ -107,6 +115,51 @@ permalink: /tensor-vis/
             letter-spacing: 1px;
             border-bottom: 1px solid #444;
             padding-bottom: 5px;
+        }
+
+        #equations-dropdown {
+            margin: 0;
+        }
+        #equations-dropdown summary {
+            list-style: none;
+            cursor: pointer;
+            margin: 0;
+            font-size: 16px;
+            color: #4fc3f7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+        #equations-dropdown summary::-webkit-details-marker {
+            display: none;
+        }
+        #equations-dropdown summary::after {
+            content: '+';
+            font-size: 14px;
+            color: #9dd8ff;
+            font-weight: 700;
+        }
+        #equations-dropdown[open] summary::after {
+            content: '-';
+        }
+        #equations-content {
+            margin-top: 10px;
+        }
+
+        #local-stress-right {
+            margin-top: 12px;
+            padding: 10px;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        #local-stress-right h3 {
+            margin-bottom: 8px;
         }
 
         /* Matrix Styling */
@@ -261,10 +314,14 @@ permalink: /tensor-vis/
             position: fixed;
             top: 106px;
             right: 20px;
-            width: 340px;
-            max-height: calc(100vh - 130px);
+            width: clamp(280px, 30vw, 340px);
+            max-height: calc(var(--app-viewport-height) - 130px);
             z-index: 22;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
         }
         #intro-modal {
             position: fixed;
@@ -411,8 +468,8 @@ permalink: /tensor-vis/
             margin-top: 10px;
             border-top: 1px solid #333;
             padding-top: 8px;
-            max-height: 190px;
-            overflow-y: auto;
+            max-height: none;
+            overflow: visible;
             font-size: 12px;
             line-height: 1.45;
         }
@@ -474,6 +531,7 @@ permalink: /tensor-vis/
                 top: 12px;
                 left: 12px;
                 max-width: calc(100vw - 24px);
+                max-height: calc(var(--app-viewport-height) - 24px);
             }
             .panel {
                 width: min(330px, calc(100vw - 24px));
@@ -487,13 +545,31 @@ permalink: /tensor-vis/
                 right: 12px;
                 top: auto;
                 bottom: 12px;
-                max-height: min(52vh, 420px);
+                max-height: min(60vh, calc(var(--app-viewport-height) - 24px), 420px);
             }
             .mohr-theory-tip {
                 width: min(250px, calc(100vw - 60px));
             }
             #legend {
                 display: none;
+            }
+        }
+
+        @media (min-width: 981px) and (max-height: 780px) {
+            #btn-toggle-mohr {
+                top: 12px;
+            }
+            #mohr-window {
+                top: 48px;
+                max-height: calc(var(--app-viewport-height) - 60px);
+            }
+        }
+
+        @media (max-width: 980px) and (max-height: 720px) {
+            #mohr-window {
+                top: auto;
+                bottom: 8px;
+                max-height: min(68vh, calc(var(--app-viewport-height) - 16px));
             }
         }
     </style>
@@ -506,7 +582,7 @@ permalink: /tensor-vis/
     <div id="intro-dialog">
         <h3 id="intro-title">Quick Start</h3>
         <p>
-            Use left-drag to rotate the camera and right-drag to rotate the cube. Toggle between 2D and 3D Mohr views from the top-right button. Close this window to start interacting.
+            Use left-drag to rotate the camera and right-drag to rotate the cube. Toggle between 2D and 3D Mohr views from the top-right button.
         </p>
         <button id="btn-close-intro" type="button">Start Exploring</button>
     </div>
@@ -525,22 +601,9 @@ permalink: /tensor-vis/
 </div>
 
 <div id="ui-layer">
-    <!-- Local stress matrix -->
-    <div class="panel">
-        <h3>Local Stress</h3>
-        <div style="font-size: 12px; color: #bbb; margin-bottom:10px;">
-            Components projected onto the rotating cube basis.
-        </div>
-        <div class="matrix-container">
-            <div class="bracket">[</div>
-            <div class="grid" id="matrix-grid"></div>
-            <div class="bracket">]</div>
-        </div>
-    </div>
-
     <!-- Global stress sliders -->
     <div class="panel">
-        <h3>Global Stress State</h3>
+        <h3>Input Global Stress State</h3>
         <div class="slider-group">
             <div class="slider-header">
                 <span class="math-label">$\sigma_{xx}$</span>
@@ -595,42 +658,46 @@ permalink: /tensor-vis/
                 <button type="button" data-rot-mode="y">Y only</button>
                 <button type="button" data-rot-mode="z">Z only</button>
             </div>
-            <div class="rotation-mode-hint">Right-drag rotates only around the selected axis.</div>
+            <div class="rotation-mode-hint">Right-drag rotates cube; constrained axes now use trackball-projected motion.</div>
         </div>
     </div>
 
     <!-- Governing equations and invariants -->
     <div class="panel">
-        <h3>Governing Equations</h3>
-        <div class="math-block">
-            <b>1. Cauchy's Law (Tractions):</b><br>
-            $$ \vec{t}^{(\vec{n})} = \boldsymbol{\sigma} \cdot \vec{n} $$
-            The vectors $\vec{t}$ change as the surface normal $\vec{n}$ rotates.
-        </div>
-        <div class="math-block">
-            <b>2. Tensor Transformation:</b><br>
-            $$ \boldsymbol{\sigma}_{\text{local}} = \mathbf{R}^T \, \boldsymbol{\sigma}_{\text{global}} \, \mathbf{R} $$
-        </div>
-        <hr style="border-color:#444">
-        <div class="math-block" style="margin-bottom:0">
-            <b>3. Invariants (Constant):</b>
-            <div class="stat-row">
-                <span>Trace ($I_1$):</span>
-                <span id="val-trace" class="val-label" style="color:#ffd54f">0.00</span>
+        <details id="equations-dropdown">
+            <summary>Governing Equations</summary>
+            <div id="equations-content">
+                <div class="math-block">
+                    <b>1. Cauchy's Law (Tractions):</b><br>
+                    $$ \vec{t}^{(\vec{n})} = \boldsymbol{\sigma} \cdot \vec{n} $$
+                    The vectors $\vec{t}$ change as the surface normal $\vec{n}$ rotates.
+                </div>
+                <div class="math-block">
+                    <b>2. Tensor Transformation:</b><br>
+                    $$ \boldsymbol{\sigma}_{\text{local}} = \mathbf{R}^T \, \boldsymbol{\sigma}_{\text{global}} \, \mathbf{R} $$
+                </div>
+                <hr style="border-color:#444">
+                <div class="math-block" style="margin-bottom:0">
+                    <b>3. Invariants (Constant):</b>
+                    <div class="stat-row">
+                        <span>Trace ($I_1$):</span>
+                        <span id="val-trace" class="val-label" style="color:#ffd54f">0.00</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Von Mises ($\sigma_{vm}$):</span>
+                        <span id="val-vm" class="val-label" style="color:#ffd54f">0.00</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Determinant ($I_3$):</span>
+                        <span id="val-det" class="val-label" style="color:#ffd54f">0.00</span>
+                    </div>
+                </div>
+                <button id="btn-toggle-principal"
+                        style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#333; color:white; border:1px solid #555;">
+                    Show Principal Stresses
+                </button>
             </div>
-            <div class="stat-row">
-                <span>Von Mises ($\sigma_{vm}$):</span>
-                <span id="val-vm" class="val-label" style="color:#ffd54f">0.00</span>
-            </div>
-            <div class="stat-row">
-                <span>Determinant ($I_3$):</span>
-                <span id="val-det" class="val-label" style="color:#ffd54f">0.00</span>
-            </div>
-        </div>
-        <button id="btn-toggle-principal"
-                style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#333; color:white; border:1px solid #555;">
-            Show Principal Stresses
-        </button>
+        </details>
     </div>
 </div>
 
@@ -655,6 +722,17 @@ permalink: /tensor-vis/
     <div id="mohr-status" aria-live="polite"></div>
     <canvas id="mohr-canvas" width="320" height="230"></canvas>
     <div id="mohr-coords"></div>
+    <div id="local-stress-right">
+        <h3>Local Stress</h3>
+        <div style="font-size: 12px; color: #bbb; margin-bottom:10px;">
+            Components projected onto the rotating cube basis.
+        </div>
+        <div class="matrix-container">
+            <div class="bracket">[</div>
+            <div class="grid" id="matrix-grid"></div>
+            <div class="bracket">]</div>
+        </div>
+    </div>
 </div>
 
 <div id="legend">
@@ -861,6 +939,7 @@ const orbitSpherical = new THREE.Spherical();
 const ORBIT_SPEED = 0.005;
 const MIN_POLAR = 0.05;
 const MAX_POLAR = Math.PI - 0.05;
+const CONSTRAINED_ROT_GAIN = 1.65;
 
 const stressInputMap = [
     ['sxx', 'sxx'],
@@ -933,6 +1012,7 @@ const mohrCoords = document.getElementById('mohr-coords');
 const mohrStatus = document.getElementById('mohr-status');
 const mohrPlaneButtons = document.querySelectorAll('#mohr-plane-controls button');
 const mohrTheoryWrap = document.querySelector('.mohr-theory-wrap');
+const equationsDropdown = document.getElementById('equations-dropdown');
 const introModal = document.getElementById('intro-modal');
 const introCloseBtn = document.getElementById('btn-close-intro');
 const viewButtons = document.querySelectorAll('#view-controls button');
@@ -943,6 +1023,7 @@ let mohrMode = '2d';
 let mohrPlane = 'xy';
 let rotationMode = 'free';
 let introModalOpen = true;
+let arcballPrev = null;
 
 const TWO_D_FREE_MODE_MESSAGE = '2D Mohr Circle not available in Free 3D rotation. For that use the 3D mohr circle. To see the 2D Mohr Circle select a controlled rotation axis normal to that plane.';
 
@@ -1189,6 +1270,77 @@ function setRotationMode(mode, options = {}) {
     }
 }
 
+function getArcballVector(clientX, clientY) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const y = 1 - ((clientY - rect.top) / rect.height) * 2;
+    const v = new THREE.Vector3(x, y, 0);
+    const sq = x * x + y * y;
+    if (sq <= 1) {
+        v.z = Math.sqrt(1 - sq);
+    } else {
+        v.normalize();
+    }
+    return v;
+}
+
+function applyArcballRotation(clientX, clientY) {
+    const current = getArcballVector(clientX, clientY);
+    if (!arcballPrev) {
+        arcballPrev = current;
+        return;
+    }
+
+    const dot = THREE.MathUtils.clamp(arcballPrev.dot(current), -1, 1);
+    const angle = Math.acos(dot);
+
+    if (angle > 1e-6) {
+        const axisView = new THREE.Vector3().crossVectors(arcballPrev, current);
+        if (axisView.lengthSq() > 1e-12) {
+            axisView.normalize();
+            const axisWorld = axisView.clone().applyQuaternion(camera.quaternion).normalize();
+            const q = new THREE.Quaternion().setFromAxisAngle(axisWorld, angle * 1.35);
+            cube.quaternion.premultiply(q);
+            cube.updateMatrixWorld(true);
+        }
+    }
+
+    arcballPrev = current;
+}
+
+function getConstrainedRotationAngle(axisKey, clientX, clientY, deltaMove) {
+    const lockAxis = lockedRotationAxes[axisKey];
+    if (!lockAxis) return 0;
+
+    const current = getArcballVector(clientX, clientY);
+    if (!arcballPrev) {
+        arcballPrev = current;
+        return 0;
+    }
+
+    const prevWorld = arcballPrev.clone().applyQuaternion(camera.quaternion).normalize();
+    const currWorld = current.clone().applyQuaternion(camera.quaternion).normalize();
+
+    const prevProj = prevWorld.clone().sub(lockAxis.clone().multiplyScalar(prevWorld.dot(lockAxis)));
+    const currProj = currWorld.clone().sub(lockAxis.clone().multiplyScalar(currWorld.dot(lockAxis)));
+
+    let angle = 0;
+    if (prevProj.lengthSq() > 1e-10 && currProj.lengthSq() > 1e-10) {
+        prevProj.normalize();
+        currProj.normalize();
+        const cross = new THREE.Vector3().crossVectors(prevProj, currProj);
+        const sinTerm = lockAxis.dot(cross);
+        const cosTerm = THREE.MathUtils.clamp(prevProj.dot(currProj), -1, 1);
+        angle = Math.atan2(sinTerm, cosTerm) * CONSTRAINED_ROT_GAIN;
+    } else {
+        const fallbackDrag = axisKey === 'x' ? -deltaMove.y : deltaMove.x;
+        angle = toRad(fallbackDrag * 0.3);
+    }
+
+    arcballPrev = current;
+    return angle;
+}
+
 function updateAxisLabelVisibility() {
     const camDir = camera.position.clone().normalize();
     axisLabels.forEach(label => {
@@ -1423,7 +1575,7 @@ function render3DMohr(localMatrix) {
         mohrCtx.fillText(circle.label, toX(circle.center + circle.radius) + 4, yZero - 6);
     });
 
-    setMohrStatus('3D Mohr Circle from principal stresses: Cij=(σi+σj)/2, Rij=|σi-σj|/2.', false);
+    setMohrStatus('3D Mohr Circle.', false);
 
     const coordsRows = [
         `<div class="coord-row"><span class="coord-name">σ1,σ2,σ3</span><span class="coord-val">(${formatMohrValue(s1)}, ${formatMohrValue(s2)}, ${formatMohrValue(s3)})</span></div>`
@@ -1688,10 +1840,12 @@ document.addEventListener('mousedown', (e) => {
     isDragging = true;
     isRightClick = (e.button === 2);
     previousMousePosition = { x: e.clientX, y: e.clientY };
+    arcballPrev = isRightClick ? getArcballVector(e.clientX, e.clientY) : null;
 });
 
 document.addEventListener('mouseup', () => {
     isDragging = false;
+    arcballPrev = null;
     updateScene(true);
 });
 document.addEventListener('contextmenu', event => event.preventDefault());
@@ -1715,19 +1869,10 @@ document.addEventListener('mousemove', (e) => {
         camera.position.copy(orbitTarget).add(offset);
         camera.lookAt(orbitTarget);
     } else {
-        const rotationSpeed = 0.3;
         if (rotationMode === 'free') {
-            const deltaRotationQuaternion = new THREE.Quaternion()
-                .setFromEuler(new THREE.Euler(
-                    toRad(deltaMove.y * rotationSpeed),
-                    toRad(deltaMove.x * rotationSpeed),
-                    0,
-                    'XYZ'
-                ));
-            cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+            applyArcballRotation(e.clientX, e.clientY);
         } else {
-            const dragComponent = rotationMode === 'x' ? -deltaMove.y : deltaMove.x;
-            const angle = toRad(dragComponent * rotationSpeed);
+            const angle = getConstrainedRotationAngle(rotationMode, e.clientX, e.clientY, deltaMove);
 
             if (mohrMode === '2d') {
                 axisRotationAngles[rotationMode] += angle;
@@ -1809,6 +1954,13 @@ if (mohrPlaneButtons.length) {
 if (introCloseBtn) {
     introCloseBtn.addEventListener('click', () => {
         setIntroModal(false);
+    });
+}
+if (equationsDropdown) {
+    equationsDropdown.addEventListener('toggle', () => {
+        if (equationsDropdown.open && window.MathJax && window.MathJax.typesetPromise) {
+            MathJax.typesetPromise([equationsDropdown]);
+        }
     });
 }
 setPrincipalVisibility(false);
