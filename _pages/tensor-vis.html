@@ -91,10 +91,16 @@ permalink: /tensor-vis/
             overflow-y: auto;
             z-index: 10;
             padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
         }
         #ui-layer::-webkit-scrollbar {
-            width: 0px;
+            width: 7px;
             background: transparent;
+        }
+        #ui-layer::-webkit-scrollbar-thumb {
+            background: rgba(130, 130, 130, 0.75);
+            border-radius: 999px;
         }
 
         .panel {
@@ -219,15 +225,16 @@ permalink: /tensor-vis/
 
         /* Legend */
         #legend {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            text-align: right;
-            font-size: 18px;
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 16px;
             color: #aaa;
             pointer-events: none;
             background: rgba(0,0,0,0.8);
-            padding: 15px;
+            padding: 9px 12px;
             border-radius: 8px;
             z-index: 10;
             line-height: 1.25;
@@ -320,6 +327,15 @@ permalink: /tensor-vis/
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
+        }
+        #mohr-window::-webkit-scrollbar {
+            width: 7px;
+        }
+        #mohr-window::-webkit-scrollbar-thumb {
+            background: rgba(130, 130, 130, 0.75);
+            border-radius: 999px;
         }
         #intro-modal {
             position: fixed;
@@ -522,6 +538,69 @@ permalink: /tensor-vis/
             margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid #3f3f3f;
+        }
+
+        body.layout-compact #ui-layer {
+            top: 12px;
+            left: 12px;
+            gap: 10px;
+            max-height: calc(var(--app-viewport-height) - 16px);
+        }
+        body.layout-compact .panel {
+            width: clamp(240px, 24vw, 290px);
+            padding: 12px;
+        }
+        body.layout-compact h3,
+        body.layout-compact #equations-dropdown summary {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        body.layout-compact .slider-group {
+            margin-bottom: 6px;
+        }
+        body.layout-compact .slider-header {
+            font-size: 13px;
+        }
+        body.layout-compact #view-controls {
+            top: 8px;
+            gap: 8px;
+        }
+        body.layout-compact #view-controls button {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+        body.layout-compact #btn-toggle-mohr {
+            top: 52px;
+            right: 12px;
+        }
+        body.layout-compact #mohr-window {
+            top: 90px;
+            right: 12px;
+            width: clamp(245px, 24vw, 300px);
+            max-height: calc(var(--app-viewport-height) - 102px);
+        }
+        body.layout-compact #mohr-plane-controls button {
+            font-size: 11px;
+            padding: 5px 0;
+        }
+        body.layout-compact #mohr-status {
+            min-height: 30px;
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+        body.layout-compact #mohr-coords {
+            font-size: 11px;
+        }
+        body.layout-compact #legend {
+            font-size: 13px;
+            bottom: 8px;
+            padding: 7px 10px;
+        }
+        body.layout-tight .panel {
+            width: clamp(220px, 22vw, 265px);
+        }
+        body.layout-tight #mohr-window {
+            width: clamp(225px, 22vw, 275px);
         }
 
         @media (max-width: 980px) {
@@ -1021,6 +1100,8 @@ let mohrPlane = 'xy';
 let rotationMode = 'free';
 let introModalOpen = true;
 let arcballPrev = null;
+const DEFAULT_MOHR_CANVAS_SIZE = { width: 320, height: 230 };
+const COMPACT_MOHR_CANVAS_SIZE = { width: 280, height: 190 };
 
 const TWO_D_FREE_MODE_MESSAGE = '2D Mohr Circle not available in Free 3D rotation. For that use the 3D mohr circle. To see the 2D Mohr Circle select a controlled rotation axis normal to that plane.';
 
@@ -1085,6 +1166,28 @@ const cameraViews = {
     posy: { position: new THREE.Vector3(0.0001, 10, 0.0001), up: new THREE.Vector3(0, 0, 1) },
     posz: { position: new THREE.Vector3(0, 0, 10), up: new THREE.Vector3(0, 1, 0) }
 };
+
+function setMohrCanvasSize(size) {
+    if (!mohrCanvas || !size) return;
+    if (mohrCanvas.width === size.width && mohrCanvas.height === size.height) return;
+    mohrCanvas.width = size.width;
+    mohrCanvas.height = size.height;
+}
+
+function applyResponsiveLayout() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const aspectRatio = viewportWidth / Math.max(viewportHeight, 1);
+
+    const desktopLayout = viewportWidth > 980;
+    const compactLayout = desktopLayout && (viewportHeight < 940 || (aspectRatio > 1.9 && viewportHeight < 1080));
+    const tightLayout = desktopLayout && (viewportHeight < 820 || (aspectRatio > 2.1 && viewportHeight < 900));
+
+    document.body.classList.toggle('layout-compact', compactLayout);
+    document.body.classList.toggle('layout-tight', tightLayout);
+
+    setMohrCanvasSize(compactLayout ? COMPACT_MOHR_CANVAS_SIZE : DEFAULT_MOHR_CANVAS_SIZE);
+}
 
 function setCameraView(viewKey) {
     const config = cameraViews[viewKey];
@@ -1832,6 +1935,7 @@ function isPointerOnUi(target) {
 }
 
 window.addEventListener('resize', () => {
+    applyResponsiveLayout();
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1972,6 +2076,7 @@ setMohrPlane('xy', { skipScene: true });
 setRotationMode('z', { skipScene: true });
 setMohrMode('2d', { skipScene: true });
 setIntroModal(true);
+applyResponsiveLayout();
 updateAxisLabelVisibility();
 
 viewButtons.forEach(btn => {
