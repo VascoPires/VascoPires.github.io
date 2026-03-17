@@ -83,20 +83,25 @@ permalink: /tensor-vis/
             position: absolute;
             top: 20px;
             left: 20px;
-            pointer-events: none;
+            pointer-events: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
             max-height: calc(var(--app-viewport-height) - 24px);
-            overflow-y: auto;
+            overflow-y: scroll;
             z-index: 10;
             padding-right: 10px;
+            scrollbar-gutter: stable both-edges;
             scrollbar-width: thin;
             scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
         }
         #ui-layer::-webkit-scrollbar {
-            width: 7px;
+            width: 9px;
             background: transparent;
+        }
+        #ui-layer::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 999px;
         }
         #ui-layer::-webkit-scrollbar-thumb {
             background: rgba(130, 130, 130, 0.75);
@@ -322,16 +327,20 @@ permalink: /tensor-vis/
             width: clamp(280px, 30vw, 340px);
             max-height: calc(var(--app-viewport-height) - 130px);
             z-index: 22;
-            overflow-y: auto;
+            overflow-y: scroll;
             overflow-x: hidden;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable;
+            scrollbar-gutter: stable both-edges;
             scrollbar-width: thin;
             scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
         }
         #mohr-window::-webkit-scrollbar {
-            width: 7px;
+            width: 9px;
+        }
+        #mohr-window::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 999px;
         }
         #mohr-window::-webkit-scrollbar-thumb {
             background: rgba(130, 130, 130, 0.75);
