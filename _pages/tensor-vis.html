@@ -80,20 +80,22 @@ permalink: /tensor-vis/
 
         /* HUD Overlay / lateral panels */
         #ui-layer {
-            position: absolute;
+            position: fixed;
             top: 20px;
             left: 20px;
+            bottom: 12px;
             pointer-events: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            max-height: calc(var(--app-viewport-height) - 24px);
+            max-height: none;
             overflow-y: scroll;
             z-index: 10;
             padding-right: 10px;
             scrollbar-gutter: stable both-edges;
             scrollbar-width: thin;
             scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
+            touch-action: pan-y;
         }
         #ui-layer::-webkit-scrollbar {
             width: 9px;
@@ -324,8 +326,9 @@ permalink: /tensor-vis/
             position: fixed;
             top: 106px;
             right: 20px;
+            bottom: 12px;
             width: clamp(280px, 30vw, 340px);
-            max-height: calc(var(--app-viewport-height) - 130px);
+            max-height: none;
             z-index: 22;
             overflow-y: scroll;
             overflow-x: hidden;
@@ -334,6 +337,7 @@ permalink: /tensor-vis/
             scrollbar-gutter: stable both-edges;
             scrollbar-width: thin;
             scrollbar-color: rgba(130, 130, 130, 0.75) transparent;
+            touch-action: pan-y;
         }
         #mohr-window::-webkit-scrollbar {
             width: 9px;
@@ -552,8 +556,9 @@ permalink: /tensor-vis/
         body.layout-compact #ui-layer {
             top: 12px;
             left: 12px;
+            bottom: 8px;
             gap: 10px;
-            max-height: calc(var(--app-viewport-height) - 16px);
+            max-height: none;
         }
         body.layout-compact .panel {
             width: clamp(240px, 24vw, 290px);
@@ -585,8 +590,9 @@ permalink: /tensor-vis/
         body.layout-compact #mohr-window {
             top: 90px;
             right: 12px;
+            bottom: 8px;
             width: clamp(245px, 24vw, 300px);
-            max-height: calc(var(--app-viewport-height) - 102px);
+            max-height: none;
         }
         body.layout-compact #mohr-plane-controls button {
             font-size: 11px;
@@ -616,8 +622,9 @@ permalink: /tensor-vis/
             #ui-layer {
                 top: 12px;
                 left: 12px;
+                bottom: 12px;
                 max-width: calc(100vw - 24px);
-                max-height: calc(var(--app-viewport-height) - 24px);
+                max-height: none;
             }
             .panel {
                 width: min(330px, calc(100vw - 24px));
@@ -647,7 +654,7 @@ permalink: /tensor-vis/
             }
             #mohr-window {
                 top: 48px;
-                max-height: calc(var(--app-viewport-height) - 60px);
+                max-height: none;
             }
         }
 
@@ -1098,6 +1105,8 @@ const mohrStatus = document.getElementById('mohr-status');
 const mohrPlaneButtons = document.querySelectorAll('#mohr-plane-controls button');
 const mohrTheoryWrap = document.querySelector('.mohr-theory-wrap');
 const equationsDropdown = document.getElementById('equations-dropdown');
+const uiLayer = document.getElementById('ui-layer');
+const mohrWindow = document.getElementById('mohr-window');
 const introModal = document.getElementById('intro-modal');
 const introCloseBtn = document.getElementById('btn-close-intro');
 const viewButtons = document.querySelectorAll('#view-controls button');
@@ -2019,7 +2028,7 @@ document.addEventListener('wheel', (e) => {
     camera.position.copy(direction.multiplyScalar(distance));
     camera.lookAt(0, 0, 0);
     updateAxisLabelVisibility();
-});
+}, { passive: false });
 
 function toRad(deg) { return deg * (Math.PI / 180); }
 
@@ -2079,6 +2088,16 @@ if (equationsDropdown) {
             MathJax.typesetPromise([equationsDropdown]);
         }
     });
+}
+if (uiLayer) {
+    uiLayer.addEventListener('wheel', (event) => {
+        event.stopPropagation();
+    }, { passive: true });
+}
+if (mohrWindow) {
+    mohrWindow.addEventListener('wheel', (event) => {
+        event.stopPropagation();
+    }, { passive: true });
 }
 setPrincipalVisibility(false);
 setMohrPlane('xy', { skipScene: true });
