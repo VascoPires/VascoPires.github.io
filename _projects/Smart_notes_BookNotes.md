@@ -4,7 +4,7 @@ title: How to Take Smart Notes (Sönke Ahrens) - Summary and notes
 description: Structure your notes to structure your thinking
 img: assets/img/how_to_take_smart_notes.jpg
 importance: 2
-category: 
+category: productivity
 giscus_comments: true
 date: 2025-05-13
 related_publications: true

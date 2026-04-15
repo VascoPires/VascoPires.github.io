@@ -1,8 +1,8 @@
 ---
 layout: default
-title: book notes
+title: Book Notes
 permalink: /books/
-description: Toughts about some books I have read.
+description: Notes, summaries, and reflections on books I have read.
 nav: false
 nav_order: 3
 display_categories: [productivity]
@@ -17,8 +17,8 @@ horizontal: false
 {% if blog_name_size > 0 or blog_description_size > 0 %}
 
   <div class="header-bar" style="border: none; margin-bottom: 0;">
-    <h1>{{ 'Made with Pages' }}</h1>
-    <h2>{{ 'Some notes and summaries about the best books I read.' }}</h2>
+    <h1>{{ page.title }}</h1>
+    <h2>Notes, summaries, and reflections on books that shaped how I think and work.</h2>
   </div>
   {% endif %}
 

@@ -88,11 +88,26 @@
             margin-bottom: 8px;
         }
 
-        #criteria-list {
+        #criteria-list-composite,
+        #criteria-list-general {
             display: grid;
             grid-template-columns: 1fr;
             gap: 6px;
-            margin-bottom: 8px;
+        }
+
+        .criteria-group {
+            margin-bottom: 10px;
+        }
+
+        .criteria-group-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 10px 0 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #3f3f3f;
         }
 
         .criterion-row {
@@ -176,12 +191,19 @@
 <div id="criteria-panel">
     <h3>Criteria Selection</h3>
     <div class="small-note">
-        Toggle Maximum Stress, Maximum Strain, Tsai-Hill, and von Mises surfaces (FI = 1)
-        in 3D stress space
-        (&sigma;<sub>1</sub>, &sigma;<sub>2</sub>, &tau;<sub>12</sub>).<br>
-        Left drag rotates camera, wheel zooms. Display uses normalized axes for readability.
+        Toggle failure surfaces (FI = 1) in 3D stress space
+        (x: &sigma;<sub>&parallel;</sub>, y: &sigma;<sub>&perp;</sub>, z: &tau;).<br>
+        Left drag rotates camera, wheel zooms. Rendering uses direct or reserve-factor meshes,
+        with one global display scale like eLamX2. LaRC03 is shown in plane-stress form.
     </div>
-    <div id="criteria-list"></div>
+    <div class="criteria-group">
+        <div class="criteria-group-title">Composite Failure Criteria</div>
+        <div id="criteria-list-composite"></div>
+    </div>
+    <div class="criteria-group">
+        <div class="criteria-group-title">General Failure Criteria</div>
+        <div id="criteria-list-general"></div>
+    </div>
     <button id="btn-reset-view" class="btn" type="button">Reset Camera View</button>
 </div>
 
@@ -191,37 +213,110 @@
 const EPS = 1e-9;
 
 const material = {
-    name: "Hexcel IM7/8552 UD",
+    name: "eLamX Default Lamina",
     core: {
-        E1: 158500,
-        E2: 9000,
-        nu12: 0.316,
-        G12: 4690,
-        density: 1.58
-    },
-    hygrothermal: {
-        alpha1: 0,
-        alpha2: 0,
-        beta1: 0,
-        beta2: 0
+        E1: 141000,
+        E2: 10000,
+        nu12: 0.28,
+        G12: 4500,
+        density: 1.65
     },
     strength: {
-        Xt: 2501,
-        Xc: 1716,
-        Yt: 64.0,
-        Yc: 285.7,
-        S: 91.1
+        Xt: 1500.0,
+        Xc: 1000.0,
+        Yt: 180.0,
+        Yc: 240.0,
+        S: 150.0
     },
     additional: {
         ex_maxstrain: 3.0e-3,
         ey_maxstrain: 3.0e-3,
         gxy_maxstrain: 6.0e-3,
-        use_global_strains_threshold_maxstrain: 0.3
+        use_global_strains_threshold_maxstrain: 0.3,
+        tsaiwu_f12star: -0.5,
+        puck_pspd: 0.3,
+        puck_pspz: 0.35,
+        puck_a0: 0.5,
+        puck_lambda_min: 0.5,
+        larc03_alpha0_deg: 53.0,
+        larc03_g1c: 0.28,
+        larc03_g2c: 0.79,
+        larc03_ply_thickness: 0.125,
+        larc03_is_embedded: false
     }
 };
 
-function ratioSigned(stressComponent, tensionAllow, compressionAllow) {
-    return stressComponent >= 0 ? stressComponent / Math.max(tensionAllow, EPS) : -stressComponent / Math.max(compressionAllow, EPS);
+const surfaceQuality = {
+    directThetaSegments: 72,
+    directPhiSegments: 36,
+    radialThetaSegments: 84,
+    radialPhiSegments: 44,
+    trescaThetaSegments: 96,
+    trescaConeRings: 18,
+    trescaCylinderRings: 26,
+    hashinIntervalSegmentsX: 28,
+    hashinIntervalSegmentsY: 18,
+    hashinWallSegments: 28,
+    puckFiberSegments: 110,
+    puckFaceSegments: 14,
+    puckModeASegments: 32,
+    puckModeBSegments: 10,
+    puckModeCSegments: 32
+};
+
+const surfaceConfig = {
+    marchingResolution: 52,
+    marchingFieldClamp: 4,
+    marchingRangeFactor: 1.05,
+    useMarchingFallback: false
+};
+
+const debugConfig = {
+    larc03Only: false,
+    larc03Verbose: false
+};
+
+let larc03DebugLogged = false;
+
+function getMaxStrength(mat) {
+    const s = mat.strength;
+    return Math.max(s.Xt, s.Xc, s.Yt, s.Yc, s.S, EPS);
+}
+
+function getDisplayScale(mat) {
+    return 1.0 / getMaxStrength(mat);
+}
+
+function getMaterialSignature(mat) {
+    return [
+        mat.core.E1,
+        mat.core.E2,
+        mat.core.nu12,
+        mat.core.G12,
+        mat.strength.Xt,
+        mat.strength.Xc,
+        mat.strength.Yt,
+        mat.strength.Yc,
+        mat.strength.S,
+        mat.additional.ex_maxstrain,
+        mat.additional.ey_maxstrain,
+        mat.additional.gxy_maxstrain,
+        mat.additional.use_global_strains_threshold_maxstrain,
+        mat.additional.tsaiwu_f12star,
+        mat.additional.puck_pspd,
+        mat.additional.puck_pspz,
+        mat.additional.puck_a0,
+        mat.additional.puck_lambda_min,
+        mat.additional.larc03_alpha0_deg,
+        mat.additional.larc03_g1c,
+        mat.additional.larc03_g2c,
+        mat.additional.larc03_ply_thickness,
+        mat.additional.larc03_is_embedded
+    ].join("|");
+}
+
+function makeGeometryCacheKey(criterionId, mat, quality, mode) {
+    return `${criterionId}|${mode}|${getMaterialSignature(mat)}|${JSON.stringify(quality)}`;
 }
 
 function computeStrainState(stress, mat) {
@@ -230,21 +325,26 @@ function computeStrainState(stress, mat) {
     const nu12 = mat.core.nu12;
     const nu21 = nu12 * E2 / E1;
     return {
-        epsilon1: stress.sigma1 / E1 - nu12 * stress.sigma2 / E1,
-        epsilon2: -nu21 * stress.sigma1 / E2 + stress.sigma2 / E2,
+        epsilon1: stress.sigma1 / E1 - (nu12 * stress.sigma2) / E1,
+        epsilon2: -(nu21 * stress.sigma1) / E2 + stress.sigma2 / E2,
         gamma12: stress.tau12 / Math.max(mat.core.G12, EPS)
     };
 }
 
-function computeMaximumStress(stress, mat) {
+function computeMaximumStressFailureIndex(stress, mat) {
     const s = mat.strength;
-    const fiFiber = ratioSigned(stress.sigma1, s.Xt, s.Xc);
-    const fiMatrix = ratioSigned(stress.sigma2, s.Yt, s.Yc);
-    const fiShear = Math.abs(stress.tau12) / Math.max(s.S, EPS);
-    return { fi: Math.max(fiFiber, fiMatrix, fiShear) };
+    const fiSigma1 = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
+    const fiSigma2 = stress.sigma2 >= 0 ? stress.sigma2 / Math.max(s.Yt, EPS) : -stress.sigma2 / Math.max(s.Yc, EPS);
+    const fiTau = Math.abs(stress.tau12) / Math.max(s.S, EPS);
+    return Math.max(fiSigma1, fiSigma2, fiTau, 0);
 }
 
-function computeMaximumStrain(stress, mat) {
+function computeMaximumStressReserveFactor(stress, mat) {
+    const fi = computeMaximumStressFailureIndex(stress, mat);
+    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+}
+
+function computeMaximumStrainReserveFactor(stress, mat) {
     const add = mat.additional;
     const strain = computeStrainState(stress, mat);
     const fi = Math.max(
@@ -252,57 +352,1289 @@ function computeMaximumStrain(stress, mat) {
         Math.abs(strain.epsilon2) / Math.max(add.ey_maxstrain, EPS),
         Math.abs(strain.gamma12) / Math.max(add.gxy_maxstrain, EPS)
     );
-    return { fi };
+    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
 }
 
-function computeTsaiHill(stress, mat) {
+function computeMaximumStrainFailureIndex(stress, mat) {
+    const rf = computeMaximumStrainReserveFactor(stress, mat);
+    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+}
+
+function computeTsaiHillFailureIndex(stress, mat) {
     const s = mat.strength;
-    const X = stress.sigma1 >= 0 ? s.Xt : s.Xc;
-    const Y = stress.sigma2 >= 0 ? s.Yt : s.Yc;
+    const X = stress.sigma1 >= 0 ? Math.max(s.Xt, EPS) : Math.max(s.Xc, EPS);
+    const Y = stress.sigma2 >= 0 ? Math.max(s.Yt, EPS) : Math.max(s.Yc, EPS);
+    const F11 = 1.0 / (X * X);
+    const F22 = 1.0 / (Y * Y);
+    const F12 = -0.5 * F11;
+    const F66 = 1.0 / Math.max(s.S * s.S, EPS);
     const fi =
-        (stress.sigma1 / Math.max(X, EPS)) ** 2 +
-        (stress.sigma2 / Math.max(Y, EPS)) ** 2 -
-        (stress.sigma1 * stress.sigma2) / Math.max(X * X, EPS) +
-        (stress.tau12 / Math.max(s.S, EPS)) ** 2;
-    return { fi: Math.max(fi, 0) };
+        F11 * stress.sigma1 * stress.sigma1 +
+        2.0 * F12 * stress.sigma1 * stress.sigma2 +
+        F22 * stress.sigma2 * stress.sigma2 +
+        F66 * stress.tau12 * stress.tau12;
+    return Math.max(fi, 0);
 }
 
-function computeVonMises(stress, mat) {
+function computeTsaiHillReserveFactor(stress, mat) {
+    const fi = computeTsaiHillFailureIndex(stress, mat);
+    return fi > EPS ? 1.0 / Math.sqrt(fi) : Number.POSITIVE_INFINITY;
+}
+
+function getTsaiWuCoefficients(mat) {
+    const s = mat.strength;
+    const f12star = mat.additional.tsaiwu_f12star;
+    const F1 = 1.0 / Math.max(s.Xt, EPS) - 1.0 / Math.max(s.Xc, EPS);
+    const F2 = 1.0 / Math.max(s.Yt, EPS) - 1.0 / Math.max(s.Yc, EPS);
+    const F11 = 1.0 / Math.max(s.Xt * s.Xc, EPS);
+    const F22 = 1.0 / Math.max(s.Yt * s.Yc, EPS);
+    const F12 = f12star * Math.sqrt(Math.max(F11 * F22, 0));
+    const F66 = 1.0 / Math.max(s.S * s.S, EPS);
+    return { F1, F2, F11, F22, F12, F66 };
+}
+
+function computeTsaiWuFailureIndex(stress, mat) {
+    const c = getTsaiWuCoefficients(mat);
+    const Q =
+        c.F11 * stress.sigma1 * stress.sigma1 +
+        2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
+        c.F22 * stress.sigma2 * stress.sigma2 +
+        c.F66 * stress.tau12 * stress.tau12;
+    const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
+    return Math.max(Q + L, 0);
+}
+
+function computeTsaiWuReserveFactor(stress, mat) {
+    const c = getTsaiWuCoefficients(mat);
+    const Q =
+        c.F11 * stress.sigma1 * stress.sigma1 +
+        2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
+        c.F22 * stress.sigma2 * stress.sigma2 +
+        c.F66 * stress.tau12 * stress.tau12;
+    const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
+    if (Math.abs(Q) < EPS) {
+        if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
+        return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
+    }
+    const disc = L * L + 4.0 * Q;
+    if (disc < EPS) return Number.POSITIVE_INFINITY;
+    const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
+    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+}
+
+function computeHashinReserveFactor(stress, mat) {
+    const s = mat.strength;
+    const sx = stress.sigma1;
+    const sy = stress.sigma2;
+    const txy = stress.tau12;
+
+    let rfFiber = Number.POSITIVE_INFINITY;
+    if (sx >= 0) {
+        const fi = (sx * sx) / Math.max(s.Xt * s.Xt, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
+        if (fi > EPS) rfFiber = 1.0 / Math.sqrt(fi);
+    } else {
+        rfFiber = -Math.max(s.Xc, EPS) / Math.min(sx, -EPS);
+    }
+
+    let rfMatrix = Number.POSITIVE_INFINITY;
+    if (sy >= 0) {
+        const fi = (sy * sy) / Math.max(s.Yt * s.Yt, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
+        if (fi > EPS) rfMatrix = 1.0 / Math.sqrt(fi);
+    } else {
+        const q = 0.25 * (sy * sy) / Math.max(s.S * s.S, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
+        const l = sy * (0.25 * Math.max(s.Yc, EPS) / Math.max(s.S * s.S, EPS) - 1.0 / Math.max(s.Yc, EPS));
+        if (q > EPS) {
+            const disc = l * l + 4.0 * q;
+            if (disc > EPS) rfMatrix = (Math.sqrt(disc) - l) / (2.0 * q);
+        }
+    }
+
+    const rf = Math.min(rfFiber, rfMatrix);
+    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+}
+
+function computeHashinFiberTauCap(sigma1, mat) {
+    const s = mat.strength;
+    if (sigma1 >= 0) {
+        const inner = 1.0 - (sigma1 * sigma1) / Math.max(s.Xt * s.Xt, EPS);
+        if (inner <= 0) return 0;
+        return Math.max(s.S, EPS) * Math.sqrt(inner);
+    }
+    return sigma1 >= -Math.max(s.Xc, EPS) ? Number.POSITIVE_INFINITY : 0;
+}
+
+function computeHashinMatrixTauCap(sigma2, mat) {
+    const s = mat.strength;
+    if (sigma2 >= 0) {
+        const inner = 1.0 - (sigma2 * sigma2) / Math.max(s.Yt * s.Yt, EPS);
+        if (inner <= 0) return 0;
+        return Math.max(s.S, EPS) * Math.sqrt(inner);
+    }
+    if (sigma2 < -Math.max(s.Yc, EPS)) return 0;
+    const sSafe = Math.max(s.S, EPS);
+    const ycSafe = Math.max(s.Yc, EPS);
+    const expr =
+        1.0 -
+        (sigma2 * sigma2) / (4.0 * sSafe * sSafe) -
+        sigma2 * (ycSafe / (4.0 * sSafe * sSafe) - 1.0 / ycSafe);
+    if (expr <= 0) return 0;
+    return sSafe * Math.sqrt(expr);
+}
+
+function computeHashinTauCap(sigma1, sigma2, mat) {
+    const tauFiber = computeHashinFiberTauCap(sigma1, mat);
+    const tauMatrix = computeHashinMatrixTauCap(sigma2, mat);
+    return Math.max(0, Math.min(tauFiber, tauMatrix));
+}
+
+function computeHashinFailureIndex(stress, mat) {
+    const rf = computeHashinReserveFactor(stress, mat);
+    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+}
+
+function getIsotropicReferenceStrength(mat) {
+    return Math.max(Math.min(mat.strength.Xt, mat.strength.Yt), EPS);
+}
+
+function computeVonMisesFailureIndex(stress, mat) {
     const sigmaEq = Math.sqrt(
         stress.sigma1 * stress.sigma1 -
         stress.sigma1 * stress.sigma2 +
         stress.sigma2 * stress.sigma2 +
-        3 * stress.tau12 * stress.tau12
+        3.0 * stress.tau12 * stress.tau12
     );
-    const sigmaRef = Math.max(Math.min(mat.strength.Xt, mat.strength.Yt), EPS);
-    return { fi: sigmaEq / sigmaRef };
+    return sigmaEq / getIsotropicReferenceStrength(mat);
 }
 
-const CRITERIA = [
-    { id: "max_stress", name: "Maximum Stress", color: "#94a3b8", compute: computeMaximumStress },
-    { id: "max_strain", name: "Maximum Strain", color: "#60a5fa", compute: computeMaximumStrain },
-    { id: "tsai_hill", name: "Tsai-Hill", color: "#38bdf8", compute: computeTsaiHill },
-    { id: "von_mises", name: "von Mises", color: "#fde047", compute: computeVonMises }
-];
+function computeVonMisesReserveFactor(stress, mat) {
+    const fi = computeVonMisesFailureIndex(stress, mat);
+    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+}
 
-const activeCriteria = new Set(["max_stress", "max_strain", "tsai_hill", "von_mises"]);
+function computeTrescaFailureIndex(stress, mat) {
+    const avg = 0.5 * (stress.sigma1 + stress.sigma2);
+    const rad = Math.sqrt(((stress.sigma1 - stress.sigma2) * 0.5) ** 2 + stress.tau12 * stress.tau12);
+    const p1 = avg + rad;
+    const p2 = avg - rad;
+    const measure = Math.max(Math.abs(p1), Math.abs(p2), Math.abs(p1 - p2));
+    return measure / getIsotropicReferenceStrength(mat);
+}
 
-function getStressExtents() {
-    const s = material.strength;
+function computeTrescaReserveFactor(stress, mat) {
+    const fi = computeTrescaFailureIndex(stress, mat);
+    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+}
+
+function clamp01(value) {
+    return Math.max(0, Math.min(1, value));
+}
+
+function getPuckParameters(mat) {
+    const add = mat.additional || {};
+    let pspd = Number.isFinite(add.puck_pspd) ? add.puck_pspd : 0.3;
+    if (Math.abs(pspd) < 1e-6) pspd = pspd < 0 ? -1e-6 : 1e-6;
+
+    const pspz = Number.isFinite(add.puck_pspz) ? add.puck_pspz : 0.35;
+    let a0 = clamp01(Number.isFinite(add.puck_a0) ? add.puck_a0 : 0.5);
+    let lambdaMin = clamp01(Number.isFinite(add.puck_lambda_min) ? add.puck_lambda_min : 0.5);
+    if (a0 >= 1.0 - EPS) {
+        a0 = 1.0;
+        lambdaMin = 1.0;
+    }
+
+    const S = Math.max(mat.strength.S, EPS);
+    const Yc = Math.max(mat.strength.Yc, EPS);
+    const rootTerm = Math.sqrt(Math.max(1.0 + (2.0 * pspd * Yc) / S, 0));
+    const Rass = 0.5 * (S / pspd) * (rootTerm - 1.0);
+    const Pssd = (pspd * Rass) / S;
+    const tauxyc = S * Math.sqrt(Math.max(1.0 + 2.0 * Pssd, 0));
+
     return {
-        x: Math.max(s.Xt, s.Xc) * 1.35,
-        y: Math.max(s.Yt, s.Yc) * 1.6,
-        z: Math.max(s.S, 1) * 2.2
+        pspd,
+        pspz,
+        a0,
+        lambdaMin,
+        Rass: Number.isFinite(Rass) ? Rass : 0,
+        Pssd: Number.isFinite(Pssd) ? Pssd : 0,
+        tauxyc: Number.isFinite(tauxyc) ? tauxyc : S
     };
 }
 
-const stressExtents = getStressExtents();
+function computeFibreFailureReserveFactor(stress, mat) {
+    const sx = stress.sigma1;
+    if (sx > EPS) return Math.max(mat.strength.Xt, EPS) / sx;
+    if (sx < -EPS) return -Math.max(mat.strength.Xc, EPS) / sx;
+    return Number.POSITIVE_INFINITY;
+}
+
+function computeFibreFailureIndex(stress, mat) {
+    const rf = computeFibreFailureReserveFactor(stress, mat);
+    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+}
+
+function computePuckMatrixExposure(stress, mat, puck) {
+    const s = mat.strength;
+    const sy = stress.sigma2;
+    const txy = stress.tau12;
+    const S = Math.max(s.S, EPS);
+
+    if (Math.abs(sy) < EPS && Math.abs(txy) < EPS) {
+        return { Azfb: 0, mode: "none" };
+    }
+
+    if (sy > 0) {
+        const a = ((1.0 - (puck.pspz * Math.max(s.Yt, EPS)) / S) / Math.max(s.Yt, EPS)) ** 2;
+        const b = 1.0 / (S * S);
+        const c = puck.pspz / S;
+        const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
+        return { Azfb: Math.max(Azfb, 0), mode: "A" };
+    }
+
+    const ratioLimit = Math.abs(puck.Rass) / Math.max(Math.abs(puck.tauxyc), EPS);
+    const ratio = Math.abs(txy) > EPS ? Math.abs(sy / txy) : Number.POSITIVE_INFINITY;
+    if (Math.abs(txy) > EPS && ratio <= ratioLimit) {
+        const a = (puck.pspd / S) ** 2;
+        const b = 1.0 / (S * S);
+        const c = puck.pspd / S;
+        const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
+        return { Azfb: Math.max(Azfb, 0), mode: "B" };
+    }
+
+    const sySafe = sy < -EPS ? sy : -EPS;
+    const a = 1.0 / Math.max(s.Yc * s.Yc, EPS);
+    const b = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
+    const Azfb = (a * sySafe * sySafe + b * txy * txy) * (-Math.max(s.Yc, EPS) / sySafe);
+    return { Azfb: Math.max(Azfb, 0), mode: "C" };
+}
+
+function computePuckReserveFactor(stress, mat) {
+    if (Math.abs(stress.sigma1) < EPS && Math.abs(stress.sigma2) < EPS && Math.abs(stress.tau12) < EPS) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    const s = mat.strength;
+    const puck = getPuckParameters(mat);
+
+    const Afb = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
+    let Azfb = computePuckMatrixExposure(stress, mat, puck).Azfb;
+
+    const rfTempMin = Azfb > EPS ? (Afb > Azfb ? 1.0 / Afb : 1.0 / Azfb) : (Afb > EPS ? 1.0 / Afb : Number.POSITIVE_INFINITY);
+
+    if (
+        Azfb > EPS &&
+        Afb > EPS &&
+        (rfTempMin * stress.sigma1 > puck.a0 * Math.max(s.Xt, EPS) || rfTempMin * stress.sigma1 < -puck.a0 * Math.max(s.Xc, EPS))
+    ) {
+        const oneMinusLambdaSq = 1.0 - puck.lambdaMin * puck.lambdaMin;
+        if (oneMinusLambdaSq > EPS) {
+            const weakeningA = (1.0 - puck.a0) / Math.sqrt(oneMinusLambdaSq);
+            const delta = Azfb / Afb;
+            const rad = 1.0 + delta * delta * (weakeningA * weakeningA - puck.a0 * puck.a0);
+            const den = 1.0 + weakeningA * weakeningA * delta * delta;
+            if (rad > EPS && den > EPS) {
+                const lambda = ((puck.a0 + weakeningA * Math.sqrt(rad)) / den) * delta;
+                if (lambda > EPS) Azfb /= lambda;
+            }
+        }
+    }
+
+    const exposure = Math.max(Afb, Azfb);
+    return exposure > EPS ? 1.0 / exposure : Number.POSITIVE_INFINITY;
+}
+
+function computePuckFailureIndex(stress, mat) {
+    const rf = computePuckReserveFactor(stress, mat);
+    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+}
+
+function solveReserveFactorFromQuadratic(Q, L) {
+    if (!Number.isFinite(Q) || !Number.isFinite(L)) return Number.POSITIVE_INFINITY;
+    if (Math.abs(Q) < EPS) {
+        if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
+        return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
+    }
+    const disc = L * L + 4.0 * Q;
+    if (disc <= EPS) return Number.POSITIVE_INFINITY;
+    const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
+    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+}
+
+function getLaRC03Parameters(mat) {
+    const add = mat.additional || {};
+    const alpha0Deg = Math.ceil(Math.max(Number.isFinite(add.larc03_alpha0_deg) ? add.larc03_alpha0_deg : 53.0, 0));
+    return {
+        alpha0Deg,
+        alpha0Rad: (alpha0Deg * Math.PI) / 180.0,
+        g1c: Math.max(Number.isFinite(add.larc03_g1c) ? add.larc03_g1c : 0.28, EPS),
+        g2c: Math.max(Number.isFinite(add.larc03_g2c) ? add.larc03_g2c : 0.79, EPS),
+        plyThickness: Math.max(Number.isFinite(add.larc03_ply_thickness) ? add.larc03_ply_thickness : 0.125, EPS),
+        isEmbedded: Boolean(add.larc03_is_embedded)
+    };
+}
+
+function computeLaRC03InSituStrengths(mat, params) {
+    const s = mat.strength;
+    const E1 = Math.max(mat.core.E1, EPS);
+    const E2 = Math.max(mat.core.E2, EPS);
+    const G12 = Math.max(mat.core.G12, EPS);
+    const nu12 = mat.core.nu12;
+    const nu21 = (nu12 * E2) / E1;
+
+    const Yt = Math.max(s.Yt, EPS);
+    const Yc = Math.max(s.Yc, EPS);
+    const R_L = Math.max(s.S, EPS);
+
+    const lam22 = Math.max(2.0 * (1.0 / E2 - (nu21 * nu21) / E1), EPS);
+    const lam44 = 1.0 / G12;
+
+    const alpha0Rad = params.alpha0Rad;
+    const c0 = Math.cos(alpha0Rad);
+    const s0 = Math.sin(alpha0Rad);
+    const tan2a = Math.tan(2.0 * alpha0Rad);
+    const safeTan2a = Math.abs(tan2a) > EPS ? tan2a : (tan2a >= 0 ? EPS : -EPS);
+
+    const R_T_raw = Yc * c0 * (s0 + c0 / safeTan2a);
+    const R_T = R_T_raw > EPS ? R_T_raw : EPS;
+    const eta_T_raw = -1.0 / safeTan2a;
+    const eta_L_raw = -(R_L * Math.cos(2.0 * alpha0Rad)) / Math.max(Yc * c0 * c0, EPS);
+    const eta_T = Number.isFinite(eta_T_raw) ? eta_T_raw : 0;
+    const eta_L = Number.isFinite(eta_L_raw) ? eta_L_raw : 0;
+
+    let R_2is;
+    let R_Lis;
+    let g;
+
+    const gBase = 1.12 * 1.12 * (lam22 / lam44) * (Yt / R_L) * (Yt / R_L);
+    if (params.isEmbedded) {
+        if (params.plyThickness >= 0.7) {
+            R_2is = 1.12 * Math.sqrt(2.0) * Yt;
+            R_Lis = Math.sqrt(2.0) * R_L;
+            g = gBase;
+        } else {
+            R_2is = Math.sqrt((8.0 * params.g1c) / (Math.PI * params.plyThickness * lam22));
+            R_Lis = Math.sqrt((8.0 * params.g2c) / (Math.PI * params.plyThickness * lam44));
+            g = params.g1c / params.g2c;
+        }
+    } else {
+        R_2is = Yt;
+        R_Lis = R_L;
+        g = gBase;
+    }
+
+    if (!Number.isFinite(R_2is) || R_2is <= EPS) R_2is = Yt;
+    if (!Number.isFinite(R_Lis) || R_Lis <= EPS) R_Lis = R_L;
+    if (!Number.isFinite(g) || g <= EPS) g = 1.0;
+
+    return {
+        R_T,
+        R_2is,
+        R_Lis,
+        g,
+        eta_T,
+        eta_L,
+        alpha0Deg: params.alpha0Deg
+    };
+}
+
+function computeLaRC03KinkBandStresses(stress, mat, inSitu) {
+    const sx = stress.sigma1;
+    const sy = stress.sigma2;
+    const txy = stress.tau12;
+    const Xc = Math.max(mat.strength.Xc, EPS);
+    const G12 = Math.max(mat.core.G12, EPS);
+
+    const term = 1.0 - 4.0 * (inSitu.R_Lis / Xc + inSitu.eta_L) * (inSitu.R_Lis / Xc);
+    const safeRoot = Math.sqrt(Math.max(term, 0));
+    const phiCNum = 1.0 - safeRoot;
+    const phiCDen = 2.0 * (inSitu.R_Lis / Xc + inSitu.eta_L);
+    const phiC = Math.abs(phiCDen) > EPS ? Math.atan(phiCNum / phiCDen) : 0;
+
+    const phiDenRaw = G12 + sx - sy;
+    const phiDen = Math.abs(phiDenRaw) > EPS ? phiDenRaw : (phiDenRaw >= 0 ? EPS : -EPS);
+    const phi = (Math.abs(txy) + (G12 - Xc) * phiC) / phiDen;
+
+    const cp = Math.cos(phi);
+    const sp = Math.sin(phi);
+    const cp2 = cp * cp;
+    const sp2 = sp * sp;
+    const s2p = 2.0 * sp * cp;
+
+    const sig2m = sp2 * sx + cp2 * sy - s2p * txy;
+    const tau12m = -sp * cp * sx + sp * cp * sy + (cp2 - sp2) * txy;
+    return {
+        sig2m: Number.isFinite(sig2m) ? sig2m : sy,
+        tau12m: Number.isFinite(tau12m) ? tau12m : txy
+    };
+}
+
+function computeLaRC03CompressionPlaneSearch(sigma2Ref, tau12Ref, inSitu) {
+    const maxAlpha = Math.max(0, Math.floor(inSitu.alpha0Deg));
+    let maxFailure = 0;
+
+    for (let alpha = 0; alpha <= maxAlpha; alpha += 1) {
+        const alp = (alpha * Math.PI) / 180.0;
+        const ca = Math.cos(alp);
+        const sa = Math.sin(alp);
+
+        let tauTeff = -sigma2Ref * ca * (sa - inSitu.eta_T * ca);
+        if (tauTeff < 0) tauTeff = 0;
+
+        let tauLeff = ca * (Math.abs(tau12Ref) + inSitu.eta_L * sigma2Ref * ca);
+        if (tauLeff < 0) tauLeff = 0;
+
+        const f = (tauTeff / inSitu.R_T) * (tauTeff / inSitu.R_T) + (tauLeff / inSitu.R_Lis) * (tauLeff / inSitu.R_Lis);
+        if (f > maxFailure) maxFailure = f;
+    }
+
+    return maxFailure;
+}
+
+function computeLaRC03FiberReserveFactor(stress, strain, mat, inSitu, kink) {
+    const sx = stress.sigma1;
+    if (sx >= 0) {
+        const denom = Math.max(Math.max(mat.core.E1, EPS) * Math.abs(strain.epsilon1), EPS);
+        return Math.max(mat.strength.Xt, EPS) / denom;
+    }
+
+    if (kink.sig2m >= 0) {
+        const Q =
+            inSitu.g * (kink.sig2m / inSitu.R_2is) * (kink.sig2m / inSitu.R_2is) +
+            (kink.tau12m / inSitu.R_Lis) * (kink.tau12m / inSitu.R_Lis);
+        const L = (1.0 - inSitu.g) * (kink.sig2m / inSitu.R_2is);
+        return solveReserveFactorFromQuadratic(Q, L);
+    }
+
+    const f4 = (Math.abs(kink.tau12m) + inSitu.eta_L * kink.sig2m) / inSitu.R_Lis;
+    return f4 > EPS ? 1.0 / f4 : Number.POSITIVE_INFINITY;
+}
+
+function computeLaRC03MatrixReserveFactor(stress, mat, inSitu, kink) {
+    const sx = stress.sigma1;
+    const sy = stress.sigma2;
+    const txy = stress.tau12;
+
+    if (sy >= 0) {
+        const Q = inSitu.g * (sy / inSitu.R_2is) * (sy / inSitu.R_2is) + (txy / inSitu.R_Lis) * (txy / inSitu.R_Lis);
+        const L = (1.0 - inSitu.g) * (sy / inSitu.R_2is);
+        return solveReserveFactorFromQuadratic(Q, L);
+    }
+
+    const Yc = Math.max(mat.strength.Yc, EPS);
+    const maxFailure =
+        sx >= -Yc
+            ? computeLaRC03CompressionPlaneSearch(sy, txy, inSitu)
+            : computeLaRC03CompressionPlaneSearch(kink.sig2m, kink.tau12m, inSitu);
+
+    return maxFailure > EPS ? 1.0 / Math.sqrt(maxFailure) : Number.POSITIVE_INFINITY;
+}
+
+function computeLaRC03ReserveFactor(stress, mat) {
+    if (Math.abs(stress.sigma1) < EPS && Math.abs(stress.sigma2) < EPS && Math.abs(stress.tau12) < EPS) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    const strain = computeStrainState(stress, mat);
+    const params = getLaRC03Parameters(mat);
+    const inSitu = computeLaRC03InSituStrengths(mat, params);
+    const kink = computeLaRC03KinkBandStresses(stress, mat, inSitu);
+
+    const rfFiber = computeLaRC03FiberReserveFactor(stress, strain, mat, inSitu, kink);
+    const rfMatrix = computeLaRC03MatrixReserveFactor(stress, mat, inSitu, kink);
+    const rf = Math.min(rfFiber, rfMatrix);
+    return Number.isFinite(rf) && rf > EPS ? rf : Number.POSITIVE_INFINITY;
+}
+
+function computeLaRC03FailureIndex(stress, mat) {
+    const rf = computeLaRC03ReserveFactor(stress, mat);
+    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+}
+
+function createIndexedParametricGeometry(thetaSegments, phiSegments, getPoint) {
+    const positions = [];
+    const indices = [];
+
+    for (let i = 0; i <= phiSegments; i += 1) {
+        const v = i / phiSegments;
+        for (let j = 0; j <= thetaSegments; j += 1) {
+            const u = j / thetaSegments;
+            const p = getPoint(u, v);
+            positions.push(p.x, p.y, p.z);
+        }
+    }
+
+    const ring = thetaSegments + 1;
+    for (let i = 0; i < phiSegments; i += 1) {
+        for (let j = 0; j < thetaSegments; j += 1) {
+            const a = i * ring + j;
+            const b = a + 1;
+            const c = a + ring;
+            const d = c + 1;
+            indices.push(a, c, b, b, c, d);
+        }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+function appendGridPatch(buffers, uSegments, vSegments, getPoint, flipWinding) {
+    const base = buffers.positions.length / 3;
+    for (let iv = 0; iv <= vSegments; iv += 1) {
+        const v = iv / vSegments;
+        for (let iu = 0; iu <= uSegments; iu += 1) {
+            const u = iu / uSegments;
+            const p = getPoint(u, v);
+            buffers.positions.push(p.x, p.y, p.z);
+        }
+    }
+
+    const row = uSegments + 1;
+    for (let iv = 0; iv < vSegments; iv += 1) {
+        for (let iu = 0; iu < uSegments; iu += 1) {
+            const a = base + iv * row + iu;
+            const b = a + 1;
+            const c = a + row;
+            const d = c + 1;
+            if (flipWinding) buffers.indices.push(a, b, c, b, d, c);
+            else buffers.indices.push(a, c, b, b, c, d);
+        }
+    }
+}
+
+function solveQuadraticEllipsoid(params) {
+    const { a11, a22, a12, a33, b1, b2, c } = params;
+    const det = a11 * a22 - a12 * a12;
+    if (Math.abs(det) < 1e-18 || a33 <= 1e-18) return null;
+
+    const inv00 = a22 / det;
+    const inv01 = -a12 / det;
+    const inv10 = -a12 / det;
+    const inv11 = a11 / det;
+
+    const cx = -0.5 * (inv00 * b1 + inv01 * b2);
+    const cy = -0.5 * (inv10 * b1 + inv11 * b2);
+    const cz = 0;
+
+    const constShifted =
+        c +
+        (a11 * cx * cx + 2.0 * a12 * cx * cy + a22 * cy * cy + a33 * cz * cz) +
+        b1 * cx +
+        b2 * cy;
+
+    const rhs = -constShifted;
+    if (rhs <= EPS) return null;
+
+    const traceHalf = 0.5 * (a11 + a22);
+    const delta = Math.sqrt(Math.max(a12 * a12 + 0.25 * (a11 - a22) * (a11 - a22), 0));
+    const lambda1 = traceHalf + delta;
+    const lambda2 = traceHalf - delta;
+    if (lambda1 <= EPS || lambda2 <= EPS) return null;
+
+    const alpha = 0.5 * Math.atan2(2.0 * a12, a11 - a22);
+    return {
+        center: new THREE.Vector3(cx, cy, cz),
+        alpha,
+        axisA: Math.sqrt(rhs / lambda1),
+        axisB: Math.sqrt(rhs / lambda2),
+        axisC: Math.sqrt(rhs / a33)
+    };
+}
+
+function validateTsaiWuGeometry(geometry, debugData, mat) {
+    const pos = geometry.getAttribute("position");
+    if (!pos || pos.count === 0) return false;
+
+    let allFinite = true;
+    for (let i = 0; i < pos.count; i += 1) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+            allFinite = false;
+            break;
+        }
+    }
+    if (!allFinite) {
+        console.warn("[Tsai-Wu] geometry rejected: non-finite vertices detected");
+        return false;
+    }
+
+    geometry.computeBoundingBox();
+    const bbox = geometry.boundingBox;
+    const maxValue = getMaxStrength(mat);
+    const limit = 10.0 * maxValue;
+    const bboxValues = [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z];
+    const absurd = bboxValues.some(v => !Number.isFinite(v) || Math.abs(v) > limit);
+
+    console.log("[Tsai-Wu] center", debugData.center, "semiAxes", debugData.semiAxes, "bbox", {
+        min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
+        max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z }
+    });
+
+    if (absurd) {
+        console.warn("[Tsai-Wu] geometry rejected: bounding box out of expected range", { limit, bbox });
+        return false;
+    }
+    return true;
+}
+
+function buildRotatedEllipsoidGeometry(params, quality) {
+    const solved = solveQuadraticEllipsoid(params);
+    if (!solved) return null;
+
+    const thetaSegments = Math.max(24, quality.directThetaSegments);
+    const phiSegments = Math.max(16, quality.directPhiSegments);
+    const cA = Math.cos(solved.alpha);
+    const sA = Math.sin(solved.alpha);
+
+    const geometry = createIndexedParametricGeometry(thetaSegments, phiSegments, (u, v) => {
+        const theta = u * Math.PI * 2.0;
+        const phi = v * Math.PI;
+        const sinPhi = Math.sin(phi);
+
+        const localX = solved.axisA * sinPhi * Math.cos(theta);
+        const localY = solved.axisB * sinPhi * Math.sin(theta);
+        const localZ = solved.axisC * Math.cos(phi);
+
+        const x = solved.center.x + localX * cA - localY * sA;
+        const y = solved.center.y + localX * sA + localY * cA;
+        const z = solved.center.z + localZ;
+        return new THREE.Vector3(x, y, z);
+    });
+
+    return geometry;
+}
+
+function buildMaxStressGeometry(mat) {
+    const s = mat.strength;
+    const width = Math.max(s.Xt + s.Xc, EPS);
+    const height = Math.max(s.Yt + s.Yc, EPS);
+    const depth = Math.max(2.0 * s.S, EPS);
+    const centerX = 0.5 * (s.Xt - s.Xc);
+    const centerY = 0.5 * (s.Yt - s.Yc);
+
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+    geometry.translate(centerX, centerY, 0);
+    return geometry;
+}
+
+function buildTsaiWuGeometry(mat, quality) {
+    const c = getTsaiWuCoefficients(mat);
+    const F1 = c.F1;
+    const F2 = c.F2;
+    const F11 = c.F11;
+    const F22 = c.F22;
+    const F12 = c.F12;
+    const F66 = c.F66;
+
+    const denominator = 2.0 * (F11 * F22 - F12 * F12);
+    const small = 1e-18;
+    if (Math.abs(denominator) < small || F66 <= small) return null;
+
+    const s2 = (F12 * F1 - F11 * F2) / denominator;
+    const centerX = -(F1 + 2.0 * F12 * s2) / (2.0 * F11);
+    const centerY = s2;
+
+    const mDotS = 0.5 * F1 * centerX + 0.5 * F2 * centerY;
+    const temp1 = 0.5 * (F11 + F22);
+    const temp2 = Math.sqrt(Math.max(F12 * F12 + 0.25 * (F11 - F22) * (F11 - F22), 0));
+    const lambda1 = temp1 + temp2;
+    const lambda2 = temp1 - temp2;
+    const lambda3 = F66;
+    const positiveTerm = 1.0 - mDotS;
+
+    if (positiveTerm <= EPS || lambda1 <= EPS || lambda2 <= EPS || lambda3 <= EPS) return null;
+
+    const halfA = Math.sqrt(positiveTerm / lambda1);
+    const halfB = Math.sqrt(positiveTerm / lambda2);
+    const halfC = Math.sqrt(positiveTerm / lambda3);
+
+    let alpha = Math.PI * 0.5;
+    if (Math.abs(F12) > EPS) {
+        const ratio = 1.0 + ((F11 - lambda2) * (F11 - lambda2)) / (F12 * F12);
+        alpha = -Math.sign(F12) * Math.asin(1.0 / Math.sqrt(Math.max(ratio, 1.0)));
+    }
+
+    const polarSegments = Math.max(24, Math.floor(quality.directPhiSegments));
+    const azimuthSegments = Math.max(2 * polarSegments, Math.floor(quality.directThetaSegments));
+    const positions = [];
+    const normals = [];
+    const indices = [];
+
+    const ca = Math.cos(alpha);
+    const sa = Math.sin(alpha);
+
+    for (let i = 0; i <= polarSegments; i += 1) {
+        const theta = (Math.PI * i) / polarSegments;
+        const st = Math.sin(theta);
+        const ct = Math.cos(theta);
+
+        for (let j = 0; j <= azimuthSegments; j += 1) {
+            const phi = (2.0 * Math.PI * j) / azimuthSegments;
+            const cp = Math.cos(phi);
+            const sp = Math.sin(phi);
+
+            const sx = st * cp;
+            const sy = st * sp;
+            const sz = ct;
+
+            const rx = sx;
+            const ry = -sz;
+            const rz = sy;
+
+            const scx = halfA * rx;
+            const scy = halfB * ry;
+            const scz = halfC * rz;
+
+            const x = centerX + scx * ca + scy * sa;
+            const y = centerY - scx * sa + scy * ca;
+            const z = scz;
+
+            positions.push(x, y, z);
+
+            const nx = 2.0 * F11 * x + 2.0 * F12 * y + F1;
+            const ny = 2.0 * F22 * y + 2.0 * F12 * x + F2;
+            const nz = 2.0 * F66 * z;
+            const norm = Math.hypot(nx, ny, nz);
+
+            if (norm > EPS) normals.push(nx / norm, ny / norm, nz / norm);
+            else normals.push(0, 0, 1);
+        }
+    }
+
+    const rowSize = azimuthSegments + 1;
+    for (let i = 0; i < polarSegments; i += 1) {
+        for (let j = 0; j < azimuthSegments; j += 1) {
+            const a = i * rowSize + j;
+            const b = a + 1;
+            const cIdx = a + rowSize;
+            const d = cIdx + 1;
+            indices.push(a, cIdx, b, b, cIdx, d);
+        }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setIndex(indices);
+
+    const valid = validateTsaiWuGeometry(
+        geometry,
+        {
+            center: { x: centerX, y: centerY, z: 0 },
+            semiAxes: { a: halfA, b: halfB, c: halfC },
+            alpha
+        },
+        mat
+    );
+    if (!valid) {
+        geometry.dispose();
+        return null;
+    }
+
+    geometry.computeBoundingSphere();
+    return geometry;
+}
+
+function buildVonMisesGeometry(mat, quality) {
+    const r = getIsotropicReferenceStrength(mat);
+    const invR2 = 1.0 / Math.max(r * r, EPS);
+    return buildRotatedEllipsoidGeometry(
+        {
+            a11: invR2,
+            a22: invR2,
+            a12: -0.5 * invR2,
+            a33: 3.0 * invR2,
+            b1: 0,
+            b2: 0,
+            c: -1.0
+        },
+        quality
+    );
+}
+
+function buildTrescaGeometry(mat, quality) {
+    const r = getIsotropicReferenceStrength(mat);
+    const thetaSegments = Math.max(48, quality.trescaThetaSegments);
+    const coneRings = Math.max(8, quality.trescaConeRings);
+    const cylRings = Math.max(8, quality.trescaCylinderRings);
+
+    const uValues = [];
+    for (let i = 0; i <= coneRings; i += 1) {
+        uValues.push(-r + (r * 0.5 * i) / coneRings);
+    }
+    for (let i = 1; i <= cylRings; i += 1) {
+        uValues.push(-0.5 * r + (r * i) / cylRings);
+    }
+    for (let i = 1; i <= coneRings; i += 1) {
+        uValues.push(0.5 * r + (r * 0.5 * i) / coneRings);
+    }
+
+    const phiSegments = uValues.length - 1;
+    return createIndexedParametricGeometry(thetaSegments, phiSegments, (uNorm, vNorm) => {
+        const theta = uNorm * Math.PI * 2.0;
+        const ringIndex = Math.round(vNorm * phiSegments);
+        const u = uValues[Math.min(Math.max(ringIndex, 0), uValues.length - 1)];
+        const radius = Math.min(0.5 * r, r - Math.abs(u));
+        const v = radius * Math.cos(theta);
+        const w = radius * Math.sin(theta);
+        return new THREE.Vector3(u + v, u - v, w);
+    });
+}
+
+function buildFibreFailureGeometry(mat) {
+    const s = mat.strength;
+    const xT = Math.max(s.Xt, EPS);
+    const xC = Math.max(s.Xc, EPS);
+    const yMax = Math.max(s.Yt, EPS);
+    const yMin = -Math.max(s.Yc, EPS);
+    const zMax = Math.max(s.S, EPS);
+    const zMin = -Math.max(s.S, EPS);
+
+    const positions = [
+        xT, yMin, zMax,
+        xT, yMin, zMin,
+        xT, yMax, zMin,
+        xT, yMax, zMax,
+        -xC, yMin, zMax,
+        -xC, yMax, zMax,
+        -xC, yMax, zMin,
+        -xC, yMin, zMin
+    ];
+
+    const normals = [
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0
+    ];
+
+    const indices = [
+        0, 1, 2,
+        0, 2, 3,
+        4, 5, 6,
+        4, 6, 7
+    ];
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setIndex(indices);
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    return geometry;
+}
+
+function computePuckSectionCoordinates(mat, puck, quality) {
+    const s = mat.strength;
+    const modeA = Math.max(12, Math.floor(quality.puckModeASegments));
+    const modeB = Math.max(4, Math.floor(quality.puckModeBSegments));
+    const modeC = Math.max(12, Math.floor(quality.puckModeCSegments));
+    const total = modeA + 2 * modeB + modeC;
+
+    const y = new Array(total + 1).fill(0);
+    const z = new Array(total + 1).fill(0);
+
+    const S = Math.max(s.S, EPS);
+    const Yt = Math.max(s.Yt, EPS);
+    const Yc = Math.max(s.Yc, EPS);
+
+    const aA = ((1.0 - (puck.pspz * Yt) / S) / Yt) ** 2;
+    const bA = 1.0 / (S * S);
+    const cA = puck.pspz / S;
+    for (let j = 0; j < modeA; j += 1) {
+        const phi = (Math.PI * j) / modeA;
+        const yy = Yt * Math.sin(phi);
+        const zzCore = ((1.0 - cA * yy) * (1.0 - cA * yy) - aA * yy * yy) / bA;
+        const zz = Math.sqrt(Math.max(zzCore, 0));
+        y[j] = yy;
+        z[j] = phi <= Math.PI * 0.5 ? -zz : zz;
+    }
+
+    const deltaY = puck.Rass / modeB;
+    const aB = (puck.pspd / S) ** 2;
+    const bB = 1.0 / (S * S);
+    const cB = puck.pspd / S;
+    for (let j = 0; j < modeB; j += 1) {
+        const yPos = -deltaY * j;
+        const zPosCore = ((1.0 - cB * yPos) * (1.0 - cB * yPos) - aB * yPos * yPos) / bB;
+        y[modeA + j] = yPos;
+        z[modeA + j] = Math.sqrt(Math.max(zPosCore, 0));
+
+        const yNeg = -puck.Rass + deltaY * j;
+        const zNegCore = ((1.0 - cB * yNeg) * (1.0 - cB * yNeg) - aB * yNeg * yNeg) / bB;
+        const negIdx = modeA + modeB + modeC + j;
+        y[negIdx] = yNeg;
+        z[negIdx] = -Math.sqrt(Math.max(zNegCore, 0));
+    }
+
+    const aC = 1.0 / (Yc * Yc);
+    const bC = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
+    const cC = -1.0 / Yc;
+    for (let j = 0; j < modeC; j += 1) {
+        const phi = (Math.PI * j) / modeC;
+        const yy = -(Yc - puck.Rass) * Math.sin(phi) - puck.Rass;
+        const zzCore = (cC * yy - aC * yy * yy) / bC;
+        const zz = Math.sqrt(Math.max(zzCore, 0));
+        const idx = modeA + modeB + j;
+        y[idx] = yy;
+        z[idx] = phi <= Math.PI * 0.5 ? zz : -zz;
+    }
+
+    y[total] = y[0];
+    z[total] = z[0];
+    return { y, z, total };
+}
+
+function computePuckLambdaScale(sigma1, mat, puck) {
+    const Xt = Math.max(mat.strength.Xt, EPS);
+    const Xc = Math.max(mat.strength.Xc, EPS);
+    const a0 = puck.a0;
+    const lambdaMin = puck.lambdaMin;
+
+    if (a0 >= 1.0 - EPS) return 1.0;
+
+    const oneMinusLambdaSq = 1.0 - lambdaMin * lambdaMin;
+    if (oneMinusLambdaSq <= EPS) return lambdaMin;
+
+    const aWeak = (1.0 - a0) / Math.sqrt(oneMinusLambdaSq);
+    if (aWeak <= EPS) return 1.0;
+
+    if (sigma1 < -a0 * Xc) {
+        const term = (-sigma1 / Xc - a0) / aWeak;
+        return Math.sqrt(Math.max(0, 1.0 - term * term));
+    }
+    if (sigma1 > a0 * Xt) {
+        const term = (sigma1 / Xt - a0) / aWeak;
+        return Math.sqrt(Math.max(0, 1.0 - term * term));
+    }
+    return 1.0;
+}
+
+function appendPuckCapPatch(buffers, xCoord, outwardSign, sectionY, sectionZ, faceRings, lambdaMin) {
+    const contourCount = sectionY.length;
+    const base = buffers.positions.length / 3;
+
+    for (let i = 0; i <= faceRings; i += 1) {
+        const radiusFactor = lambdaMin * (i / faceRings);
+        for (let j = 0; j < contourCount; j += 1) {
+            buffers.positions.push(xCoord, radiusFactor * sectionY[j], radiusFactor * sectionZ[j]);
+        }
+    }
+
+    const row = contourCount;
+    for (let i = 0; i < faceRings; i += 1) {
+        for (let j = 0; j < contourCount - 1; j += 1) {
+            const a = base + i * row + j;
+            const b = a + 1;
+            const c = a + row;
+            const d = c + 1;
+            if (outwardSign > 0) buffers.indices.push(a, c, b, b, c, d);
+            else buffers.indices.push(a, b, c, b, d, c);
+        }
+    }
+}
+
+function buildPuckGeometry(mat, quality) {
+    const puck = getPuckParameters(mat);
+    const section = computePuckSectionCoordinates(mat, puck, quality);
+
+    const s = mat.strength;
+    const Xt = Math.max(s.Xt, EPS);
+    const Xc = Math.max(s.Xc, EPS);
+    const xSegments = Math.max(50, Math.floor(quality.puckFiberSegments));
+    const faceRings = Math.max(6, Math.floor(quality.puckFaceSegments));
+    const ring = section.total + 1;
+
+    const buffers = { positions: [], indices: [] };
+
+    for (let ix = 0; ix <= xSegments; ix += 1) {
+        const x = -Xc + ((Xt + Xc) * ix) / xSegments;
+        const lambda = computePuckLambdaScale(x, mat, puck);
+        for (let j = 0; j <= section.total; j += 1) {
+            buffers.positions.push(x, lambda * section.y[j], lambda * section.z[j]);
+        }
+    }
+
+    for (let ix = 0; ix < xSegments; ix += 1) {
+        const row0 = ix * ring;
+        const row1 = row0 + ring;
+        for (let j = 0; j < section.total; j += 1) {
+            const a = row0 + j;
+            const b = a + 1;
+            const c = row1 + j;
+            const d = c + 1;
+            buffers.indices.push(a, c, b, b, c, d);
+        }
+    }
+
+    appendPuckCapPatch(buffers, Xt, +1, section.y, section.z, faceRings, puck.lambdaMin);
+    appendPuckCapPatch(buffers, -Xc, -1, section.y, section.z, faceRings, puck.lambdaMin);
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
+    geometry.setIndex(buffers.indices);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    return geometry;
+}
+
+function buildHashinGeometry(mat, quality) {
+    const s = mat.strength;
+    const sigma1Breaks = [-Math.max(s.Xc, EPS), 0, Math.max(s.Xt, EPS)];
+    const sigma2Breaks = [-Math.max(s.Yc, EPS), 0, Math.max(s.Yt, EPS)];
+    const segX = Math.max(8, Math.floor(quality.hashinIntervalSegmentsX));
+    const segY = Math.max(6, Math.floor(quality.hashinIntervalSegmentsY));
+    const wallSeg = Math.max(8, Math.floor(quality.hashinWallSegments));
+
+    const buffers = { positions: [], indices: [] };
+
+    function addIntervalPatch(x0, x1, y0, y1, tauSign) {
+        appendGridPatch(
+            buffers,
+            segX,
+            segY,
+            (u, v) => {
+                const sigma1 = x0 + (x1 - x0) * u;
+                const sigma2 = y0 + (y1 - y0) * v;
+                const tau = tauSign * computeHashinTauCap(sigma1, sigma2, mat);
+                return new THREE.Vector3(sigma1, sigma2, tau);
+            },
+            tauSign < 0
+        );
+    }
+
+    // Hashin desktop-like branch intervals: (fiber tension/compression) x (matrix tension/compression)
+    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], +1);
+    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], +1);
+    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], +1);
+    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], +1);
+
+    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], -1);
+    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], -1);
+    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], -1);
+    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], -1);
+
+    // Closure wall on fiber-compression boundary where tau can stay finite.
+    appendGridPatch(
+        buffers,
+        segY,
+        wallSeg,
+        (u, v) => {
+            const sigma1 = sigma1Breaks[0];
+            const sigma2 = sigma2Breaks[0] + (sigma2Breaks[2] - sigma2Breaks[0]) * u;
+            const cap = computeHashinTauCap(sigma1, sigma2, mat);
+            const tau = cap * (1.0 - 2.0 * v);
+            return new THREE.Vector3(sigma1, sigma2, tau);
+        },
+        false
+    );
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
+    geometry.setIndex(buffers.indices);
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+function buildReserveFactorRadialGeometry(criterion, mat, quality) {
+    const thetaSegments = Math.max(40, quality.radialThetaSegments);
+    const phiSegments = Math.max(20, quality.radialPhiSegments);
+
+    const scaleX = 0.5 * (mat.strength.Xt + mat.strength.Xc);
+    const scaleYZ = (mat.strength.Yt + mat.strength.Yc + mat.strength.S) / 3.0;
+    const transX = 0.5 * (mat.strength.Xt - mat.strength.Xc);
+
+    return createIndexedParametricGeometry(thetaSegments, phiSegments, (u, v) => {
+        const theta = u * Math.PI;
+        const phi = v * Math.PI * 2.0;
+        const temp = Math.sin(theta);
+
+        const sigma1 = Math.cos(theta) * scaleX + transX;
+        const sigma2 = temp * Math.cos(phi) * scaleYZ;
+        const tau12 = temp * Math.sin(phi) * scaleYZ;
+
+        const rf = criterion.computeReserveFactor({ sigma1, sigma2, tau12 }, mat);
+        const safeRf = Number.isFinite(rf) && rf > EPS ? rf : 0;
+        return new THREE.Vector3(sigma1 * safeRf, sigma2 * safeRf, tau12 * safeRf);
+    });
+}
+
+function evaluateCriterionFailureIndex(criterion, stress, mat) {
+    if (typeof criterion.computeFailureIndex === "function") {
+        const fi = criterion.computeFailureIndex(stress, mat);
+        return Number.isFinite(fi) ? Math.max(fi, 0) : Number.POSITIVE_INFINITY;
+    }
+    if (typeof criterion.computeReserveFactor === "function") {
+        const rf = criterion.computeReserveFactor(stress, mat);
+        if (!Number.isFinite(rf) || rf <= EPS) return Number.POSITIVE_INFINITY;
+        return 1.0 / rf;
+    }
+    return Number.POSITIVE_INFINITY;
+}
+
+function sampleCriterionFieldToMarchingCubes(criterion, marchingObject, mat) {
+    const size = marchingObject.size;
+    const size2 = size * size;
+    const clamp = surfaceConfig.marchingFieldClamp;
+    const range = getMaxStrength(mat) * surfaceConfig.marchingRangeFactor;
+
+    for (let z = 0; z < size; z += 1) {
+        const nz = (z / (size - 1)) * 2 - 1;
+        const tau12 = nz * range;
+        const zOffset = z * size2;
+
+        for (let y = 0; y < size; y += 1) {
+            const ny = (y / (size - 1)) * 2 - 1;
+            const sigma2 = ny * range;
+            const yzOffset = zOffset + y * size;
+
+            for (let x = 0; x < size; x += 1) {
+                const nx = (x / (size - 1)) * 2 - 1;
+                const sigma1 = nx * range;
+                const fi = evaluateCriterionFailureIndex(criterion, { sigma1, sigma2, tau12 }, mat);
+                let fieldValue = 1.0 - fi;
+                if (!Number.isFinite(fieldValue)) fieldValue = -clamp;
+                fieldValue = Math.max(-clamp, Math.min(clamp, fieldValue));
+                marchingObject.field[yzOffset + x] = fieldValue;
+            }
+        }
+    }
+}
+
+function buildSurfaceGeometryMarching(criterion, mat) {
+    const mc = new THREE.MarchingCubes(surfaceConfig.marchingResolution, new THREE.MeshBasicMaterial(), false, false);
+    mc.isolation = 0;
+    mc.reset();
+    sampleCriterionFieldToMarchingCubes(criterion, mc, mat);
+    const geometry = mc.generateBufferGeometry();
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+const CRITERIA = [
+    {
+        id: "max_strain",
+        name: "Maximum Strain",
+        category: "general",
+        color: "#63b3ff",
+        strategy: "radial_rf",
+        computeReserveFactor: computeMaximumStrainReserveFactor,
+        computeFailureIndex: computeMaximumStrainFailureIndex
+    },
+    {
+        id: "max_stress",
+        name: "Maximum Stress",
+        category: "general",
+        color: "#9fb0c1",
+        strategy: "direct",
+        buildGeometry: buildMaxStressGeometry,
+        computeFailureIndex: computeMaximumStressFailureIndex,
+        computeReserveFactor: computeMaximumStressReserveFactor
+    },
+    {
+        id: "hashin",
+        name: "Hashin",
+        category: "composite",
+        color: "#f472b6",
+        strategy: "direct",
+        buildGeometry: buildHashinGeometry,
+        computeReserveFactor: computeHashinReserveFactor,
+        computeFailureIndex: computeHashinFailureIndex
+    },
+    {
+        id: "tsai_hill",
+        name: "Tsai-Hill",
+        category: "composite",
+        color: "#4dd6c2",
+        strategy: "radial_rf",
+        computeReserveFactor: computeTsaiHillReserveFactor,
+        computeFailureIndex: computeTsaiHillFailureIndex
+    },
+    {
+        id: "tsai_wu",
+        name: "Tsai-Wu",
+        category: "composite",
+        color: "#8ab6ff",
+        strategy: "direct",
+        opacity: 0.34,
+        renderOrder: 10,
+        showEdges: false,
+        buildGeometry: buildTsaiWuGeometry,
+        computeReserveFactor: computeTsaiWuReserveFactor,
+        computeFailureIndex: computeTsaiWuFailureIndex
+    },
+    {
+        id: "larc03",
+        name: "LaRC03 (plane stress)",
+        category: "composite",
+        color: "#f97316",
+        strategy: "radial_rf",
+        computeReserveFactor: computeLaRC03ReserveFactor,
+        computeFailureIndex: computeLaRC03FailureIndex
+    },
+    {
+        id: "puck",
+        name: "Puck",
+        category: "composite",
+        color: "#a3e635",
+        strategy: "direct",
+        buildGeometry: buildPuckGeometry,
+        computeReserveFactor: computePuckReserveFactor,
+        computeFailureIndex: computePuckFailureIndex
+    },
+    {
+        id: "fibre_failure",
+        name: "Fibre Failure",
+        category: "composite",
+        color: "#fb7185",
+        strategy: "direct",
+        buildGeometry: buildFibreFailureGeometry,
+        computeReserveFactor: computeFibreFailureReserveFactor,
+        computeFailureIndex: computeFibreFailureIndex
+    },
+    {
+        id: "tresca",
+        name: "Tresca",
+        category: "general",
+        color: "#ffad5a",
+        strategy: "direct",
+        buildGeometry: buildTrescaGeometry,
+        computeReserveFactor: computeTrescaReserveFactor,
+        computeFailureIndex: computeTrescaFailureIndex
+    },
+    {
+        id: "von_mises",
+        name: "von Mises",
+        category: "general",
+        color: "#ffe06e",
+        strategy: "direct",
+        buildGeometry: buildVonMisesGeometry,
+        computeReserveFactor: computeVonMisesReserveFactor,
+        computeFailureIndex: computeVonMisesFailureIndex
+    }
+];
+
+const initialActiveCriteria = debugConfig.larc03Only ? ["larc03"] : CRITERIA.map(c => c.id);
+const activeCriteria = new Set(initialActiveCriteria);
+const displayScale = getDisplayScale(material);
+
+const geometryCache = new Map();
+const meshCache = new Map();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1a1a);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100);
-camera.position.set(2.9, 2.0, 2.6);
+camera.position.set(3.0, 2.0, 2.7);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -313,194 +1645,321 @@ document.getElementById("container").appendChild(renderer.domElement);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.maxDistance = 20;
-controls.minDistance = 0.55;
+controls.maxDistance = 24;
+controls.minDistance = 0.5;
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.47));
+scene.add(new THREE.AmbientLight(0xffffff, 0.48));
 const lightA = new THREE.PointLight(0xffffff, 0.62);
-lightA.position.set(5000, 4500, 4200);
+lightA.position.set(4400, 4200, 4000);
 scene.add(lightA);
-const lightB = new THREE.PointLight(0x9fd7ff, 0.26);
-lightB.position.set(-4200, -2000, 4000);
+const lightB = new THREE.PointLight(0x9fd7ff, 0.24);
+lightB.position.set(-3800, -2400, 3800);
 scene.add(lightB);
 
-const axes = new THREE.Group();
-axes.add(createAxisLine(new THREE.Vector3(-1.2, 0, 0), new THREE.Vector3(1.2, 0, 0), 0xff4040));
-axes.add(createAxisLine(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1.2, 0), 0x4cff4c));
-axes.add(createAxisLine(new THREE.Vector3(0, 0, -1.2), new THREE.Vector3(0, 0, 1.2), 0x4c7dff));
-scene.add(axes);
+const scaledContentGroup = new THREE.Group();
+scaledContentGroup.scale.setScalar(displayScale);
+scene.add(scaledContentGroup);
 
-scene.add(createAxisLabel("sigma1", new THREE.Vector3(1.35, 0, 0), "#ff7676"));
-scene.add(createAxisLabel("sigma2", new THREE.Vector3(0, 1.35, 0), "#7dff7d"));
-scene.add(createAxisLabel("tau12", new THREE.Vector3(0, 0, 1.35), "#7da7ff"));
-
+const axesGroup = new THREE.Group();
 const surfaceGroup = new THREE.Group();
-scene.add(surfaceGroup);
-
-const surfaceConfig = {
-    resolution: 64,
-    fieldClamp: 4
-};
+scaledContentGroup.add(axesGroup);
+scaledContentGroup.add(surfaceGroup);
 
 function createAxisLine(start, end, color) {
     const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-    const material = new THREE.LineBasicMaterial({ color });
-    return new THREE.Line(geometry, material);
+    return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color }));
 }
 
-function createAxisLabel(text, position, color) {
+function createAxisLabel(text, position, color, sizeWorld) {
     const canvas = document.createElement("canvas");
-    canvas.width = 192;
-    canvas.height = 64;
+    canvas.width = 320;
+    canvas.height = 110;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "bold 30px Inter, Manrope, sans-serif";
+    ctx.font = "bold 56px Inter, Manrope, sans-serif";
     ctx.fillStyle = color;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+    texture.needsUpdate = true;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
     sprite.position.copy(position);
-    sprite.scale.set(0.22, 0.075, 1);
+    sprite.scale.set(sizeWorld, sizeWorld * 0.32, 1);
     return sprite;
+}
+
+function buildAxes() {
+    const axisLength = getMaxStrength(material) * 1.08;
+    const labelOffset = axisLength * 1.13;
+    const labelSize = axisLength * 0.22;
+
+    axesGroup.add(createAxisLine(new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0), 0xff5050));
+    axesGroup.add(createAxisLine(new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0), 0x57de57));
+    axesGroup.add(createAxisLine(new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength), 0x5a86ff));
+
+    axesGroup.add(createAxisLabel("\u03c3\u2225", new THREE.Vector3(labelOffset, 0, 0), "#ff8080", labelSize));
+    axesGroup.add(createAxisLabel("\u03c3\u22a5", new THREE.Vector3(0, labelOffset, 0), "#8fff8f", labelSize));
+    axesGroup.add(createAxisLabel("\u03c4", new THREE.Vector3(0, 0, labelOffset), "#8fb0ff", labelSize));
 }
 
 function setStatus(message) {
     document.getElementById("render-status").textContent = message;
 }
 
-function evaluateCriterion(criterion, stress) {
-    const out = criterion.compute(stress, material);
-    const fi = Number.isFinite(out.fi) ? Math.max(out.fi, 0) : Number.POSITIVE_INFINITY;
-    return fi;
-}
+function validateGeometryForDisplay(geometry, mat, label, verbose, options = {}) {
+    const rejectBounds = options.rejectBounds !== undefined ? options.rejectBounds : true;
+    const limitMultiplier = options.limitMultiplier !== undefined ? options.limitMultiplier : 10.0;
 
-function sampleCriterionFieldToMarchingCubes(criterion, marchingObject) {
-    const size = marchingObject.size;
-    const size2 = size * size;
-    const clamp = surfaceConfig.fieldClamp;
+    const pos = geometry.getAttribute("position");
+    if (!pos || pos.count === 0) return false;
 
-    for (let z = 0; z < size; z += 1) {
-        const nz = (z / (size - 1)) * 2 - 1;
-        const tau12 = nz * stressExtents.z;
-        const zOffset = z * size2;
-
-        for (let y = 0; y < size; y += 1) {
-            const ny = (y / (size - 1)) * 2 - 1;
-            const sigma2 = ny * stressExtents.y;
-            const yzOffset = zOffset + y * size;
-
-            for (let x = 0; x < size; x += 1) {
-                const nx = (x / (size - 1)) * 2 - 1;
-                const sigma1 = nx * stressExtents.x;
-                const fi = evaluateCriterion(criterion, { sigma1, sigma2, tau12 });
-                let fieldValue = 1 - fi;
-                if (!Number.isFinite(fieldValue)) fieldValue = -clamp;
-                fieldValue = Math.max(-clamp, Math.min(clamp, fieldValue));
-                marchingObject.field[yzOffset + x] = fieldValue;
-            }
+    const limit = limitMultiplier * getMaxStrength(mat);
+    for (let i = 0; i < pos.count; i += 1) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+            console.warn(`[${label}] geometry rejected: non-finite vertex`, { index: i, x, y, z });
+            return false;
         }
     }
-}
 
-function buildSurfaceGeometryMarching(criterion) {
-    const mc = new THREE.MarchingCubes(surfaceConfig.resolution, new THREE.MeshBasicMaterial(), false, false);
-    mc.isolation = 0;
-    mc.reset();
-    sampleCriterionFieldToMarchingCubes(criterion, mc);
+    geometry.computeBoundingBox();
+    const bbox = geometry.boundingBox;
+    const bounds = [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z];
+    const absurd = bounds.some(value => !Number.isFinite(value) || Math.abs(value) > limit);
 
-    const geometry = mc.generateBufferGeometry();
-    geometry.computeVertexNormals();
-    return geometry;
-}
-
-function clearSurfaces() {
-    while (surfaceGroup.children.length > 0) {
-        const child = surfaceGroup.children[surfaceGroup.children.length - 1];
-        surfaceGroup.remove(child);
-        child.traverse(node => {
-            if (node.geometry) node.geometry.dispose();
-            if (node.material) {
-                if (Array.isArray(node.material)) node.material.forEach(m => m.dispose());
-                else node.material.dispose();
-            }
+    if (verbose) {
+        console.log(`[${label}] geometry bounding box`, {
+            min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
+            max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z },
+            limit
         });
     }
+
+    if (absurd) {
+        const detail = { limit, bbox };
+        if (rejectBounds) {
+            console.warn(`[${label}] geometry rejected: bounding box outside expected range`, detail);
+            return false;
+        }
+        console.warn(`[${label}] geometry bounding box outside expected range (kept for display)`, detail);
+    }
+    return true;
+}
+
+function logLaRC03AnchorReserveFactors(mat) {
+    const s = mat.strength;
+    const anchors = [
+        { label: "+Xt", stress: { sigma1: Math.max(s.Xt, EPS), sigma2: 0, tau12: 0 } },
+        { label: "-Xc", stress: { sigma1: -Math.max(s.Xc, EPS), sigma2: 0, tau12: 0 } },
+        { label: "+Yt", stress: { sigma1: 0, sigma2: Math.max(s.Yt, EPS), tau12: 0 } },
+        { label: "-Yc", stress: { sigma1: 0, sigma2: -Math.max(s.Yc, EPS), tau12: 0 } },
+        { label: "+S", stress: { sigma1: 0, sigma2: 0, tau12: Math.max(s.S, EPS) } },
+        { label: "-S", stress: { sigma1: 0, sigma2: 0, tau12: -Math.max(s.S, EPS) } }
+    ];
+
+    anchors.forEach(anchor => {
+        const rf = computeLaRC03ReserveFactor(anchor.stress, mat);
+        console.log(`[LaRC03] RF at ${anchor.label}`, rf);
+    });
+}
+
+function buildCriterionGeometry(criterion) {
+    let mode = "none";
+    let geometry = null;
+
+    if (typeof criterion.buildGeometry === "function") {
+        mode = "direct";
+        geometry = criterion.buildGeometry(material, surfaceQuality);
+        if (!geometry && criterion.id === "tsai_wu") {
+            console.warn("[Tsai-Wu] direct geometry unavailable; not using radial fallback for this criterion");
+        } else if (!geometry && typeof criterion.computeReserveFactor === "function") {
+            mode = "radial_rf_fallback";
+            geometry = buildReserveFactorRadialGeometry(criterion, material, surfaceQuality);
+        }
+    } else if (typeof criterion.computeReserveFactor === "function") {
+        mode = "radial_rf";
+        geometry = buildReserveFactorRadialGeometry(criterion, material, surfaceQuality);
+    } else if (surfaceConfig.useMarchingFallback && typeof criterion.computeFailureIndex === "function") {
+        mode = "marching_fallback";
+        geometry = buildSurfaceGeometryMarching(criterion, material);
+    }
+
+    if (!geometry) return { geometry: null, mode };
+    const positionAttr = geometry.getAttribute("position");
+    if (!positionAttr || positionAttr.count === 0) {
+        geometry.dispose();
+        return { geometry: null, mode };
+    }
+
+    if (criterion.id === "larc03") {
+        if (debugConfig.larc03Verbose && !larc03DebugLogged) {
+            logLaRC03AnchorReserveFactors(material);
+            larc03DebugLogged = true;
+        }
+
+        if (
+            !validateGeometryForDisplay(geometry, material, "LaRC03", debugConfig.larc03Verbose, {
+                rejectBounds: false,
+                limitMultiplier: 50.0
+            })
+        ) {
+            geometry.dispose();
+            return { geometry: null, mode };
+        }
+    }
+
+    return { geometry, mode };
+}
+
+function getGeometryForCriterion(criterion) {
+    const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
+    const cacheKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
+    if (geometryCache.has(cacheKey)) {
+        return { geometry: geometryCache.get(cacheKey), cacheKey, builtNow: false };
+    }
+
+    const built = buildCriterionGeometry(criterion);
+    if (!built.geometry) return { geometry: null, cacheKey, builtNow: false };
+
+    geometryCache.set(cacheKey, built.geometry);
+    return { geometry: built.geometry, cacheKey, builtNow: true };
+}
+
+function createSurfaceMaterial(criterion) {
+    return new THREE.MeshStandardMaterial({
+        color: new THREE.Color(criterion.color),
+        transparent: true,
+        opacity: criterion.opacity || 0.34,
+        roughness: 0.44,
+        metalness: 0.06,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+}
+
+function createCriterionObject(criterion, geometry) {
+    const mesh = new THREE.Mesh(geometry, createSurfaceMaterial(criterion));
+    mesh.renderOrder = criterion.renderOrder || 0;
+
+    if (criterion.showEdges) {
+        const edgeGeometry = new THREE.EdgesGeometry(geometry, 24);
+        const edgeMaterial = new THREE.LineBasicMaterial({
+            color: new THREE.Color(criterion.edgeColor || criterion.color),
+            transparent: true,
+            opacity: criterion.edgeOpacity || 0.8,
+            depthWrite: false
+        });
+        const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+        edges.renderOrder = mesh.renderOrder + 1;
+        mesh.add(edges);
+    }
+
+    return mesh;
+}
+
+function attachCriterionSurface(criterion) {
+    const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
+    const expectedKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
+    let entry = meshCache.get(criterion.id);
+    let builtNow = false;
+
+    if (!entry || entry.cacheKey !== expectedKey) {
+        if (entry && entry.mesh.parent === surfaceGroup) {
+            surfaceGroup.remove(entry.mesh);
+        }
+        const geoInfo = getGeometryForCriterion(criterion);
+        if (!geoInfo.geometry) return { shown: false, builtNow: false };
+        const mesh = createCriterionObject(criterion, geoInfo.geometry);
+        entry = { cacheKey: geoInfo.cacheKey, mesh };
+        meshCache.set(criterion.id, entry);
+        builtNow = geoInfo.builtNow;
+    }
+
+    if (!entry.mesh.parent) {
+        surfaceGroup.add(entry.mesh);
+    }
+    return { shown: true, builtNow };
+}
+
+function hideInactiveSurfaces(activeIds) {
+    meshCache.forEach((entry, criterionId) => {
+        if (activeIds.has(criterionId)) return;
+        if (entry.mesh.parent === surfaceGroup) {
+            surfaceGroup.remove(entry.mesh);
+        }
+    });
 }
 
 function rebuildSurfaces() {
     const active = CRITERIA.filter(c => activeCriteria.has(c.id));
+    const activeIds = new Set(active.map(c => c.id));
     const start = performance.now();
-    setStatus(`Rendering ${active.length} surface(s) with Marching Cubes...`);
 
-    clearSurfaces();
-    let renderedCount = 0;
-
+    let shown = 0;
+    let builtNowCount = 0;
     active.forEach(criterion => {
-        const geometry = buildSurfaceGeometryMarching(criterion);
-        if (!geometry || !geometry.getAttribute("position") || geometry.getAttribute("position").count === 0) {
-            return;
-        }
-        const solid = new THREE.Mesh(
-            geometry,
-            new THREE.MeshStandardMaterial({
-                color: new THREE.Color(criterion.color),
-                transparent: true,
-                opacity: 0.34,
-                roughness: 0.46,
-                metalness: 0.05,
-                side: THREE.DoubleSide,
-                depthWrite: false
-            })
-        );
-        surfaceGroup.add(solid);
-        renderedCount += 1;
+        const result = attachCriterionSurface(criterion);
+        if (result.shown) shown += 1;
+        if (result.builtNow) builtNowCount += 1;
     });
 
+    hideInactiveSurfaces(activeIds);
+
     const elapsed = performance.now() - start;
-    setStatus(`Rendered ${renderedCount}/${active.length} surface(s) in ${elapsed.toFixed(0)} ms`);
+    const reused = Math.max(shown - builtNowCount, 0);
+    setStatus(`Rendered ${shown}/${active.length} surfaces in ${elapsed.toFixed(0)} ms (new: ${builtNowCount}, cached: ${reused})`);
 }
 
 function buildCriteriaPanel() {
-    const container = document.getElementById("criteria-list");
-    container.innerHTML = "";
+    const compositeContainer = document.getElementById("criteria-list-composite");
+    const generalContainer = document.getElementById("criteria-list-general");
+    compositeContainer.innerHTML = "";
+    generalContainer.innerHTML = "";
 
     CRITERIA.forEach(criterion => {
-        const row = document.createElement("div");
-        row.className = "criterion-row";
-
-        const left = document.createElement("div");
-        left.className = "criterion-left";
-
-        const dot = document.createElement("span");
-        dot.className = "criterion-dot";
-        dot.style.background = criterion.color;
-
-        const name = document.createElement("span");
-        name.className = "criterion-name";
-        name.textContent = criterion.name;
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = activeCriteria.has(criterion.id);
-        checkbox.addEventListener("change", () => {
-            if (checkbox.checked) activeCriteria.add(criterion.id);
-            else activeCriteria.delete(criterion.id);
-            rebuildSurfaces();
-        });
-
-        left.appendChild(dot);
-        left.appendChild(name);
-        row.appendChild(left);
-        row.appendChild(checkbox);
-        container.appendChild(row);
+        const row = buildCriterionRow(criterion);
+        if (criterion.category === "general") generalContainer.appendChild(row);
+        else compositeContainer.appendChild(row);
     });
 }
 
+function buildCriterionRow(criterion) {
+    const row = document.createElement("div");
+    row.className = "criterion-row";
+
+    const left = document.createElement("div");
+    left.className = "criterion-left";
+
+    const dot = document.createElement("span");
+    dot.className = "criterion-dot";
+    dot.style.background = criterion.color;
+
+    const name = document.createElement("span");
+    name.className = "criterion-name";
+    name.textContent = criterion.name;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = activeCriteria.has(criterion.id);
+    checkbox.addEventListener("change", () => {
+        if (checkbox.checked) activeCriteria.add(criterion.id);
+        else activeCriteria.delete(criterion.id);
+        rebuildSurfaces();
+    });
+
+    left.appendChild(dot);
+    left.appendChild(name);
+    row.appendChild(left);
+    row.appendChild(checkbox);
+    return row;
+}
+
 function resetView() {
-    camera.position.set(2.9, 2.0, 2.6);
+    camera.position.set(3.0, 2.0, 2.7);
     camera.up.set(0, 1, 0);
     controls.target.set(0, 0, 0);
     controls.update();
@@ -520,6 +1979,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+buildAxes();
 buildCriteriaPanel();
 rebuildSurfaces();
 animate();
