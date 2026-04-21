@@ -20,6 +20,7 @@ nav: false
 ## Coming soon
 
 We’ll cover:
+
 - Identifying symmetry planes and compatible loads/BCs
 - Partitioning and meshing a symmetric slice
 - Post-processing symmetry-aware results

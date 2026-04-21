@@ -20,6 +20,7 @@ nav: false
 ## Coming soon
 
 Planned topics:
+
 - Von Mises vs principal stresses near the hole
 - XY data along a path and stress concentration factor
 - Comparing coarse vs refined meshes

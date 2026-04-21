@@ -21,14 +21,43 @@ jobs:
         uses: actions/setup-node@v4
       - name: Install Prettier 💾
         run: npm install --save-dev --save-exact prettier @shopify/prettier-plugin-liquid
+      - name: Collect changed files 📄
+        id: changed-files
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+          else
+            base_sha="${{ github.event.before }}"
+          fi
+
+          if [[ -z "$base_sha" || "$base_sha" == "0000000000000000000000000000000000000000" ]]; then
+            git ls-files > prettier-files.txt
+          else
+            git diff --name-only "$base_sha" "${{ github.sha }}" > prettier-files.txt
+          fi
+
+          grep -v '^package-lock\.json$' prettier-files.txt > prettier-files.filtered.txt || true
+          mv prettier-files.filtered.txt prettier-files.txt
+
+          {
+            echo 'count<<EOF'
+            wc -l < prettier-files.txt
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
       - name: Prettier Check 🔎
         id: prettier
-        run: npx prettier . --check
+        run: |
+          if [[ "${{ steps.changed-files.outputs.count }}" == "0" ]]; then
+            echo "No changed files to check."
+            exit 0
+          fi
+
+          xargs -d '\n' npx prettier --check --ignore-unknown < prettier-files.txt
       - name: Create diff 📝
         # https://docs.github.com/en/actions/learn-github-actions/expressions#failure
         if: ${{ failure() }}
         run: |
-          npx prettier . --write
+          xargs -d '\n' npx prettier --write --ignore-unknown < prettier-files.txt
           git diff -- . ':(exclude)package-lock.json' ':(exclude)package.json' > diff.txt
           npm install -g diff2html-cli
           diff2html -i file -s side -F diff.html -- diff.txt

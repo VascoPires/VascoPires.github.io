@@ -20,6 +20,7 @@ nav: false
 ## Coming soon
 
 Planned topics:
+
 - Element types and reduced integration
 - Seed refinement and local mesh control near the hole
 - Mesh quality metrics and quick convergence checks

@@ -20,6 +20,7 @@ nav: false
 ## Coming soon
 
 Planned topics:
+
 - Changing isotropic properties and units sanity checks
 - Introducing plasticity/viscoelasticity briefly
 - Comparing load–displacement curves across materials
