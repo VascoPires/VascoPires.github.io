@@ -32,13 +32,48 @@ module ExternalPosts
     def process_entries(site, src, entries)
       entries.each do |e|
         puts "...fetching #{e.url}"
+        content_html = if e.respond_to?(:content) && !e.content.nil?
+                         e.content
+                       elsif e.respond_to?(:summary)
+                         e.summary
+                       else
+                         ''
+                       end
+
+        summary_html = if e.respond_to?(:summary) && !e.summary.nil?
+                         e.summary
+                       elsif e.respond_to?(:content)
+                         e.content
+                       else
+                         ''
+                       end
+
         create_document(site, src['name'], e.url, {
           title: e.title,
-          content: e.content,
-          summary: e.summary,
-          published: e.published
+          content: content_html,
+          summary: summary_html,
+          published: e.published,
+          thumbnail: extract_thumbnail(e)
         })
       end
+    end
+
+    def extract_thumbnail(entry)
+      if entry.respond_to?(:image) && !entry.image.nil?
+        return entry.image
+      end
+
+      if entry.respond_to?(:enclosure_url) && !entry.enclosure_url.nil?
+        return entry.enclosure_url
+      end
+
+      if entry.respond_to?(:enclosure) && !entry.enclosure.nil?
+        enclosure = entry.enclosure
+        return enclosure['url'] if enclosure.is_a?(Hash) && enclosure['url']
+        return enclosure[:url] if enclosure.is_a?(Hash) && enclosure[:url]
+      end
+
+      nil
     end
 
     def create_document(site, source_name, url, content)
@@ -62,6 +97,7 @@ module ExternalPosts
       doc.data['description'] = content[:summary]
       doc.data['date'] = content[:published]
       doc.data['redirect'] = url
+      doc.data['thumbnail'] = content[:thumbnail] if content[:thumbnail]
       site.collections['posts'].docs << doc
     end
 

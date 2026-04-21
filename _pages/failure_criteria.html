@@ -1,3 +1,8 @@
+---
+layout: none
+title: Failure Criteria Visualizer
+permalink: /failure-criteria/
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,6 +154,108 @@
             cursor: pointer;
         }
 
+        #parameter-groups {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .param-group {
+            border: 1px solid #434343;
+            border-radius: 8px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .param-group-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #9edbff;
+            margin-bottom: 5px;
+        }
+
+        .param-row {
+            display: grid;
+            grid-template-columns: 1fr 96px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .param-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .param-label {
+            font-size: 11px;
+            color: #d9d9d9;
+            line-height: 1.2;
+        }
+
+        .param-input {
+            width: 100%;
+            border: 1px solid #585858;
+            border-radius: 6px;
+            background: #1d1d1d;
+            color: #f3f3f3;
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+
+        .param-input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            justify-self: end;
+            accent-color: #67c8ff;
+            cursor: pointer;
+        }
+
+        .param-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .param-actions .btn {
+            width: 50%;
+            font-size: 11px;
+            padding: 6px 8px;
+        }
+
+        .panel-bottom-control {
+            margin-top: 10px;
+            border-top: 1px solid #3f3f3f;
+            padding-top: 10px;
+        }
+
+        .panel-bottom-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #9edbff;
+            margin-bottom: 6px;
+        }
+
+        .opacity-controls {
+            display: grid;
+            grid-template-columns: 1fr 70px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .opacity-range {
+            width: 100%;
+            accent-color: #67c8ff;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #1c1c1c;
+            color: #d0d0d0;
+        }
+
         .btn {
             width: 100%;
             border: 1px solid #5a5a5a;
@@ -192,9 +299,9 @@
     <h3>Criteria Selection</h3>
     <div class="small-note">
         Toggle failure surfaces (FI = 1) in 3D stress space
-        (x: &sigma;<sub>&parallel;</sub>, y: &sigma;<sub>&perp;</sub>, z: &tau;).<br>
+        (displayed with vertical &tau; axis; horizontals &sigma;<sub>&parallel;</sub>, &sigma;<sub>&perp;</sub>).<br>
         Left drag rotates camera, wheel zooms. Rendering uses direct or reserve-factor meshes,
-        with one global display scale like eLamX2. LaRC03 is shown in plane-stress form.
+        with one global display scale like eLamX2.
     </div>
     <div class="criteria-group">
         <div class="criteria-group-title">Composite Failure Criteria</div>
@@ -204,7 +311,22 @@
         <div class="criteria-group-title">General Failure Criteria</div>
         <div id="criteria-list-general"></div>
     </div>
+    <div class="criteria-group">
+        <div class="criteria-group-title">Didactic Parameters</div>
+        <div id="parameter-groups"></div>
+        <div class="param-actions">
+            <button id="btn-apply-params" class="btn" type="button">Apply Parameters</button>
+            <button id="btn-reset-params" class="btn btn-secondary" type="button">Reset Defaults</button>
+        </div>
+    </div>
     <button id="btn-reset-view" class="btn" type="button">Reset Camera View</button>
+    <div class="panel-bottom-control">
+        <div class="panel-bottom-title">Surface Opacity</div>
+        <div class="opacity-controls">
+            <input id="surface-opacity-range" class="opacity-range" type="range" min="0.05" max="1" step="0.01">
+            <input id="surface-opacity-number" class="param-input" type="number" min="0.05" max="1" step="0.01">
+        </div>
+    </div>
 </div>
 
 <div id="render-status">Initializing...</div>
@@ -234,17 +356,15 @@ const material = {
         gxy_maxstrain: 6.0e-3,
         use_global_strains_threshold_maxstrain: 0.3,
         tsaiwu_f12star: -0.5,
+        hashin_matrix_coeff: 0.25,
+        hashin_fiber_shear_weight: 1.0,
+        hashin_matrix_shear_weight: 1.0,
         puck_pspd: 0.3,
-        puck_pspz: 0.35,
-        puck_a0: 0.5,
-        puck_lambda_min: 0.5,
-        larc03_alpha0_deg: 53.0,
-        larc03_g1c: 0.28,
-        larc03_g2c: 0.79,
-        larc03_ply_thickness: 0.125,
-        larc03_is_embedded: false
+        puck_pspz: 0.35
     }
 };
+
+const defaultMaterial = JSON.parse(JSON.stringify(material));
 
 const surfaceQuality = {
     directThetaSegments: 72,
@@ -271,12 +391,67 @@ const surfaceConfig = {
     useMarchingFallback: false
 };
 
-const debugConfig = {
-    larc03Only: false,
-    larc03Verbose: false
-};
+const SESSION_SURFACE_OPACITY_KEY = "failure-criteria-surface-opacity";
+const DEFAULT_SURFACE_OPACITY = 0.34;
 
-let larc03DebugLogged = false;
+function clampSurfaceOpacity(value) {
+    if (!Number.isFinite(value)) return DEFAULT_SURFACE_OPACITY;
+    return Math.max(0.05, Math.min(1.0, value));
+}
+
+function loadSurfaceOpacityFromSession() {
+    try {
+        const raw = sessionStorage.getItem(SESSION_SURFACE_OPACITY_KEY);
+        if (raw == null) return DEFAULT_SURFACE_OPACITY;
+        return clampSurfaceOpacity(Number(raw));
+    } catch (_err) {
+        return DEFAULT_SURFACE_OPACITY;
+    }
+}
+
+let surfaceOpacity = loadSurfaceOpacityFromSession();
+
+const didacticParameterGroups = [
+    {
+        title: "Material Strengths [MPa]",
+        fields: [
+            { path: ["strength", "Xt"], label: "Xt (σ∥ tension)", type: "number", step: "1", min: 1 },
+            { path: ["strength", "Xc"], label: "Xc (σ∥ compression)", type: "number", step: "1", min: 1 },
+            { path: ["strength", "Yt"], label: "Yt (σ⊥ tension)", type: "number", step: "1", min: 1 },
+            { path: ["strength", "Yc"], label: "Yc (σ⊥ compression)", type: "number", step: "1", min: 1 },
+            { path: ["strength", "S"], label: "S (τ12 shear)", type: "number", step: "1", min: 1 }
+        ]
+    },
+    {
+        title: "Maximum Strain",
+        fields: [
+            { path: ["additional", "ex_maxstrain"], label: "ε1,max", type: "number", step: "1e-5", min: 1e-6 },
+            { path: ["additional", "ey_maxstrain"], label: "ε2,max", type: "number", step: "1e-5", min: 1e-6 },
+            { path: ["additional", "gxy_maxstrain"], label: "γ12,max", type: "number", step: "1e-5", min: 1e-6 }
+        ]
+    },
+    {
+        title: "Tsai-Wu",
+        fields: [{ path: ["additional", "tsaiwu_f12star"], label: "F12* interaction (|F12*|<1)", type: "number", step: "0.01", min: -0.999, max: 0.999 }]
+    },
+    {
+        title: "Hashin (didactic)",
+        fields: [
+            { path: ["additional", "hashin_matrix_coeff"], label: "kmc (matrix comp.)", type: "number", step: "0.01", min: 0.01, max: 1.0 },
+            { path: ["additional", "hashin_fiber_shear_weight"], label: "wf,τ (fiber shear weight)", type: "number", step: "0.05", min: 0.05, max: 5.0 },
+            { path: ["additional", "hashin_matrix_shear_weight"], label: "wm,τ (matrix shear weight)", type: "number", step: "0.05", min: 0.05, max: 5.0 }
+        ]
+    },
+    {
+        title: "Puck (didactic)",
+        fields: [
+            { path: ["additional", "puck_pspd"], label: "p⊥⊥−", type: "number", step: "0.01", min: -0.95, max: 0.95 },
+            { path: ["additional", "puck_pspz"], label: "p⊥⊥+", type: "number", step: "0.01", min: -0.95, max: 0.95 }
+        ]
+    }
+];
+
+const didacticInputMap = new Map();
 
 function getMaxStrength(mat) {
     const s = mat.strength;
@@ -303,15 +478,11 @@ function getMaterialSignature(mat) {
         mat.additional.gxy_maxstrain,
         mat.additional.use_global_strains_threshold_maxstrain,
         mat.additional.tsaiwu_f12star,
+        mat.additional.hashin_matrix_coeff,
+        mat.additional.hashin_fiber_shear_weight,
+        mat.additional.hashin_matrix_shear_weight,
         mat.additional.puck_pspd,
-        mat.additional.puck_pspz,
-        mat.additional.puck_a0,
-        mat.additional.puck_lambda_min,
-        mat.additional.larc03_alpha0_deg,
-        mat.additional.larc03_g1c,
-        mat.additional.larc03_g2c,
-        mat.additional.larc03_ply_thickness,
-        mat.additional.larc03_is_embedded
+        mat.additional.puck_pspz
     ].join("|");
 }
 
@@ -383,7 +554,8 @@ function computeTsaiHillReserveFactor(stress, mat) {
 
 function getTsaiWuCoefficients(mat) {
     const s = mat.strength;
-    const f12star = mat.additional.tsaiwu_f12star;
+    const f12starRaw = Number.isFinite(mat.additional.tsaiwu_f12star) ? mat.additional.tsaiwu_f12star : -0.5;
+    const f12star = Math.max(-0.999999, Math.min(0.999999, f12starRaw));
     const F1 = 1.0 / Math.max(s.Xt, EPS) - 1.0 / Math.max(s.Xc, EPS);
     const F2 = 1.0 / Math.max(s.Yt, EPS) - 1.0 / Math.max(s.Yc, EPS);
     const F11 = 1.0 / Math.max(s.Xt * s.Xc, EPS);
@@ -422,15 +594,27 @@ function computeTsaiWuReserveFactor(stress, mat) {
     return rf > EPS ? rf : Number.POSITIVE_INFINITY;
 }
 
+function getHashinParameters(mat) {
+    const add = mat.additional || {};
+    return {
+        matrixCoeff: Math.max(Number.isFinite(add.hashin_matrix_coeff) ? add.hashin_matrix_coeff : 0.25, EPS),
+        fiberShearWeight: Math.max(Number.isFinite(add.hashin_fiber_shear_weight) ? add.hashin_fiber_shear_weight : 1.0, EPS),
+        matrixShearWeight: Math.max(Number.isFinite(add.hashin_matrix_shear_weight) ? add.hashin_matrix_shear_weight : 1.0, EPS)
+    };
+}
+
 function computeHashinReserveFactor(stress, mat) {
     const s = mat.strength;
     const sx = stress.sigma1;
     const sy = stress.sigma2;
     const txy = stress.tau12;
+    const hashin = getHashinParameters(mat);
 
     let rfFiber = Number.POSITIVE_INFINITY;
     if (sx >= 0) {
-        const fi = (sx * sx) / Math.max(s.Xt * s.Xt, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
+        const fi =
+            (sx * sx) / Math.max(s.Xt * s.Xt, EPS) +
+            hashin.fiberShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
         if (fi > EPS) rfFiber = 1.0 / Math.sqrt(fi);
     } else {
         rfFiber = -Math.max(s.Xc, EPS) / Math.min(sx, -EPS);
@@ -438,11 +622,18 @@ function computeHashinReserveFactor(stress, mat) {
 
     let rfMatrix = Number.POSITIVE_INFINITY;
     if (sy >= 0) {
-        const fi = (sy * sy) / Math.max(s.Yt * s.Yt, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
+        const fi =
+            (sy * sy) / Math.max(s.Yt * s.Yt, EPS) +
+            hashin.matrixShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
         if (fi > EPS) rfMatrix = 1.0 / Math.sqrt(fi);
     } else {
-        const q = 0.25 * (sy * sy) / Math.max(s.S * s.S, EPS) + (txy * txy) / Math.max(s.S * s.S, EPS);
-        const l = sy * (0.25 * Math.max(s.Yc, EPS) / Math.max(s.S * s.S, EPS) - 1.0 / Math.max(s.Yc, EPS));
+        const q =
+            hashin.matrixCoeff * (sy * sy) / Math.max(s.S * s.S, EPS) +
+            hashin.matrixShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
+        const l =
+            sy *
+            (hashin.matrixCoeff * Math.max(s.Yc, EPS) / Math.max(s.S * s.S, EPS) -
+                1.0 / Math.max(s.Yc, EPS));
         if (q > EPS) {
             const disc = l * l + 4.0 * q;
             if (disc > EPS) rfMatrix = (Math.sqrt(disc) - l) / (2.0 * q);
@@ -455,30 +646,34 @@ function computeHashinReserveFactor(stress, mat) {
 
 function computeHashinFiberTauCap(sigma1, mat) {
     const s = mat.strength;
+    const hashin = getHashinParameters(mat);
+    const fiberWeight = Math.max(hashin.fiberShearWeight, EPS);
     if (sigma1 >= 0) {
         const inner = 1.0 - (sigma1 * sigma1) / Math.max(s.Xt * s.Xt, EPS);
         if (inner <= 0) return 0;
-        return Math.max(s.S, EPS) * Math.sqrt(inner);
+        return Math.max(s.S, EPS) * Math.sqrt(inner / fiberWeight);
     }
     return sigma1 >= -Math.max(s.Xc, EPS) ? Number.POSITIVE_INFINITY : 0;
 }
 
 function computeHashinMatrixTauCap(sigma2, mat) {
     const s = mat.strength;
+    const hashin = getHashinParameters(mat);
+    const matrixWeight = Math.max(hashin.matrixShearWeight, EPS);
     if (sigma2 >= 0) {
         const inner = 1.0 - (sigma2 * sigma2) / Math.max(s.Yt * s.Yt, EPS);
         if (inner <= 0) return 0;
-        return Math.max(s.S, EPS) * Math.sqrt(inner);
+        return Math.max(s.S, EPS) * Math.sqrt(inner / matrixWeight);
     }
     if (sigma2 < -Math.max(s.Yc, EPS)) return 0;
     const sSafe = Math.max(s.S, EPS);
     const ycSafe = Math.max(s.Yc, EPS);
     const expr =
         1.0 -
-        (sigma2 * sigma2) / (4.0 * sSafe * sSafe) -
-        sigma2 * (ycSafe / (4.0 * sSafe * sSafe) - 1.0 / ycSafe);
+        hashin.matrixCoeff * (sigma2 * sigma2) / (sSafe * sSafe) -
+        sigma2 * (hashin.matrixCoeff * ycSafe / (sSafe * sSafe) - 1.0 / ycSafe);
     if (expr <= 0) return 0;
-    return sSafe * Math.sqrt(expr);
+    return sSafe * Math.sqrt(expr / matrixWeight);
 }
 
 function computeHashinTauCap(sigma1, sigma2, mat) {
@@ -525,22 +720,12 @@ function computeTrescaReserveFactor(stress, mat) {
     return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
 }
 
-function clamp01(value) {
-    return Math.max(0, Math.min(1, value));
-}
-
 function getPuckParameters(mat) {
     const add = mat.additional || {};
     let pspd = Number.isFinite(add.puck_pspd) ? add.puck_pspd : 0.3;
     if (Math.abs(pspd) < 1e-6) pspd = pspd < 0 ? -1e-6 : 1e-6;
 
     const pspz = Number.isFinite(add.puck_pspz) ? add.puck_pspz : 0.35;
-    let a0 = clamp01(Number.isFinite(add.puck_a0) ? add.puck_a0 : 0.5);
-    let lambdaMin = clamp01(Number.isFinite(add.puck_lambda_min) ? add.puck_lambda_min : 0.5);
-    if (a0 >= 1.0 - EPS) {
-        a0 = 1.0;
-        lambdaMin = 1.0;
-    }
 
     const S = Math.max(mat.strength.S, EPS);
     const Yc = Math.max(mat.strength.Yc, EPS);
@@ -552,8 +737,6 @@ function getPuckParameters(mat) {
     return {
         pspd,
         pspz,
-        a0,
-        lambdaMin,
         Rass: Number.isFinite(Rass) ? Rass : 0,
         Pssd: Number.isFinite(Pssd) ? Pssd : 0,
         tauxyc: Number.isFinite(tauxyc) ? tauxyc : S
@@ -616,27 +799,7 @@ function computePuckReserveFactor(stress, mat) {
     const puck = getPuckParameters(mat);
 
     const Afb = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
-    let Azfb = computePuckMatrixExposure(stress, mat, puck).Azfb;
-
-    const rfTempMin = Azfb > EPS ? (Afb > Azfb ? 1.0 / Afb : 1.0 / Azfb) : (Afb > EPS ? 1.0 / Afb : Number.POSITIVE_INFINITY);
-
-    if (
-        Azfb > EPS &&
-        Afb > EPS &&
-        (rfTempMin * stress.sigma1 > puck.a0 * Math.max(s.Xt, EPS) || rfTempMin * stress.sigma1 < -puck.a0 * Math.max(s.Xc, EPS))
-    ) {
-        const oneMinusLambdaSq = 1.0 - puck.lambdaMin * puck.lambdaMin;
-        if (oneMinusLambdaSq > EPS) {
-            const weakeningA = (1.0 - puck.a0) / Math.sqrt(oneMinusLambdaSq);
-            const delta = Azfb / Afb;
-            const rad = 1.0 + delta * delta * (weakeningA * weakeningA - puck.a0 * puck.a0);
-            const den = 1.0 + weakeningA * weakeningA * delta * delta;
-            if (rad > EPS && den > EPS) {
-                const lambda = ((puck.a0 + weakeningA * Math.sqrt(rad)) / den) * delta;
-                if (lambda > EPS) Azfb /= lambda;
-            }
-        }
-    }
+    const Azfb = computePuckMatrixExposure(stress, mat, puck).Azfb;
 
     const exposure = Math.max(Afb, Azfb);
     return exposure > EPS ? 1.0 / exposure : Number.POSITIVE_INFINITY;
@@ -657,196 +820,6 @@ function solveReserveFactorFromQuadratic(Q, L) {
     if (disc <= EPS) return Number.POSITIVE_INFINITY;
     const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
     return rf > EPS ? rf : Number.POSITIVE_INFINITY;
-}
-
-function getLaRC03Parameters(mat) {
-    const add = mat.additional || {};
-    const alpha0Deg = Math.ceil(Math.max(Number.isFinite(add.larc03_alpha0_deg) ? add.larc03_alpha0_deg : 53.0, 0));
-    return {
-        alpha0Deg,
-        alpha0Rad: (alpha0Deg * Math.PI) / 180.0,
-        g1c: Math.max(Number.isFinite(add.larc03_g1c) ? add.larc03_g1c : 0.28, EPS),
-        g2c: Math.max(Number.isFinite(add.larc03_g2c) ? add.larc03_g2c : 0.79, EPS),
-        plyThickness: Math.max(Number.isFinite(add.larc03_ply_thickness) ? add.larc03_ply_thickness : 0.125, EPS),
-        isEmbedded: Boolean(add.larc03_is_embedded)
-    };
-}
-
-function computeLaRC03InSituStrengths(mat, params) {
-    const s = mat.strength;
-    const E1 = Math.max(mat.core.E1, EPS);
-    const E2 = Math.max(mat.core.E2, EPS);
-    const G12 = Math.max(mat.core.G12, EPS);
-    const nu12 = mat.core.nu12;
-    const nu21 = (nu12 * E2) / E1;
-
-    const Yt = Math.max(s.Yt, EPS);
-    const Yc = Math.max(s.Yc, EPS);
-    const R_L = Math.max(s.S, EPS);
-
-    const lam22 = Math.max(2.0 * (1.0 / E2 - (nu21 * nu21) / E1), EPS);
-    const lam44 = 1.0 / G12;
-
-    const alpha0Rad = params.alpha0Rad;
-    const c0 = Math.cos(alpha0Rad);
-    const s0 = Math.sin(alpha0Rad);
-    const tan2a = Math.tan(2.0 * alpha0Rad);
-    const safeTan2a = Math.abs(tan2a) > EPS ? tan2a : (tan2a >= 0 ? EPS : -EPS);
-
-    const R_T_raw = Yc * c0 * (s0 + c0 / safeTan2a);
-    const R_T = R_T_raw > EPS ? R_T_raw : EPS;
-    const eta_T_raw = -1.0 / safeTan2a;
-    const eta_L_raw = -(R_L * Math.cos(2.0 * alpha0Rad)) / Math.max(Yc * c0 * c0, EPS);
-    const eta_T = Number.isFinite(eta_T_raw) ? eta_T_raw : 0;
-    const eta_L = Number.isFinite(eta_L_raw) ? eta_L_raw : 0;
-
-    let R_2is;
-    let R_Lis;
-    let g;
-
-    const gBase = 1.12 * 1.12 * (lam22 / lam44) * (Yt / R_L) * (Yt / R_L);
-    if (params.isEmbedded) {
-        if (params.plyThickness >= 0.7) {
-            R_2is = 1.12 * Math.sqrt(2.0) * Yt;
-            R_Lis = Math.sqrt(2.0) * R_L;
-            g = gBase;
-        } else {
-            R_2is = Math.sqrt((8.0 * params.g1c) / (Math.PI * params.plyThickness * lam22));
-            R_Lis = Math.sqrt((8.0 * params.g2c) / (Math.PI * params.plyThickness * lam44));
-            g = params.g1c / params.g2c;
-        }
-    } else {
-        R_2is = Yt;
-        R_Lis = R_L;
-        g = gBase;
-    }
-
-    if (!Number.isFinite(R_2is) || R_2is <= EPS) R_2is = Yt;
-    if (!Number.isFinite(R_Lis) || R_Lis <= EPS) R_Lis = R_L;
-    if (!Number.isFinite(g) || g <= EPS) g = 1.0;
-
-    return {
-        R_T,
-        R_2is,
-        R_Lis,
-        g,
-        eta_T,
-        eta_L,
-        alpha0Deg: params.alpha0Deg
-    };
-}
-
-function computeLaRC03KinkBandStresses(stress, mat, inSitu) {
-    const sx = stress.sigma1;
-    const sy = stress.sigma2;
-    const txy = stress.tau12;
-    const Xc = Math.max(mat.strength.Xc, EPS);
-    const G12 = Math.max(mat.core.G12, EPS);
-
-    const term = 1.0 - 4.0 * (inSitu.R_Lis / Xc + inSitu.eta_L) * (inSitu.R_Lis / Xc);
-    const safeRoot = Math.sqrt(Math.max(term, 0));
-    const phiCNum = 1.0 - safeRoot;
-    const phiCDen = 2.0 * (inSitu.R_Lis / Xc + inSitu.eta_L);
-    const phiC = Math.abs(phiCDen) > EPS ? Math.atan(phiCNum / phiCDen) : 0;
-
-    const phiDenRaw = G12 + sx - sy;
-    const phiDen = Math.abs(phiDenRaw) > EPS ? phiDenRaw : (phiDenRaw >= 0 ? EPS : -EPS);
-    const phi = (Math.abs(txy) + (G12 - Xc) * phiC) / phiDen;
-
-    const cp = Math.cos(phi);
-    const sp = Math.sin(phi);
-    const cp2 = cp * cp;
-    const sp2 = sp * sp;
-    const s2p = 2.0 * sp * cp;
-
-    const sig2m = sp2 * sx + cp2 * sy - s2p * txy;
-    const tau12m = -sp * cp * sx + sp * cp * sy + (cp2 - sp2) * txy;
-    return {
-        sig2m: Number.isFinite(sig2m) ? sig2m : sy,
-        tau12m: Number.isFinite(tau12m) ? tau12m : txy
-    };
-}
-
-function computeLaRC03CompressionPlaneSearch(sigma2Ref, tau12Ref, inSitu) {
-    const maxAlpha = Math.max(0, Math.floor(inSitu.alpha0Deg));
-    let maxFailure = 0;
-
-    for (let alpha = 0; alpha <= maxAlpha; alpha += 1) {
-        const alp = (alpha * Math.PI) / 180.0;
-        const ca = Math.cos(alp);
-        const sa = Math.sin(alp);
-
-        let tauTeff = -sigma2Ref * ca * (sa - inSitu.eta_T * ca);
-        if (tauTeff < 0) tauTeff = 0;
-
-        let tauLeff = ca * (Math.abs(tau12Ref) + inSitu.eta_L * sigma2Ref * ca);
-        if (tauLeff < 0) tauLeff = 0;
-
-        const f = (tauTeff / inSitu.R_T) * (tauTeff / inSitu.R_T) + (tauLeff / inSitu.R_Lis) * (tauLeff / inSitu.R_Lis);
-        if (f > maxFailure) maxFailure = f;
-    }
-
-    return maxFailure;
-}
-
-function computeLaRC03FiberReserveFactor(stress, strain, mat, inSitu, kink) {
-    const sx = stress.sigma1;
-    if (sx >= 0) {
-        const denom = Math.max(Math.max(mat.core.E1, EPS) * Math.abs(strain.epsilon1), EPS);
-        return Math.max(mat.strength.Xt, EPS) / denom;
-    }
-
-    if (kink.sig2m >= 0) {
-        const Q =
-            inSitu.g * (kink.sig2m / inSitu.R_2is) * (kink.sig2m / inSitu.R_2is) +
-            (kink.tau12m / inSitu.R_Lis) * (kink.tau12m / inSitu.R_Lis);
-        const L = (1.0 - inSitu.g) * (kink.sig2m / inSitu.R_2is);
-        return solveReserveFactorFromQuadratic(Q, L);
-    }
-
-    const f4 = (Math.abs(kink.tau12m) + inSitu.eta_L * kink.sig2m) / inSitu.R_Lis;
-    return f4 > EPS ? 1.0 / f4 : Number.POSITIVE_INFINITY;
-}
-
-function computeLaRC03MatrixReserveFactor(stress, mat, inSitu, kink) {
-    const sx = stress.sigma1;
-    const sy = stress.sigma2;
-    const txy = stress.tau12;
-
-    if (sy >= 0) {
-        const Q = inSitu.g * (sy / inSitu.R_2is) * (sy / inSitu.R_2is) + (txy / inSitu.R_Lis) * (txy / inSitu.R_Lis);
-        const L = (1.0 - inSitu.g) * (sy / inSitu.R_2is);
-        return solveReserveFactorFromQuadratic(Q, L);
-    }
-
-    const Yc = Math.max(mat.strength.Yc, EPS);
-    const maxFailure =
-        sx >= -Yc
-            ? computeLaRC03CompressionPlaneSearch(sy, txy, inSitu)
-            : computeLaRC03CompressionPlaneSearch(kink.sig2m, kink.tau12m, inSitu);
-
-    return maxFailure > EPS ? 1.0 / Math.sqrt(maxFailure) : Number.POSITIVE_INFINITY;
-}
-
-function computeLaRC03ReserveFactor(stress, mat) {
-    if (Math.abs(stress.sigma1) < EPS && Math.abs(stress.sigma2) < EPS && Math.abs(stress.tau12) < EPS) {
-        return Number.POSITIVE_INFINITY;
-    }
-
-    const strain = computeStrainState(stress, mat);
-    const params = getLaRC03Parameters(mat);
-    const inSitu = computeLaRC03InSituStrengths(mat, params);
-    const kink = computeLaRC03KinkBandStresses(stress, mat, inSitu);
-
-    const rfFiber = computeLaRC03FiberReserveFactor(stress, strain, mat, inSitu, kink);
-    const rfMatrix = computeLaRC03MatrixReserveFactor(stress, mat, inSitu, kink);
-    const rf = Math.min(rfFiber, rfMatrix);
-    return Number.isFinite(rf) && rf > EPS ? rf : Number.POSITIVE_INFINITY;
-}
-
-function computeLaRC03FailureIndex(stress, mat) {
-    const rf = computeLaRC03ReserveFactor(stress, mat);
-    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
 }
 
 function createIndexedParametricGeometry(thetaSegments, phiSegments, getPoint) {
@@ -1241,6 +1214,8 @@ function computePuckSectionCoordinates(mat, puck, quality) {
 
     const y = new Array(total + 1).fill(0);
     const z = new Array(total + 1).fill(0);
+    const yNormal = new Array(total + 1).fill(0);
+    const zNormal = new Array(total + 1).fill(0);
 
     const S = Math.max(s.S, EPS);
     const Yt = Math.max(s.Yt, EPS);
@@ -1252,10 +1227,13 @@ function computePuckSectionCoordinates(mat, puck, quality) {
     for (let j = 0; j < modeA; j += 1) {
         const phi = (Math.PI * j) / modeA;
         const yy = Yt * Math.sin(phi);
-        const zzCore = ((1.0 - cA * yy) * (1.0 - cA * yy) - aA * yy * yy) / bA;
-        const zz = Math.sqrt(Math.max(zzCore, 0));
+        const zz = Math.sqrt(Math.abs(((1.0 - cA * yy) * (1.0 - cA * yy) - aA * yy * yy) / bA));
         y[j] = yy;
         z[j] = phi <= Math.PI * 0.5 ? -zz : zz;
+
+        const denom = Math.sqrt(Math.max(Math.abs(aA * y[j] * y[j] + bA * z[j] * z[j]), EPS));
+        yNormal[j] = aA * y[j] / denom + cA;
+        zNormal[j] = (bA * z[j]) / denom;
     }
 
     const deltaY = puck.Rass / modeB;
@@ -1268,11 +1246,19 @@ function computePuckSectionCoordinates(mat, puck, quality) {
         y[modeA + j] = yPos;
         z[modeA + j] = Math.sqrt(Math.max(zPosCore, 0));
 
+        const denomPos = Math.sqrt(Math.max(aB * y[modeA + j] * y[modeA + j] + bB * z[modeA + j] * z[modeA + j], EPS));
+        yNormal[modeA + j] = aB * y[modeA + j] / denomPos + cB;
+        zNormal[modeA + j] = (bB * z[modeA + j]) / denomPos;
+
         const yNeg = -puck.Rass + deltaY * j;
         const zNegCore = ((1.0 - cB * yNeg) * (1.0 - cB * yNeg) - aB * yNeg * yNeg) / bB;
         const negIdx = modeA + modeB + modeC + j;
         y[negIdx] = yNeg;
         z[negIdx] = -Math.sqrt(Math.max(zNegCore, 0));
+
+        const denomNeg = Math.sqrt(Math.max(aB * y[negIdx] * y[negIdx] + bB * z[negIdx] * z[negIdx], EPS));
+        yNormal[negIdx] = aB * y[negIdx] / denomNeg + cB;
+        zNormal[negIdx] = (bB * z[negIdx]) / denomNeg;
     }
 
     const aC = 1.0 / (Yc * Yc);
@@ -1286,60 +1272,16 @@ function computePuckSectionCoordinates(mat, puck, quality) {
         const idx = modeA + modeB + j;
         y[idx] = yy;
         z[idx] = phi <= Math.PI * 0.5 ? zz : -zz;
+
+        yNormal[idx] = 2.0 * y[idx] / (Yc * Yc) + 1.0 / Yc;
+        zNormal[idx] = z[idx] / (2.0 * (1.0 + puck.Pssd) * (1.0 + puck.Pssd) * S * S);
     }
 
     y[total] = y[0];
     z[total] = z[0];
-    return { y, z, total };
-}
-
-function computePuckLambdaScale(sigma1, mat, puck) {
-    const Xt = Math.max(mat.strength.Xt, EPS);
-    const Xc = Math.max(mat.strength.Xc, EPS);
-    const a0 = puck.a0;
-    const lambdaMin = puck.lambdaMin;
-
-    if (a0 >= 1.0 - EPS) return 1.0;
-
-    const oneMinusLambdaSq = 1.0 - lambdaMin * lambdaMin;
-    if (oneMinusLambdaSq <= EPS) return lambdaMin;
-
-    const aWeak = (1.0 - a0) / Math.sqrt(oneMinusLambdaSq);
-    if (aWeak <= EPS) return 1.0;
-
-    if (sigma1 < -a0 * Xc) {
-        const term = (-sigma1 / Xc - a0) / aWeak;
-        return Math.sqrt(Math.max(0, 1.0 - term * term));
-    }
-    if (sigma1 > a0 * Xt) {
-        const term = (sigma1 / Xt - a0) / aWeak;
-        return Math.sqrt(Math.max(0, 1.0 - term * term));
-    }
-    return 1.0;
-}
-
-function appendPuckCapPatch(buffers, xCoord, outwardSign, sectionY, sectionZ, faceRings, lambdaMin) {
-    const contourCount = sectionY.length;
-    const base = buffers.positions.length / 3;
-
-    for (let i = 0; i <= faceRings; i += 1) {
-        const radiusFactor = lambdaMin * (i / faceRings);
-        for (let j = 0; j < contourCount; j += 1) {
-            buffers.positions.push(xCoord, radiusFactor * sectionY[j], radiusFactor * sectionZ[j]);
-        }
-    }
-
-    const row = contourCount;
-    for (let i = 0; i < faceRings; i += 1) {
-        for (let j = 0; j < contourCount - 1; j += 1) {
-            const a = base + i * row + j;
-            const b = a + 1;
-            const c = a + row;
-            const d = c + 1;
-            if (outwardSign > 0) buffers.indices.push(a, c, b, b, c, d);
-            else buffers.indices.push(a, b, c, b, d, c);
-        }
-    }
+    yNormal[total] = yNormal[0];
+    zNormal[total] = zNormal[0];
+    return { y, z, yNormal, zNormal, total };
 }
 
 function buildPuckGeometry(mat, quality) {
@@ -1349,39 +1291,75 @@ function buildPuckGeometry(mat, quality) {
     const s = mat.strength;
     const Xt = Math.max(s.Xt, EPS);
     const Xc = Math.max(s.Xc, EPS);
-    const xSegments = Math.max(50, Math.floor(quality.puckFiberSegments));
-    const faceRings = Math.max(6, Math.floor(quality.puckFaceSegments));
-    const ring = section.total + 1;
+    const numFiberSegments = Math.max(20, Math.floor(quality.puckFiberSegments));
+    const numFaceSegments = Math.max(2, Math.floor(quality.puckFaceSegments));
 
-    const buffers = { positions: [], indices: [] };
-
-    for (let ix = 0; ix <= xSegments; ix += 1) {
-        const x = -Xc + ((Xt + Xc) * ix) / xSegments;
-        const lambda = computePuckLambdaScale(x, mat, puck);
-        for (let j = 0; j <= section.total; j += 1) {
-            buffers.positions.push(x, lambda * section.y[j], lambda * section.z[j]);
-        }
+    function normalizeTriplet(x, y, z) {
+        const len = Math.hypot(x, y, z);
+        if (len > EPS) return [x / len, y / len, z / len];
+        return [0, 0, 1];
     }
 
-    for (let ix = 0; ix < xSegments; ix += 1) {
-        const row0 = ix * ring;
-        const row1 = row0 + ring;
+    function pushTriangle(buffers, p0, p1, p2, n0, n1, n2) {
+        buffers.positions.push(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
+        buffers.normals.push(n0[0], n0[1], n0[2], n1[0], n1[1], n1[2], n2[0], n2[1], n2[2]);
+    }
+
+    function pushQuad(buffers, p0, p1, p2, p3, n0, n1, n2, n3) {
+        pushTriangle(buffers, p0, p1, p2, n0, n1, n2);
+        pushTriangle(buffers, p0, p2, p3, n0, n2, n3);
+    }
+
+    const buffers = { positions: [], normals: [] };
+    const deltaX = (Xt + Xc) / numFiberSegments;
+
+    for (let i = 0; i < numFiberSegments; i += 1) {
+        const x0 = i * deltaX - Xc;
+        const x1 = (i + 1) * deltaX - Xc;
+
         for (let j = 0; j < section.total; j += 1) {
-            const a = row0 + j;
-            const b = a + 1;
-            const c = row1 + j;
-            const d = c + 1;
-            buffers.indices.push(a, c, b, b, c, d);
+            const p0 = [x0, section.y[j], section.z[j]];
+            const p1 = [x0, section.y[j + 1], section.z[j + 1]];
+            const p2 = [x1, section.y[j + 1], section.z[j + 1]];
+            const p3 = [x1, section.y[j], section.z[j]];
+
+            const n0 = normalizeTriplet(0, section.yNormal[j], section.zNormal[j]);
+            const n1 = normalizeTriplet(0, section.yNormal[j + 1], section.zNormal[j + 1]);
+            const n2 = normalizeTriplet(0, section.yNormal[j + 1], section.zNormal[j + 1]);
+            const n3 = normalizeTriplet(0, section.yNormal[j], section.zNormal[j]);
+
+            pushQuad(buffers, p0, p1, p2, p3, n0, n1, n2, n3);
         }
     }
 
-    appendPuckCapPatch(buffers, Xt, +1, section.y, section.z, faceRings, puck.lambdaMin);
-    appendPuckCapPatch(buffers, -Xc, -1, section.y, section.z, faceRings, puck.lambdaMin);
+    const deltaFace = 1.0 / numFaceSegments;
+    for (let i = 0; i < numFaceSegments; i += 1) {
+        const r0 = deltaFace * i;
+        const r1 = deltaFace * (i + 1);
+        for (let j = 0; j < section.total; j += 1) {
+            const p0 = [Xt, r1 * section.y[j], r1 * section.z[j]];
+            const p1 = [Xt, r1 * section.y[j + 1], r1 * section.z[j + 1]];
+            const p2 = [Xt, r0 * section.y[j + 1], r0 * section.z[j + 1]];
+            const p3 = [Xt, r0 * section.y[j], r0 * section.z[j]];
+            pushQuad(buffers, p0, p1, p2, p3, [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]);
+        }
+    }
+
+    for (let i = 0; i < numFaceSegments; i += 1) {
+        const r0 = deltaFace * i;
+        const r1 = deltaFace * (i + 1);
+        for (let j = 0; j < section.total; j += 1) {
+            const p0 = [-Xc, r0 * section.y[j], r0 * section.z[j]];
+            const p1 = [-Xc, r0 * section.y[j + 1], r0 * section.z[j + 1]];
+            const p2 = [-Xc, r1 * section.y[j + 1], r1 * section.z[j + 1]];
+            const p3 = [-Xc, r1 * section.y[j], r1 * section.z[j]];
+            pushQuad(buffers, p0, p1, p2, p3, [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]);
+        }
+    }
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
-    geometry.setIndex(buffers.indices);
-    geometry.computeVertexNormals();
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(buffers.normals, 3));
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
     return geometry;
@@ -1445,27 +1423,165 @@ function buildHashinGeometry(mat, quality) {
     return geometry;
 }
 
+function computeTriangleArea(pointA, pointB, pointC) {
+    const abx = pointB[0] - pointA[0];
+    const aby = pointB[1] - pointA[1];
+    const abz = pointB[2] - pointA[2];
+
+    const acx = pointC[0] - pointA[0];
+    const acy = pointC[1] - pointA[1];
+    const acz = pointC[2] - pointA[2];
+
+    const cx = aby * acz - abz * acy;
+    const cy = abz * acx - abx * acz;
+    const cz = abx * acy - aby * acx;
+    return 0.5 * Math.hypot(cx, cy, cz);
+}
+
+function getElamxStyleNormal(pointA, pointB, pointC) {
+    const xvecX = pointB[0] - pointA[0];
+    const xvecY = pointB[1] - pointA[1];
+    const xvecZ = pointB[2] - pointA[2];
+
+    const yvecX = pointC[0] - pointA[0];
+    const yvecY = pointC[1] - pointA[1];
+    const yvecZ = pointC[2] - pointA[2];
+
+    const nx = -(xvecY * yvecZ - xvecZ * yvecY);
+    const ny = -(xvecZ * yvecX - xvecX * yvecZ);
+    const nz = -(xvecX * yvecY - xvecY * yvecX);
+
+    const len = Math.hypot(nx, ny, nz);
+    if (len > EPS) return [nx / len, ny / len, nz / len];
+    return [0, 0, 1];
+}
+
+function squaredDistance(pointA, pointB) {
+    const dx = pointB[0] - pointA[0];
+    const dy = pointB[1] - pointA[1];
+    const dz = pointB[2] - pointA[2];
+    return dx * dx + dy * dy + dz * dz;
+}
+
 function buildReserveFactorRadialGeometry(criterion, mat, quality) {
-    const thetaSegments = Math.max(40, quality.radialThetaSegments);
-    const phiSegments = Math.max(20, quality.radialPhiSegments);
+    const numPointsPhi = Math.max(20, Math.floor(quality.radialPhiSegments));
+    const numPointsTheta = Math.max(2 * numPointsPhi, Math.floor(quality.radialThetaSegments));
+
+    const deltaTheta = Math.PI / Math.max(numPointsTheta - 1, 1);
+    const deltaPhi = (2.0 * Math.PI) / Math.max(numPointsPhi - 1, 1);
 
     const scaleX = 0.5 * (mat.strength.Xt + mat.strength.Xc);
     const scaleYZ = (mat.strength.Yt + mat.strength.Yc + mat.strength.S) / 3.0;
     const transX = 0.5 * (mat.strength.Xt - mat.strength.Xc);
 
-    return createIndexedParametricGeometry(thetaSegments, phiSegments, (u, v) => {
-        const theta = u * Math.PI;
-        const phi = v * Math.PI * 2.0;
-        const temp = Math.sin(theta);
+    const points = new Array(numPointsTheta);
+    let rfMax = 0;
 
-        const sigma1 = Math.cos(theta) * scaleX + transX;
-        const sigma2 = temp * Math.cos(phi) * scaleYZ;
-        const tau12 = temp * Math.sin(phi) * scaleYZ;
+    for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
+        const theta = iTheta * deltaTheta;
+        const sinTheta = Math.sin(theta);
+        const sigma1Trial = Math.cos(theta) * scaleX + transX;
 
-        const rf = criterion.computeReserveFactor({ sigma1, sigma2, tau12 }, mat);
-        const safeRf = Number.isFinite(rf) && rf > EPS ? rf : 0;
-        return new THREE.Vector3(sigma1 * safeRf, sigma2 * safeRf, tau12 * safeRf);
-    });
+        points[iTheta] = new Array(numPointsPhi);
+
+        for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
+            const phi = iPhi * deltaPhi;
+            const sigma2Trial = sinTheta * Math.cos(phi) * scaleYZ;
+            const tau12Trial = sinTheta * Math.sin(phi) * scaleYZ;
+
+            const rfRaw = criterion.computeReserveFactor(
+                { sigma1: sigma1Trial, sigma2: sigma2Trial, tau12: tau12Trial },
+                mat
+            );
+
+            const rfValid = Number.isFinite(rfRaw) && rfRaw > EPS;
+            if (rfValid) {
+                if (rfRaw > rfMax) rfMax = rfRaw;
+            }
+
+            points[iTheta][iPhi] = {
+                sigma1Trial,
+                sigma2Trial,
+                tau12Trial,
+                rfRaw: rfValid ? rfRaw : Number.NaN,
+                point: null
+            };
+        }
+    }
+
+    const rfFallback = Number.isFinite(rfMax) && rfMax > EPS ? rfMax : 1.0;
+
+    for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
+        for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
+            const sample = points[iTheta][iPhi];
+            const rfUse = Number.isFinite(sample.rfRaw) && sample.rfRaw > EPS ? sample.rfRaw : rfFallback;
+
+            sample.point = [
+                sample.sigma1Trial * rfUse,
+                sample.sigma2Trial * rfUse,
+                sample.tau12Trial * rfUse
+            ];
+        }
+    }
+
+    const positions = [];
+    const normals = [];
+    const scaleRef = Math.max(getMaxStrength(mat), 1.0);
+    const edgeTolSq = Math.max(scaleRef * scaleRef * 1e-16, 1e-20);
+    const areaTol = Math.max(scaleRef * scaleRef * 1e-14, 1e-18);
+
+    function tryAddTriangle(pointA, pointB, pointC, normalA, normalB, normalC) {
+        const abSq = squaredDistance(pointA, pointB);
+        const bcSq = squaredDistance(pointB, pointC);
+        const caSq = squaredDistance(pointC, pointA);
+        if (abSq <= edgeTolSq || bcSq <= edgeTolSq || caSq <= edgeTolSq) {
+            return;
+        }
+
+        const area = computeTriangleArea(pointA, pointB, pointC);
+        if (!Number.isFinite(area) || area <= areaTol) {
+            return;
+        }
+
+        positions.push(
+            pointA[0], pointA[1], pointA[2],
+            pointB[0], pointB[1], pointB[2],
+            pointC[0], pointC[1], pointC[2]
+        );
+        normals.push(
+            normalA[0], normalA[1], normalA[2],
+            normalB[0], normalB[1], normalB[2],
+            normalC[0], normalC[1], normalC[2]
+        );
+    }
+
+    for (let iTheta = 0; iTheta < numPointsTheta - 1; iTheta += 1) {
+        for (let iPhi = 0; iPhi < numPointsPhi - 1; iPhi += 1) {
+            const point1 = points[iTheta][iPhi].point;
+            const point2 = points[iTheta][iPhi + 1].point;
+            const point3 = points[iTheta + 1][iPhi + 1].point;
+            const point4 = points[iTheta + 1][iPhi].point;
+
+            const normal1 = getElamxStyleNormal(point1, point2, point4);
+            const normal2 = getElamxStyleNormal(point2, point3, point1);
+            const normal3 = getElamxStyleNormal(point3, point4, point2);
+            const normal4 = getElamxStyleNormal(point4, point1, point3);
+
+            // eLamX-style quad triangulation: (p4,p3,p2) and (p4,p2,p1)
+            tryAddTriangle(point4, point3, point2, normal4, normal3, normal2);
+            tryAddTriangle(point4, point2, point1, normal4, normal2, normal1);
+        }
+    }
+
+    if (positions.length === 0) return null;
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+
+    return geometry;
 }
 
 function evaluateCriterionFailureIndex(criterion, stress, mat) {
@@ -1565,21 +1681,11 @@ const CRITERIA = [
         category: "composite",
         color: "#8ab6ff",
         strategy: "direct",
-        opacity: 0.34,
         renderOrder: 10,
         showEdges: false,
         buildGeometry: buildTsaiWuGeometry,
         computeReserveFactor: computeTsaiWuReserveFactor,
         computeFailureIndex: computeTsaiWuFailureIndex
-    },
-    {
-        id: "larc03",
-        name: "LaRC03 (plane stress)",
-        category: "composite",
-        color: "#f97316",
-        strategy: "radial_rf",
-        computeReserveFactor: computeLaRC03ReserveFactor,
-        computeFailureIndex: computeLaRC03FailureIndex
     },
     {
         id: "puck",
@@ -1623,9 +1729,9 @@ const CRITERIA = [
     }
 ];
 
-const initialActiveCriteria = debugConfig.larc03Only ? ["larc03"] : CRITERIA.map(c => c.id);
+const initialActiveCriteria = ["puck"];
 const activeCriteria = new Set(initialActiveCriteria);
-const displayScale = getDisplayScale(material);
+let displayScale = getDisplayScale(material);
 
 const geometryCache = new Map();
 const meshCache = new Map();
@@ -1658,6 +1764,7 @@ scene.add(lightB);
 
 const scaledContentGroup = new THREE.Group();
 scaledContentGroup.scale.setScalar(displayScale);
+scaledContentGroup.rotation.x = -0.5 * Math.PI;
 scene.add(scaledContentGroup);
 
 const axesGroup = new THREE.Group();
@@ -1704,67 +1811,173 @@ function buildAxes() {
     axesGroup.add(createAxisLabel("\u03c4", new THREE.Vector3(0, 0, labelOffset), "#8fb0ff", labelSize));
 }
 
+function clearAxes() {
+    while (axesGroup.children.length > 0) {
+        const child = axesGroup.children[0];
+        axesGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+
+        if (child.material) {
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach(matPart => {
+                if (matPart.map) matPart.map.dispose();
+                matPart.dispose();
+            });
+        }
+    }
+}
+
+function refreshDisplayScaleAndAxes() {
+    displayScale = getDisplayScale(material);
+    scaledContentGroup.scale.setScalar(displayScale);
+    clearAxes();
+    buildAxes();
+}
+
 function setStatus(message) {
     document.getElementById("render-status").textContent = message;
 }
 
-function validateGeometryForDisplay(geometry, mat, label, verbose, options = {}) {
-    const rejectBounds = options.rejectBounds !== undefined ? options.rejectBounds : true;
-    const limitMultiplier = options.limitMultiplier !== undefined ? options.limitMultiplier : 10.0;
-
-    const pos = geometry.getAttribute("position");
-    if (!pos || pos.count === 0) return false;
-
-    const limit = limitMultiplier * getMaxStrength(mat);
-    for (let i = 0; i < pos.count; i += 1) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
-        const z = pos.getZ(i);
-        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
-            console.warn(`[${label}] geometry rejected: non-finite vertex`, { index: i, x, y, z });
-            return false;
-        }
+function getValueByPath(root, path) {
+    let current = root;
+    for (let i = 0; i < path.length; i += 1) {
+        if (current == null) return undefined;
+        current = current[path[i]];
     }
-
-    geometry.computeBoundingBox();
-    const bbox = geometry.boundingBox;
-    const bounds = [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z];
-    const absurd = bounds.some(value => !Number.isFinite(value) || Math.abs(value) > limit);
-
-    if (verbose) {
-        console.log(`[${label}] geometry bounding box`, {
-            min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
-            max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z },
-            limit
-        });
-    }
-
-    if (absurd) {
-        const detail = { limit, bbox };
-        if (rejectBounds) {
-            console.warn(`[${label}] geometry rejected: bounding box outside expected range`, detail);
-            return false;
-        }
-        console.warn(`[${label}] geometry bounding box outside expected range (kept for display)`, detail);
-    }
-    return true;
+    return current;
 }
 
-function logLaRC03AnchorReserveFactors(mat) {
-    const s = mat.strength;
-    const anchors = [
-        { label: "+Xt", stress: { sigma1: Math.max(s.Xt, EPS), sigma2: 0, tau12: 0 } },
-        { label: "-Xc", stress: { sigma1: -Math.max(s.Xc, EPS), sigma2: 0, tau12: 0 } },
-        { label: "+Yt", stress: { sigma1: 0, sigma2: Math.max(s.Yt, EPS), tau12: 0 } },
-        { label: "-Yc", stress: { sigma1: 0, sigma2: -Math.max(s.Yc, EPS), tau12: 0 } },
-        { label: "+S", stress: { sigma1: 0, sigma2: 0, tau12: Math.max(s.S, EPS) } },
-        { label: "-S", stress: { sigma1: 0, sigma2: 0, tau12: -Math.max(s.S, EPS) } }
-    ];
+function setValueByPath(root, path, value) {
+    let current = root;
+    for (let i = 0; i < path.length - 1; i += 1) {
+        const key = path[i];
+        if (typeof current[key] !== "object" || current[key] == null) current[key] = {};
+        current = current[key];
+    }
+    current[path[path.length - 1]] = value;
+}
 
-    anchors.forEach(anchor => {
-        const rf = computeLaRC03ReserveFactor(anchor.stress, mat);
-        console.log(`[LaRC03] RF at ${anchor.label}`, rf);
+function makeDidacticFieldKey(field) {
+    return field.path.join(".");
+}
+
+function buildDidacticParameterPanel() {
+    const container = document.getElementById("parameter-groups");
+    if (!container) return;
+    container.innerHTML = "";
+    didacticInputMap.clear();
+
+    didacticParameterGroups.forEach(group => {
+        const groupBlock = document.createElement("div");
+        groupBlock.className = "param-group";
+
+        const title = document.createElement("div");
+        title.className = "param-group-title";
+        title.textContent = group.title;
+        groupBlock.appendChild(title);
+
+        group.fields.forEach(field => {
+            const row = document.createElement("div");
+            row.className = "param-row";
+
+            const label = document.createElement("label");
+            label.className = "param-label";
+            label.textContent = field.label;
+
+            const input = document.createElement("input");
+            input.className = "param-input";
+            input.type = field.type === "boolean" ? "checkbox" : "number";
+            if (field.type !== "boolean") {
+                if (field.step !== undefined) input.step = String(field.step);
+                if (field.min !== undefined) input.min = String(field.min);
+                if (field.max !== undefined) input.max = String(field.max);
+            }
+
+            label.htmlFor = `didactic-${makeDidacticFieldKey(field)}`;
+            input.id = label.htmlFor;
+
+            row.appendChild(label);
+            row.appendChild(input);
+            groupBlock.appendChild(row);
+
+            didacticInputMap.set(makeDidacticFieldKey(field), { input, field });
+        });
+
+        container.appendChild(groupBlock);
     });
+
+    syncDidacticInputsFromMaterial();
+}
+
+function syncDidacticInputsFromMaterial() {
+    didacticInputMap.forEach(({ input, field }) => {
+        const value = getValueByPath(material, field.path);
+        if (field.type === "boolean") {
+            input.checked = Boolean(value);
+        } else {
+            input.value = Number.isFinite(value) ? String(value) : "";
+        }
+    });
+}
+
+function coerceDidacticNumber(rawValue, fallbackValue, field) {
+    let value = Number(rawValue);
+    if (!Number.isFinite(value)) value = fallbackValue;
+    if (field.min !== undefined) value = Math.max(value, field.min);
+    if (field.max !== undefined) value = Math.min(value, field.max);
+    return value;
+}
+
+function clearSurfaceCaches() {
+    meshCache.forEach(entry => {
+        if (entry.mesh.parent === surfaceGroup) {
+            surfaceGroup.remove(entry.mesh);
+        }
+
+        entry.mesh.traverse(node => {
+            if (node !== entry.mesh && node.geometry) {
+                node.geometry.dispose();
+            }
+            if (node.material) {
+                if (Array.isArray(node.material)) node.material.forEach(matPart => matPart.dispose());
+                else node.material.dispose();
+            }
+        });
+    });
+
+    meshCache.clear();
+
+    geometryCache.forEach(geometry => {
+        geometry.dispose();
+    });
+    geometryCache.clear();
+}
+
+function applyDidacticParameters() {
+    didacticInputMap.forEach(({ input, field }) => {
+        const currentValue = getValueByPath(material, field.path);
+        const nextValue =
+            field.type === "boolean"
+                ? Boolean(input.checked)
+                : coerceDidacticNumber(input.value, Number(currentValue), field);
+        setValueByPath(material, field.path, nextValue);
+    });
+
+    syncDidacticInputsFromMaterial();
+    refreshDisplayScaleAndAxes();
+    clearSurfaceCaches();
+    rebuildSurfaces();
+}
+
+function resetDidacticParametersToDefaults() {
+    material.core = JSON.parse(JSON.stringify(defaultMaterial.core));
+    material.strength = JSON.parse(JSON.stringify(defaultMaterial.strength));
+    material.additional = JSON.parse(JSON.stringify(defaultMaterial.additional));
+
+    syncDidacticInputsFromMaterial();
+    refreshDisplayScaleAndAxes();
+    clearSurfaceCaches();
+    rebuildSurfaces();
 }
 
 function buildCriterionGeometry(criterion) {
@@ -1795,24 +2008,62 @@ function buildCriterionGeometry(criterion) {
         return { geometry: null, mode };
     }
 
-    if (criterion.id === "larc03") {
-        if (debugConfig.larc03Verbose && !larc03DebugLogged) {
-            logLaRC03AnchorReserveFactors(material);
-            larc03DebugLogged = true;
-        }
-
-        if (
-            !validateGeometryForDisplay(geometry, material, "LaRC03", debugConfig.larc03Verbose, {
-                rejectBounds: false,
-                limitMultiplier: 50.0
-            })
-        ) {
-            geometry.dispose();
-            return { geometry: null, mode };
-        }
-    }
-
     return { geometry, mode };
+}
+
+function applySurfaceOpacityToMaterial(materialObj) {
+    if (!materialObj || !materialObj.isMaterial) return;
+    materialObj.transparent = surfaceOpacity < 0.999;
+    materialObj.opacity = surfaceOpacity;
+    materialObj.depthWrite = surfaceOpacity >= 0.999;
+    materialObj.needsUpdate = true;
+}
+
+function applySurfaceOpacityToVisibleSurfaces() {
+    meshCache.forEach(entry => {
+        entry.mesh.traverse(node => {
+            if (!node.isMesh || !node.material) return;
+            if (Array.isArray(node.material)) {
+                node.material.forEach(applySurfaceOpacityToMaterial);
+            } else {
+                applySurfaceOpacityToMaterial(node.material);
+            }
+        });
+    });
+}
+
+function syncSurfaceOpacityInputs() {
+    const rangeInput = document.getElementById("surface-opacity-range");
+    const numberInput = document.getElementById("surface-opacity-number");
+    if (!rangeInput || !numberInput) return;
+    const formatted = surfaceOpacity.toFixed(2);
+    rangeInput.value = formatted;
+    numberInput.value = formatted;
+}
+
+function setSurfaceOpacity(value) {
+    surfaceOpacity = clampSurfaceOpacity(value);
+    try {
+        sessionStorage.setItem(SESSION_SURFACE_OPACITY_KEY, String(surfaceOpacity));
+    } catch (_err) {
+        // Ignore storage write failures in restricted browsing contexts.
+    }
+    syncSurfaceOpacityInputs();
+    applySurfaceOpacityToVisibleSurfaces();
+}
+
+function initSurfaceOpacityControls() {
+    const rangeInput = document.getElementById("surface-opacity-range");
+    const numberInput = document.getElementById("surface-opacity-number");
+    if (!rangeInput || !numberInput) return;
+
+    const onInput = event => {
+        setSurfaceOpacity(Number(event.target.value));
+    };
+
+    rangeInput.addEventListener("input", onInput);
+    numberInput.addEventListener("input", onInput);
+    syncSurfaceOpacityInputs();
 }
 
 function getGeometryForCriterion(criterion) {
@@ -1830,15 +2081,17 @@ function getGeometryForCriterion(criterion) {
 }
 
 function createSurfaceMaterial(criterion) {
-    return new THREE.MeshStandardMaterial({
+    const materialObj = new THREE.MeshStandardMaterial({
         color: new THREE.Color(criterion.color),
         transparent: true,
-        opacity: criterion.opacity || 0.34,
+        opacity: surfaceOpacity,
         roughness: 0.44,
         metalness: 0.06,
         side: THREE.DoubleSide,
         depthWrite: false
     });
+    applySurfaceOpacityToMaterial(materialObj);
+    return materialObj;
 }
 
 function createCriterionObject(criterion, geometry) {
@@ -1966,6 +2219,8 @@ function resetView() {
 }
 
 document.getElementById("btn-reset-view").addEventListener("click", resetView);
+document.getElementById("btn-apply-params").addEventListener("click", applyDidacticParameters);
+document.getElementById("btn-reset-params").addEventListener("click", resetDidacticParametersToDefaults);
 
 window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1980,7 +2235,9 @@ function animate() {
 }
 
 buildAxes();
+buildDidacticParameterPanel();
 buildCriteriaPanel();
+initSurfaceOpacityControls();
 rebuildSurfaces();
 animate();
 </script>

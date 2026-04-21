@@ -166,6 +166,9 @@ disqus_shortname: al-folio # put your disqus shortname
 # External sources.
 # If you have blog posts published on medium.com or other external sources,
 # you can display them in your blog by adding a link to the RSS feed.
+external_sources:
+  - name: Substack
+    rss_url: https://vascodcpires.substack.com/feed
 
 
 # -----------------------------------------------------------------------------
@@ -282,8 +285,6 @@ sass:
 
 jekyll-minifier:
   exclude: ["robots.txt", "assets/js/search/*.js", "assets/libs/**/*"]
-  uglifier_args:
-    harmony: true
 
 # -----------------------------------------------------------------------------
 # Jekyll Archives
