@@ -3,7 +3,7 @@ layout: page
 permalink: /projects/
 title: projects
 description: Selected research, engineering, and technical work.
-nav: true
+nav: false
 nav_order: 3
 ---
 

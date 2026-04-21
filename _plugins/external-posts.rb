@@ -23,10 +23,21 @@ module ExternalPosts
     end
 
     def fetch_from_rss(site, src)
-      xml = HTTParty.get(src['rss_url']).body
-      return if xml.nil?
+      response = HTTParty.get(src['rss_url'])
+      xml = response.body
+      return if xml.nil? || xml.strip.empty?
+
       feed = Feedjira.parse(xml)
+      if feed.nil? || !feed.respond_to?(:entries)
+        Jekyll.logger.warn('ExternalPosts:', "Skipping #{src['name']} - invalid or unsupported RSS payload from #{src['rss_url']}")
+        return
+      end
+
       process_entries(site, src, feed.entries)
+    rescue Feedjira::NoParserAvailable
+      Jekyll.logger.warn('ExternalPosts:', "Skipping #{src['name']} - no parser available for #{src['rss_url']}")
+    rescue StandardError => e
+      Jekyll.logger.warn('ExternalPosts:', "Skipping #{src['name']} - #{e.class}: #{e.message}")
     end
 
     def process_entries(site, src, entries)
