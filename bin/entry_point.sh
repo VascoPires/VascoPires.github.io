@@ -21,7 +21,10 @@ manage_gemfile_lock() {
 
 start_jekyll() {
     manage_gemfile_lock
-    bundle exec jekyll serve --watch --port=8080 --host=0.0.0.0 --livereload --verbose --trace --force_polling &
+    pkill -f "jekyll serve --watch --port=8080" 2>/dev/null || true
+    pkill -f "/usr/local/rvm/gems/.*/bin/jekyll" 2>/dev/null || true
+    sleep 1
+    bundle exec jekyll serve --watch --port=8080 --host=0.0.0.0 --verbose --trace --force_polling &
 }
 
 start_jekyll
