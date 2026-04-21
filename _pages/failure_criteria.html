@@ -3,1049 +3,1046 @@ layout: none
 title: Failure Criteria Visualizer
 permalink: /failure-criteria/
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Composite Failure Criteria</title>
 
-    <link rel="icon" href="/assets/img/web_icon.ico">
-    <link rel="shortcut icon" href="/assets/img/web_icon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/assets/img/web_icon.ico" />
+    <link rel="shortcut icon" href="/assets/img/web_icon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/MarchingCubes.js"></script>
 
     <style>
-        :root {
-            --bg: #111;
-            --panel-bg: rgba(0, 0, 0, 0.74);
-            --panel-border: #494949;
-            --text-main: #f2f2f2;
-            --text-dim: #b4b4b4;
-            --accent: #4fc3f7;
-        }
+      :root {
+        --bg: #111;
+        --panel-bg: rgba(0, 0, 0, 0.74);
+        --panel-border: #494949;
+        --text-main: #f2f2f2;
+        --text-dim: #b4b4b4;
+        --accent: #4fc3f7;
+      }
 
-        * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: "Inter", "Manrope", sans-serif;
-            background: var(--bg);
-            color: var(--text-main);
-        }
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Inter", "Manrope", sans-serif;
+        background: var(--bg);
+        color: var(--text-main);
+      }
 
-        #container {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-        }
+      #container {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
 
-        .back-home {
-            position: fixed;
-            top: 14px;
-            left: 14px;
-            z-index: 30;
-            text-decoration: none;
-            color: #f0f0f0;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #515151;
-            border-radius: 8px;
-            padding: 8px 11px;
-            font-size: 12px;
-        }
+      .back-home {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 30;
+        text-decoration: none;
+        color: #f0f0f0;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid #515151;
+        border-radius: 8px;
+        padding: 8px 11px;
+        font-size: 12px;
+      }
 
+      #criteria-panel {
+        position: fixed;
+        top: 58px;
+        left: 14px;
+        width: min(320px, calc(100vw - 28px));
+        max-height: calc(100vh - 74px);
+        overflow: auto;
+        z-index: 20;
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 12px;
+        backdrop-filter: blur(7px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      #criteria-panel h3 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        border-bottom: 1px solid #3f3f3f;
+        padding-bottom: 6px;
+      }
+
+      .small-note {
+        font-size: 11px;
+        color: var(--text-dim);
+        line-height: 1.35;
+        margin-bottom: 8px;
+      }
+
+      #criteria-list-composite,
+      #criteria-list-general {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .criteria-group {
+        margin-bottom: 10px;
+      }
+
+      .criteria-group-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 10px 0 6px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #3f3f3f;
+      }
+
+      .criterion-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border: 1px solid #4f4f4f;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 6px 8px;
+      }
+
+      .criterion-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .criterion-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .criterion-name {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .criterion-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #67c8ff;
+        cursor: pointer;
+      }
+
+      #parameter-groups {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .param-group {
+        border: 1px solid #434343;
+        border-radius: 8px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .param-group-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #9edbff;
+        margin-bottom: 5px;
+      }
+
+      .param-row {
+        display: grid;
+        grid-template-columns: 1fr 96px;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+      }
+
+      .param-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .param-label {
+        font-size: 11px;
+        color: #d9d9d9;
+        line-height: 1.2;
+      }
+
+      .param-input {
+        width: 100%;
+        border: 1px solid #585858;
+        border-radius: 6px;
+        background: #1d1d1d;
+        color: #f3f3f3;
+        padding: 4px 6px;
+        font-size: 11px;
+      }
+
+      .param-input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        justify-self: end;
+        accent-color: #67c8ff;
+        cursor: pointer;
+      }
+
+      .param-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .param-actions .btn {
+        width: 50%;
+        font-size: 11px;
+        padding: 6px 8px;
+      }
+
+      .panel-bottom-control {
+        margin-top: 10px;
+        border-top: 1px solid #3f3f3f;
+        padding-top: 10px;
+      }
+
+      .panel-bottom-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #9edbff;
+        margin-bottom: 6px;
+      }
+
+      .opacity-controls {
+        display: grid;
+        grid-template-columns: 1fr 70px;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .opacity-range {
+        width: 100%;
+        accent-color: #67c8ff;
+        cursor: pointer;
+      }
+
+      .btn-secondary {
+        background: #1c1c1c;
+        color: #d0d0d0;
+      }
+
+      .btn {
+        width: 100%;
+        border: 1px solid #5a5a5a;
+        border-radius: 7px;
+        background: #262626;
+        color: #fff;
+        padding: 7px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      #render-status {
+        position: fixed;
+        bottom: 12px;
+        left: 12px;
+        z-index: 24;
+        background: rgba(0, 0, 0, 0.72);
+        border: 1px solid #505050;
+        border-radius: 8px;
+        color: #d8d8d8;
+        padding: 7px 10px;
+        font-size: 11px;
+      }
+
+      @media (max-width: 980px) {
         #criteria-panel {
-            position: fixed;
-            top: 58px;
-            left: 14px;
-            width: min(320px, calc(100vw - 28px));
-            max-height: calc(100vh - 74px);
-            overflow: auto;
-            z-index: 20;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            padding: 12px;
-            backdrop-filter: blur(7px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+          top: auto;
+          bottom: 10px;
+          max-height: min(55vh, 420px);
         }
-
-        #criteria-panel h3 {
-            margin: 0 0 8px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--accent);
-            border-bottom: 1px solid #3f3f3f;
-            padding-bottom: 6px;
-        }
-
-        .small-note {
-            font-size: 11px;
-            color: var(--text-dim);
-            line-height: 1.35;
-            margin-bottom: 8px;
-        }
-
-        #criteria-list-composite,
-        #criteria-list-general {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 6px;
-        }
-
-        .criteria-group {
-            margin-bottom: 10px;
-        }
-
-        .criteria-group-title {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin: 10px 0 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #3f3f3f;
-        }
-
-        .criterion-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            border: 1px solid #4f4f4f;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 6px 8px;
-        }
-
-        .criterion-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-        }
-
-        .criterion-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .criterion-name {
-            font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .criterion-row input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #67c8ff;
-            cursor: pointer;
-        }
-
-        #parameter-groups {
-            display: grid;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .param-group {
-            border: 1px solid #434343;
-            border-radius: 8px;
-            padding: 6px;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .param-group-title {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #9edbff;
-            margin-bottom: 5px;
-        }
-
-        .param-row {
-            display: grid;
-            grid-template-columns: 1fr 96px;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-
-        .param-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .param-label {
-            font-size: 11px;
-            color: #d9d9d9;
-            line-height: 1.2;
-        }
-
-        .param-input {
-            width: 100%;
-            border: 1px solid #585858;
-            border-radius: 6px;
-            background: #1d1d1d;
-            color: #f3f3f3;
-            padding: 4px 6px;
-            font-size: 11px;
-        }
-
-        .param-input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            justify-self: end;
-            accent-color: #67c8ff;
-            cursor: pointer;
-        }
-
-        .param-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .param-actions .btn {
-            width: 50%;
-            font-size: 11px;
-            padding: 6px 8px;
-        }
-
-        .panel-bottom-control {
-            margin-top: 10px;
-            border-top: 1px solid #3f3f3f;
-            padding-top: 10px;
-        }
-
-        .panel-bottom-title {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #9edbff;
-            margin-bottom: 6px;
-        }
-
-        .opacity-controls {
-            display: grid;
-            grid-template-columns: 1fr 70px;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .opacity-range {
-            width: 100%;
-            accent-color: #67c8ff;
-            cursor: pointer;
-        }
-
-        .btn-secondary {
-            background: #1c1c1c;
-            color: #d0d0d0;
-        }
-
-        .btn {
-            width: 100%;
-            border: 1px solid #5a5a5a;
-            border-radius: 7px;
-            background: #262626;
-            color: #fff;
-            padding: 7px 10px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        #render-status {
-            position: fixed;
-            bottom: 12px;
-            left: 12px;
-            z-index: 24;
-            background: rgba(0, 0, 0, 0.72);
-            border: 1px solid #505050;
-            border-radius: 8px;
-            color: #d8d8d8;
-            padding: 7px 10px;
-            font-size: 11px;
-        }
-
-        @media (max-width: 980px) {
-            #criteria-panel {
-                top: auto;
-                bottom: 10px;
-                max-height: min(55vh, 420px);
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <a class="back-home" href="{{ '/teaching/' | relative_url }}">&larr; Back to Teaching & Resources</a>
 
-<a class="back-home" href="{{ '/teaching/' | relative_url }}">&larr; Back to Teaching & Resources</a>
+    <div id="container"></div>
 
-<div id="container"></div>
-
-<div id="criteria-panel">
-    <h3>Criteria Selection</h3>
-    <div class="small-note">
-        Toggle failure surfaces (FI = 1) in 3D stress space
-        (displayed with vertical &tau; axis; horizontals &sigma;<sub>&parallel;</sub>, &sigma;<sub>&perp;</sub>).<br>
-        Left drag rotates camera, wheel zooms. Rendering uses direct or reserve-factor meshes,
-        with one global display scale like eLamX2.
-    </div>
-    <div class="criteria-group">
+    <div id="criteria-panel">
+      <h3>Criteria Selection</h3>
+      <div class="small-note">Toggle failure surfaces (FI = 1) in 3D stress space.</div>
+      <div class="criteria-group">
         <div class="criteria-group-title">Composite Failure Criteria</div>
         <div id="criteria-list-composite"></div>
-    </div>
-    <div class="criteria-group">
+      </div>
+      <div class="criteria-group">
         <div class="criteria-group-title">General Failure Criteria</div>
         <div id="criteria-list-general"></div>
-    </div>
-    <div class="criteria-group">
+      </div>
+      <div class="criteria-group">
         <div class="criteria-group-title">Didactic Parameters</div>
         <div id="parameter-groups"></div>
         <div class="param-actions">
-            <button id="btn-apply-params" class="btn" type="button">Apply Parameters</button>
-            <button id="btn-reset-params" class="btn btn-secondary" type="button">Reset Defaults</button>
+          <button id="btn-apply-params" class="btn" type="button">Apply Parameters</button>
+          <button id="btn-reset-params" class="btn btn-secondary" type="button">Reset Defaults</button>
         </div>
-    </div>
-    <button id="btn-reset-view" class="btn" type="button">Reset Camera View</button>
-    <div class="panel-bottom-control">
+      </div>
+      <button id="btn-reset-view" class="btn" type="button">Reset Camera View</button>
+      <div class="panel-bottom-control">
         <div class="panel-bottom-title">Surface Opacity</div>
         <div class="opacity-controls">
-            <input id="surface-opacity-range" class="opacity-range" type="range" min="0.05" max="1" step="0.01">
-            <input id="surface-opacity-number" class="param-input" type="number" min="0.05" max="1" step="0.01">
+          <input id="surface-opacity-range" class="opacity-range" type="range" min="0.05" max="1" step="0.01" />
+          <input id="surface-opacity-number" class="param-input" type="number" min="0.05" max="1" step="0.01" />
         </div>
+      </div>
     </div>
-</div>
 
-<div id="render-status">Initializing...</div>
+    <div id="render-status">Initializing...</div>
 
-<script>
-const EPS = 1e-9;
+    <script>
+      const EPS = 1e-9;
 
-const material = {
-    name: "eLamX Default Lamina",
-    core: {
-        E1: 141000,
-        E2: 10000,
-        nu12: 0.28,
-        G12: 4500,
-        density: 1.65
-    },
-    strength: {
-        Xt: 1500.0,
-        Xc: 1000.0,
-        Yt: 180.0,
-        Yc: 240.0,
-        S: 150.0
-    },
-    additional: {
-        ex_maxstrain: 3.0e-3,
-        ey_maxstrain: 3.0e-3,
-        gxy_maxstrain: 6.0e-3,
-        use_global_strains_threshold_maxstrain: 0.3,
-        tsaiwu_f12star: -0.5,
-        hashin_matrix_coeff: 0.25,
-        hashin_fiber_shear_weight: 1.0,
-        hashin_matrix_shear_weight: 1.0,
-        puck_pspd: 0.3,
-        puck_pspz: 0.35
-    }
-};
+      const material = {
+        name: "eLamX Default Lamina",
+        core: {
+          E1: 141000,
+          E2: 10000,
+          nu12: 0.28,
+          G12: 4500,
+          density: 1.65,
+        },
+        strength: {
+          Xt: 1500.0,
+          Xc: 1000.0,
+          Yt: 180.0,
+          Yc: 240.0,
+          S: 150.0,
+        },
+        additional: {
+          ex_maxstrain: 3.0e-3,
+          ey_maxstrain: 3.0e-3,
+          gxy_maxstrain: 6.0e-3,
+          use_global_strains_threshold_maxstrain: 0.3,
+          tsaiwu_f12star: -0.5,
+          hashin_matrix_coeff: 0.25,
+          hashin_fiber_shear_weight: 1.0,
+          hashin_matrix_shear_weight: 1.0,
+          puck_pspd: 0.3,
+          puck_pspz: 0.35,
+        },
+      };
 
-const defaultMaterial = JSON.parse(JSON.stringify(material));
+      const defaultMaterial = JSON.parse(JSON.stringify(material));
 
-const surfaceQuality = {
-    directThetaSegments: 72,
-    directPhiSegments: 36,
-    radialThetaSegments: 84,
-    radialPhiSegments: 44,
-    trescaThetaSegments: 96,
-    trescaConeRings: 18,
-    trescaCylinderRings: 26,
-    hashinIntervalSegmentsX: 28,
-    hashinIntervalSegmentsY: 18,
-    hashinWallSegments: 28,
-    puckFiberSegments: 110,
-    puckFaceSegments: 14,
-    puckModeASegments: 32,
-    puckModeBSegments: 10,
-    puckModeCSegments: 32
-};
+      const surfaceQuality = {
+        directThetaSegments: 72,
+        directPhiSegments: 36,
+        radialThetaSegments: 84,
+        radialPhiSegments: 44,
+        trescaThetaSegments: 96,
+        trescaConeRings: 18,
+        trescaCylinderRings: 26,
+        hashinIntervalSegmentsX: 28,
+        hashinIntervalSegmentsY: 18,
+        hashinWallSegments: 28,
+        puckFiberSegments: 110,
+        puckFaceSegments: 14,
+        puckModeASegments: 32,
+        puckModeBSegments: 10,
+        puckModeCSegments: 32,
+      };
 
-const surfaceConfig = {
-    marchingResolution: 52,
-    marchingFieldClamp: 4,
-    marchingRangeFactor: 1.05,
-    useMarchingFallback: false
-};
+      const surfaceConfig = {
+        marchingResolution: 52,
+        marchingFieldClamp: 4,
+        marchingRangeFactor: 1.05,
+        useMarchingFallback: false,
+      };
 
-const SESSION_SURFACE_OPACITY_KEY = "failure-criteria-surface-opacity";
-const DEFAULT_SURFACE_OPACITY = 0.34;
+      const SESSION_SURFACE_OPACITY_KEY = "failure-criteria-surface-opacity";
+      const DEFAULT_SURFACE_OPACITY = 0.34;
 
-function clampSurfaceOpacity(value) {
-    if (!Number.isFinite(value)) return DEFAULT_SURFACE_OPACITY;
-    return Math.max(0.05, Math.min(1.0, value));
-}
+      function clampSurfaceOpacity(value) {
+        if (!Number.isFinite(value)) return DEFAULT_SURFACE_OPACITY;
+        return Math.max(0.05, Math.min(1.0, value));
+      }
 
-function loadSurfaceOpacityFromSession() {
-    try {
-        const raw = sessionStorage.getItem(SESSION_SURFACE_OPACITY_KEY);
-        if (raw == null) return DEFAULT_SURFACE_OPACITY;
-        return clampSurfaceOpacity(Number(raw));
-    } catch (_err) {
-        return DEFAULT_SURFACE_OPACITY;
-    }
-}
+      function loadSurfaceOpacityFromSession() {
+        try {
+          const raw = sessionStorage.getItem(SESSION_SURFACE_OPACITY_KEY);
+          if (raw == null) return DEFAULT_SURFACE_OPACITY;
+          return clampSurfaceOpacity(Number(raw));
+        } catch (_err) {
+          return DEFAULT_SURFACE_OPACITY;
+        }
+      }
 
-let surfaceOpacity = loadSurfaceOpacityFromSession();
+      let surfaceOpacity = loadSurfaceOpacityFromSession();
 
-const didacticParameterGroups = [
-    {
-        title: "Material Strengths [MPa]",
-        fields: [
+      const didacticParameterGroups = [
+        {
+          title: "Material Strengths [MPa]",
+          fields: [
             { path: ["strength", "Xt"], label: "Xt (σ∥ tension)", type: "number", step: "1", min: 1 },
             { path: ["strength", "Xc"], label: "Xc (σ∥ compression)", type: "number", step: "1", min: 1 },
             { path: ["strength", "Yt"], label: "Yt (σ⊥ tension)", type: "number", step: "1", min: 1 },
             { path: ["strength", "Yc"], label: "Yc (σ⊥ compression)", type: "number", step: "1", min: 1 },
-            { path: ["strength", "S"], label: "S (τ12 shear)", type: "number", step: "1", min: 1 }
-        ]
-    },
-    {
-        title: "Maximum Strain",
-        fields: [
+            { path: ["strength", "S"], label: "S (τ12 shear)", type: "number", step: "1", min: 1 },
+          ],
+        },
+        {
+          title: "Maximum Strain",
+          fields: [
             { path: ["additional", "ex_maxstrain"], label: "ε1,max", type: "number", step: "1e-5", min: 1e-6 },
             { path: ["additional", "ey_maxstrain"], label: "ε2,max", type: "number", step: "1e-5", min: 1e-6 },
-            { path: ["additional", "gxy_maxstrain"], label: "γ12,max", type: "number", step: "1e-5", min: 1e-6 }
-        ]
-    },
-    {
-        title: "Tsai-Wu",
-        fields: [{ path: ["additional", "tsaiwu_f12star"], label: "F12* interaction (|F12*|<1)", type: "number", step: "0.01", min: -0.999, max: 0.999 }]
-    },
-    {
-        title: "Hashin (didactic)",
-        fields: [
+            { path: ["additional", "gxy_maxstrain"], label: "γ12,max", type: "number", step: "1e-5", min: 1e-6 },
+          ],
+        },
+        {
+          title: "Tsai-Wu",
+          fields: [
+            { path: ["additional", "tsaiwu_f12star"], label: "F12* interaction (|F12*|<1)", type: "number", step: "0.01", min: -0.999, max: 0.999 },
+          ],
+        },
+        {
+          title: "Hashin",
+          fields: [
             { path: ["additional", "hashin_matrix_coeff"], label: "kmc (matrix comp.)", type: "number", step: "0.01", min: 0.01, max: 1.0 },
-            { path: ["additional", "hashin_fiber_shear_weight"], label: "wf,τ (fiber shear weight)", type: "number", step: "0.05", min: 0.05, max: 5.0 },
-            { path: ["additional", "hashin_matrix_shear_weight"], label: "wm,τ (matrix shear weight)", type: "number", step: "0.05", min: 0.05, max: 5.0 }
-        ]
-    },
-    {
-        title: "Puck (didactic)",
-        fields: [
+            {
+              path: ["additional", "hashin_fiber_shear_weight"],
+              label: "wf,τ (fiber shear weight)",
+              type: "number",
+              step: "0.05",
+              min: 0.05,
+              max: 5.0,
+            },
+            {
+              path: ["additional", "hashin_matrix_shear_weight"],
+              label: "wm,τ (matrix shear weight)",
+              type: "number",
+              step: "0.05",
+              min: 0.05,
+              max: 5.0,
+            },
+          ],
+        },
+        {
+          title: "Puck",
+          fields: [
             { path: ["additional", "puck_pspd"], label: "p⊥⊥−", type: "number", step: "0.01", min: -0.95, max: 0.95 },
-            { path: ["additional", "puck_pspz"], label: "p⊥⊥+", type: "number", step: "0.01", min: -0.95, max: 0.95 }
-        ]
-    }
-];
+            { path: ["additional", "puck_pspz"], label: "p⊥⊥+", type: "number", step: "0.01", min: -0.95, max: 0.95 },
+          ],
+        },
+      ];
 
-const didacticInputMap = new Map();
+      const didacticInputMap = new Map();
 
-function getMaxStrength(mat) {
-    const s = mat.strength;
-    return Math.max(s.Xt, s.Xc, s.Yt, s.Yc, s.S, EPS);
-}
+      function getMaxStrength(mat) {
+        const s = mat.strength;
+        return Math.max(s.Xt, s.Xc, s.Yt, s.Yc, s.S, EPS);
+      }
 
-function getDisplayScale(mat) {
-    return 1.0 / getMaxStrength(mat);
-}
+      function getDisplayScale(mat) {
+        return 1.0 / getMaxStrength(mat);
+      }
 
-function getMaterialSignature(mat) {
-    return [
-        mat.core.E1,
-        mat.core.E2,
-        mat.core.nu12,
-        mat.core.G12,
-        mat.strength.Xt,
-        mat.strength.Xc,
-        mat.strength.Yt,
-        mat.strength.Yc,
-        mat.strength.S,
-        mat.additional.ex_maxstrain,
-        mat.additional.ey_maxstrain,
-        mat.additional.gxy_maxstrain,
-        mat.additional.use_global_strains_threshold_maxstrain,
-        mat.additional.tsaiwu_f12star,
-        mat.additional.hashin_matrix_coeff,
-        mat.additional.hashin_fiber_shear_weight,
-        mat.additional.hashin_matrix_shear_weight,
-        mat.additional.puck_pspd,
-        mat.additional.puck_pspz
-    ].join("|");
-}
+      function getMaterialSignature(mat) {
+        return [
+          mat.core.E1,
+          mat.core.E2,
+          mat.core.nu12,
+          mat.core.G12,
+          mat.strength.Xt,
+          mat.strength.Xc,
+          mat.strength.Yt,
+          mat.strength.Yc,
+          mat.strength.S,
+          mat.additional.ex_maxstrain,
+          mat.additional.ey_maxstrain,
+          mat.additional.gxy_maxstrain,
+          mat.additional.use_global_strains_threshold_maxstrain,
+          mat.additional.tsaiwu_f12star,
+          mat.additional.hashin_matrix_coeff,
+          mat.additional.hashin_fiber_shear_weight,
+          mat.additional.hashin_matrix_shear_weight,
+          mat.additional.puck_pspd,
+          mat.additional.puck_pspz,
+        ].join("|");
+      }
 
-function makeGeometryCacheKey(criterionId, mat, quality, mode) {
-    return `${criterionId}|${mode}|${getMaterialSignature(mat)}|${JSON.stringify(quality)}`;
-}
+      function makeGeometryCacheKey(criterionId, mat, quality, mode) {
+        return `${criterionId}|${mode}|${getMaterialSignature(mat)}|${JSON.stringify(quality)}`;
+      }
 
-function computeStrainState(stress, mat) {
-    const E1 = Math.max(mat.core.E1, EPS);
-    const E2 = Math.max(mat.core.E2, EPS);
-    const nu12 = mat.core.nu12;
-    const nu21 = nu12 * E2 / E1;
-    return {
-        epsilon1: stress.sigma1 / E1 - (nu12 * stress.sigma2) / E1,
-        epsilon2: -(nu21 * stress.sigma1) / E2 + stress.sigma2 / E2,
-        gamma12: stress.tau12 / Math.max(mat.core.G12, EPS)
-    };
-}
+      function computeStrainState(stress, mat) {
+        const E1 = Math.max(mat.core.E1, EPS);
+        const E2 = Math.max(mat.core.E2, EPS);
+        const nu12 = mat.core.nu12;
+        const nu21 = (nu12 * E2) / E1;
+        return {
+          epsilon1: stress.sigma1 / E1 - (nu12 * stress.sigma2) / E1,
+          epsilon2: -(nu21 * stress.sigma1) / E2 + stress.sigma2 / E2,
+          gamma12: stress.tau12 / Math.max(mat.core.G12, EPS),
+        };
+      }
 
-function computeMaximumStressFailureIndex(stress, mat) {
-    const s = mat.strength;
-    const fiSigma1 = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
-    const fiSigma2 = stress.sigma2 >= 0 ? stress.sigma2 / Math.max(s.Yt, EPS) : -stress.sigma2 / Math.max(s.Yc, EPS);
-    const fiTau = Math.abs(stress.tau12) / Math.max(s.S, EPS);
-    return Math.max(fiSigma1, fiSigma2, fiTau, 0);
-}
+      function computeMaximumStressFailureIndex(stress, mat) {
+        const s = mat.strength;
+        const fiSigma1 = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
+        const fiSigma2 = stress.sigma2 >= 0 ? stress.sigma2 / Math.max(s.Yt, EPS) : -stress.sigma2 / Math.max(s.Yc, EPS);
+        const fiTau = Math.abs(stress.tau12) / Math.max(s.S, EPS);
+        return Math.max(fiSigma1, fiSigma2, fiTau, 0);
+      }
 
-function computeMaximumStressReserveFactor(stress, mat) {
-    const fi = computeMaximumStressFailureIndex(stress, mat);
-    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
-}
+      function computeMaximumStressReserveFactor(stress, mat) {
+        const fi = computeMaximumStressFailureIndex(stress, mat);
+        return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+      }
 
-function computeMaximumStrainReserveFactor(stress, mat) {
-    const add = mat.additional;
-    const strain = computeStrainState(stress, mat);
-    const fi = Math.max(
-        Math.abs(strain.epsilon1) / Math.max(add.ex_maxstrain, EPS),
-        Math.abs(strain.epsilon2) / Math.max(add.ey_maxstrain, EPS),
-        Math.abs(strain.gamma12) / Math.max(add.gxy_maxstrain, EPS)
-    );
-    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
-}
+      function computeMaximumStrainReserveFactor(stress, mat) {
+        const add = mat.additional;
+        const strain = computeStrainState(stress, mat);
+        const fi = Math.max(
+          Math.abs(strain.epsilon1) / Math.max(add.ex_maxstrain, EPS),
+          Math.abs(strain.epsilon2) / Math.max(add.ey_maxstrain, EPS),
+          Math.abs(strain.gamma12) / Math.max(add.gxy_maxstrain, EPS)
+        );
+        return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+      }
 
-function computeMaximumStrainFailureIndex(stress, mat) {
-    const rf = computeMaximumStrainReserveFactor(stress, mat);
-    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
-}
+      function computeMaximumStrainFailureIndex(stress, mat) {
+        const rf = computeMaximumStrainReserveFactor(stress, mat);
+        return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+      }
 
-function computeTsaiHillFailureIndex(stress, mat) {
-    const s = mat.strength;
-    const X = stress.sigma1 >= 0 ? Math.max(s.Xt, EPS) : Math.max(s.Xc, EPS);
-    const Y = stress.sigma2 >= 0 ? Math.max(s.Yt, EPS) : Math.max(s.Yc, EPS);
-    const F11 = 1.0 / (X * X);
-    const F22 = 1.0 / (Y * Y);
-    const F12 = -0.5 * F11;
-    const F66 = 1.0 / Math.max(s.S * s.S, EPS);
-    const fi =
-        F11 * stress.sigma1 * stress.sigma1 +
-        2.0 * F12 * stress.sigma1 * stress.sigma2 +
-        F22 * stress.sigma2 * stress.sigma2 +
-        F66 * stress.tau12 * stress.tau12;
-    return Math.max(fi, 0);
-}
-
-function computeTsaiHillReserveFactor(stress, mat) {
-    const fi = computeTsaiHillFailureIndex(stress, mat);
-    return fi > EPS ? 1.0 / Math.sqrt(fi) : Number.POSITIVE_INFINITY;
-}
-
-function getTsaiWuCoefficients(mat) {
-    const s = mat.strength;
-    const f12starRaw = Number.isFinite(mat.additional.tsaiwu_f12star) ? mat.additional.tsaiwu_f12star : -0.5;
-    const f12star = Math.max(-0.999999, Math.min(0.999999, f12starRaw));
-    const F1 = 1.0 / Math.max(s.Xt, EPS) - 1.0 / Math.max(s.Xc, EPS);
-    const F2 = 1.0 / Math.max(s.Yt, EPS) - 1.0 / Math.max(s.Yc, EPS);
-    const F11 = 1.0 / Math.max(s.Xt * s.Xc, EPS);
-    const F22 = 1.0 / Math.max(s.Yt * s.Yc, EPS);
-    const F12 = f12star * Math.sqrt(Math.max(F11 * F22, 0));
-    const F66 = 1.0 / Math.max(s.S * s.S, EPS);
-    return { F1, F2, F11, F22, F12, F66 };
-}
-
-function computeTsaiWuFailureIndex(stress, mat) {
-    const c = getTsaiWuCoefficients(mat);
-    const Q =
-        c.F11 * stress.sigma1 * stress.sigma1 +
-        2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
-        c.F22 * stress.sigma2 * stress.sigma2 +
-        c.F66 * stress.tau12 * stress.tau12;
-    const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
-    return Math.max(Q + L, 0);
-}
-
-function computeTsaiWuReserveFactor(stress, mat) {
-    const c = getTsaiWuCoefficients(mat);
-    const Q =
-        c.F11 * stress.sigma1 * stress.sigma1 +
-        2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
-        c.F22 * stress.sigma2 * stress.sigma2 +
-        c.F66 * stress.tau12 * stress.tau12;
-    const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
-    if (Math.abs(Q) < EPS) {
-        if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
-        return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
-    }
-    const disc = L * L + 4.0 * Q;
-    if (disc < EPS) return Number.POSITIVE_INFINITY;
-    const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
-    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
-}
-
-function getHashinParameters(mat) {
-    const add = mat.additional || {};
-    return {
-        matrixCoeff: Math.max(Number.isFinite(add.hashin_matrix_coeff) ? add.hashin_matrix_coeff : 0.25, EPS),
-        fiberShearWeight: Math.max(Number.isFinite(add.hashin_fiber_shear_weight) ? add.hashin_fiber_shear_weight : 1.0, EPS),
-        matrixShearWeight: Math.max(Number.isFinite(add.hashin_matrix_shear_weight) ? add.hashin_matrix_shear_weight : 1.0, EPS)
-    };
-}
-
-function computeHashinReserveFactor(stress, mat) {
-    const s = mat.strength;
-    const sx = stress.sigma1;
-    const sy = stress.sigma2;
-    const txy = stress.tau12;
-    const hashin = getHashinParameters(mat);
-
-    let rfFiber = Number.POSITIVE_INFINITY;
-    if (sx >= 0) {
+      function computeTsaiHillFailureIndex(stress, mat) {
+        const s = mat.strength;
+        const X = stress.sigma1 >= 0 ? Math.max(s.Xt, EPS) : Math.max(s.Xc, EPS);
+        const Y = stress.sigma2 >= 0 ? Math.max(s.Yt, EPS) : Math.max(s.Yc, EPS);
+        const F11 = 1.0 / (X * X);
+        const F22 = 1.0 / (Y * Y);
+        const F12 = -0.5 * F11;
+        const F66 = 1.0 / Math.max(s.S * s.S, EPS);
         const fi =
-            (sx * sx) / Math.max(s.Xt * s.Xt, EPS) +
-            hashin.fiberShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
-        if (fi > EPS) rfFiber = 1.0 / Math.sqrt(fi);
-    } else {
-        rfFiber = -Math.max(s.Xc, EPS) / Math.min(sx, -EPS);
-    }
+          F11 * stress.sigma1 * stress.sigma1 +
+          2.0 * F12 * stress.sigma1 * stress.sigma2 +
+          F22 * stress.sigma2 * stress.sigma2 +
+          F66 * stress.tau12 * stress.tau12;
+        return Math.max(fi, 0);
+      }
 
-    let rfMatrix = Number.POSITIVE_INFINITY;
-    if (sy >= 0) {
-        const fi =
-            (sy * sy) / Math.max(s.Yt * s.Yt, EPS) +
-            hashin.matrixShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
-        if (fi > EPS) rfMatrix = 1.0 / Math.sqrt(fi);
-    } else {
-        const q =
-            hashin.matrixCoeff * (sy * sy) / Math.max(s.S * s.S, EPS) +
-            hashin.matrixShearWeight * (txy * txy) / Math.max(s.S * s.S, EPS);
-        const l =
-            sy *
-            (hashin.matrixCoeff * Math.max(s.Yc, EPS) / Math.max(s.S * s.S, EPS) -
-                1.0 / Math.max(s.Yc, EPS));
-        if (q > EPS) {
+      function computeTsaiHillReserveFactor(stress, mat) {
+        const fi = computeTsaiHillFailureIndex(stress, mat);
+        return fi > EPS ? 1.0 / Math.sqrt(fi) : Number.POSITIVE_INFINITY;
+      }
+
+      function getTsaiWuCoefficients(mat) {
+        const s = mat.strength;
+        const f12starRaw = Number.isFinite(mat.additional.tsaiwu_f12star) ? mat.additional.tsaiwu_f12star : -0.5;
+        const f12star = Math.max(-0.999999, Math.min(0.999999, f12starRaw));
+        const F1 = 1.0 / Math.max(s.Xt, EPS) - 1.0 / Math.max(s.Xc, EPS);
+        const F2 = 1.0 / Math.max(s.Yt, EPS) - 1.0 / Math.max(s.Yc, EPS);
+        const F11 = 1.0 / Math.max(s.Xt * s.Xc, EPS);
+        const F22 = 1.0 / Math.max(s.Yt * s.Yc, EPS);
+        const F12 = f12star * Math.sqrt(Math.max(F11 * F22, 0));
+        const F66 = 1.0 / Math.max(s.S * s.S, EPS);
+        return { F1, F2, F11, F22, F12, F66 };
+      }
+
+      function computeTsaiWuFailureIndex(stress, mat) {
+        const c = getTsaiWuCoefficients(mat);
+        const Q =
+          c.F11 * stress.sigma1 * stress.sigma1 +
+          2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
+          c.F22 * stress.sigma2 * stress.sigma2 +
+          c.F66 * stress.tau12 * stress.tau12;
+        const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
+        return Math.max(Q + L, 0);
+      }
+
+      function computeTsaiWuReserveFactor(stress, mat) {
+        const c = getTsaiWuCoefficients(mat);
+        const Q =
+          c.F11 * stress.sigma1 * stress.sigma1 +
+          2.0 * c.F12 * stress.sigma1 * stress.sigma2 +
+          c.F22 * stress.sigma2 * stress.sigma2 +
+          c.F66 * stress.tau12 * stress.tau12;
+        const L = c.F1 * stress.sigma1 + c.F2 * stress.sigma2;
+        if (Math.abs(Q) < EPS) {
+          if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
+          return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
+        }
+        const disc = L * L + 4.0 * Q;
+        if (disc < EPS) return Number.POSITIVE_INFINITY;
+        const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
+        return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+      }
+
+      function getHashinParameters(mat) {
+        const add = mat.additional || {};
+        return {
+          matrixCoeff: Math.max(Number.isFinite(add.hashin_matrix_coeff) ? add.hashin_matrix_coeff : 0.25, EPS),
+          fiberShearWeight: Math.max(Number.isFinite(add.hashin_fiber_shear_weight) ? add.hashin_fiber_shear_weight : 1.0, EPS),
+          matrixShearWeight: Math.max(Number.isFinite(add.hashin_matrix_shear_weight) ? add.hashin_matrix_shear_weight : 1.0, EPS),
+        };
+      }
+
+      function computeHashinReserveFactor(stress, mat) {
+        const s = mat.strength;
+        const sx = stress.sigma1;
+        const sy = stress.sigma2;
+        const txy = stress.tau12;
+        const hashin = getHashinParameters(mat);
+
+        let rfFiber = Number.POSITIVE_INFINITY;
+        if (sx >= 0) {
+          const fi = (sx * sx) / Math.max(s.Xt * s.Xt, EPS) + (hashin.fiberShearWeight * (txy * txy)) / Math.max(s.S * s.S, EPS);
+          if (fi > EPS) rfFiber = 1.0 / Math.sqrt(fi);
+        } else {
+          rfFiber = -Math.max(s.Xc, EPS) / Math.min(sx, -EPS);
+        }
+
+        let rfMatrix = Number.POSITIVE_INFINITY;
+        if (sy >= 0) {
+          const fi = (sy * sy) / Math.max(s.Yt * s.Yt, EPS) + (hashin.matrixShearWeight * (txy * txy)) / Math.max(s.S * s.S, EPS);
+          if (fi > EPS) rfMatrix = 1.0 / Math.sqrt(fi);
+        } else {
+          const q = (hashin.matrixCoeff * (sy * sy)) / Math.max(s.S * s.S, EPS) + (hashin.matrixShearWeight * (txy * txy)) / Math.max(s.S * s.S, EPS);
+          const l = sy * ((hashin.matrixCoeff * Math.max(s.Yc, EPS)) / Math.max(s.S * s.S, EPS) - 1.0 / Math.max(s.Yc, EPS));
+          if (q > EPS) {
             const disc = l * l + 4.0 * q;
             if (disc > EPS) rfMatrix = (Math.sqrt(disc) - l) / (2.0 * q);
+          }
         }
-    }
 
-    const rf = Math.min(rfFiber, rfMatrix);
-    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
-}
+        const rf = Math.min(rfFiber, rfMatrix);
+        return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+      }
 
-function computeHashinFiberTauCap(sigma1, mat) {
-    const s = mat.strength;
-    const hashin = getHashinParameters(mat);
-    const fiberWeight = Math.max(hashin.fiberShearWeight, EPS);
-    if (sigma1 >= 0) {
-        const inner = 1.0 - (sigma1 * sigma1) / Math.max(s.Xt * s.Xt, EPS);
-        if (inner <= 0) return 0;
-        return Math.max(s.S, EPS) * Math.sqrt(inner / fiberWeight);
-    }
-    return sigma1 >= -Math.max(s.Xc, EPS) ? Number.POSITIVE_INFINITY : 0;
-}
+      function computeHashinFiberTauCap(sigma1, mat) {
+        const s = mat.strength;
+        const hashin = getHashinParameters(mat);
+        const fiberWeight = Math.max(hashin.fiberShearWeight, EPS);
+        if (sigma1 >= 0) {
+          const inner = 1.0 - (sigma1 * sigma1) / Math.max(s.Xt * s.Xt, EPS);
+          if (inner <= 0) return 0;
+          return Math.max(s.S, EPS) * Math.sqrt(inner / fiberWeight);
+        }
+        return sigma1 >= -Math.max(s.Xc, EPS) ? Number.POSITIVE_INFINITY : 0;
+      }
 
-function computeHashinMatrixTauCap(sigma2, mat) {
-    const s = mat.strength;
-    const hashin = getHashinParameters(mat);
-    const matrixWeight = Math.max(hashin.matrixShearWeight, EPS);
-    if (sigma2 >= 0) {
-        const inner = 1.0 - (sigma2 * sigma2) / Math.max(s.Yt * s.Yt, EPS);
-        if (inner <= 0) return 0;
-        return Math.max(s.S, EPS) * Math.sqrt(inner / matrixWeight);
-    }
-    if (sigma2 < -Math.max(s.Yc, EPS)) return 0;
-    const sSafe = Math.max(s.S, EPS);
-    const ycSafe = Math.max(s.Yc, EPS);
-    const expr =
-        1.0 -
-        hashin.matrixCoeff * (sigma2 * sigma2) / (sSafe * sSafe) -
-        sigma2 * (hashin.matrixCoeff * ycSafe / (sSafe * sSafe) - 1.0 / ycSafe);
-    if (expr <= 0) return 0;
-    return sSafe * Math.sqrt(expr / matrixWeight);
-}
+      function computeHashinMatrixTauCap(sigma2, mat) {
+        const s = mat.strength;
+        const hashin = getHashinParameters(mat);
+        const matrixWeight = Math.max(hashin.matrixShearWeight, EPS);
+        if (sigma2 >= 0) {
+          const inner = 1.0 - (sigma2 * sigma2) / Math.max(s.Yt * s.Yt, EPS);
+          if (inner <= 0) return 0;
+          return Math.max(s.S, EPS) * Math.sqrt(inner / matrixWeight);
+        }
+        if (sigma2 < -Math.max(s.Yc, EPS)) return 0;
+        const sSafe = Math.max(s.S, EPS);
+        const ycSafe = Math.max(s.Yc, EPS);
+        const expr =
+          1.0 -
+          (hashin.matrixCoeff * (sigma2 * sigma2)) / (sSafe * sSafe) -
+          sigma2 * ((hashin.matrixCoeff * ycSafe) / (sSafe * sSafe) - 1.0 / ycSafe);
+        if (expr <= 0) return 0;
+        return sSafe * Math.sqrt(expr / matrixWeight);
+      }
 
-function computeHashinTauCap(sigma1, sigma2, mat) {
-    const tauFiber = computeHashinFiberTauCap(sigma1, mat);
-    const tauMatrix = computeHashinMatrixTauCap(sigma2, mat);
-    return Math.max(0, Math.min(tauFiber, tauMatrix));
-}
+      function computeHashinTauCap(sigma1, sigma2, mat) {
+        const tauFiber = computeHashinFiberTauCap(sigma1, mat);
+        const tauMatrix = computeHashinMatrixTauCap(sigma2, mat);
+        return Math.max(0, Math.min(tauFiber, tauMatrix));
+      }
 
-function computeHashinFailureIndex(stress, mat) {
-    const rf = computeHashinReserveFactor(stress, mat);
-    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
-}
+      function computeHashinFailureIndex(stress, mat) {
+        const rf = computeHashinReserveFactor(stress, mat);
+        return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+      }
 
-function getIsotropicReferenceStrength(mat) {
-    return Math.max(Math.min(mat.strength.Xt, mat.strength.Yt), EPS);
-}
+      function getIsotropicReferenceStrength(mat) {
+        return Math.max(Math.min(mat.strength.Xt, mat.strength.Yt), EPS);
+      }
 
-function computeVonMisesFailureIndex(stress, mat) {
-    const sigmaEq = Math.sqrt(
-        stress.sigma1 * stress.sigma1 -
-        stress.sigma1 * stress.sigma2 +
-        stress.sigma2 * stress.sigma2 +
-        3.0 * stress.tau12 * stress.tau12
-    );
-    return sigmaEq / getIsotropicReferenceStrength(mat);
-}
+      function computeVonMisesFailureIndex(stress, mat) {
+        const sigmaEq = Math.sqrt(
+          stress.sigma1 * stress.sigma1 - stress.sigma1 * stress.sigma2 + stress.sigma2 * stress.sigma2 + 3.0 * stress.tau12 * stress.tau12
+        );
+        return sigmaEq / getIsotropicReferenceStrength(mat);
+      }
 
-function computeVonMisesReserveFactor(stress, mat) {
-    const fi = computeVonMisesFailureIndex(stress, mat);
-    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
-}
+      function computeVonMisesReserveFactor(stress, mat) {
+        const fi = computeVonMisesFailureIndex(stress, mat);
+        return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+      }
 
-function computeTrescaFailureIndex(stress, mat) {
-    const avg = 0.5 * (stress.sigma1 + stress.sigma2);
-    const rad = Math.sqrt(((stress.sigma1 - stress.sigma2) * 0.5) ** 2 + stress.tau12 * stress.tau12);
-    const p1 = avg + rad;
-    const p2 = avg - rad;
-    const measure = Math.max(Math.abs(p1), Math.abs(p2), Math.abs(p1 - p2));
-    return measure / getIsotropicReferenceStrength(mat);
-}
+      function computeTrescaFailureIndex(stress, mat) {
+        const avg = 0.5 * (stress.sigma1 + stress.sigma2);
+        const rad = Math.sqrt(((stress.sigma1 - stress.sigma2) * 0.5) ** 2 + stress.tau12 * stress.tau12);
+        const p1 = avg + rad;
+        const p2 = avg - rad;
+        const measure = Math.max(Math.abs(p1), Math.abs(p2), Math.abs(p1 - p2));
+        return measure / getIsotropicReferenceStrength(mat);
+      }
 
-function computeTrescaReserveFactor(stress, mat) {
-    const fi = computeTrescaFailureIndex(stress, mat);
-    return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
-}
+      function computeTrescaReserveFactor(stress, mat) {
+        const fi = computeTrescaFailureIndex(stress, mat);
+        return fi > EPS ? 1.0 / fi : Number.POSITIVE_INFINITY;
+      }
 
-function getPuckParameters(mat) {
-    const add = mat.additional || {};
-    let pspd = Number.isFinite(add.puck_pspd) ? add.puck_pspd : 0.3;
-    if (Math.abs(pspd) < 1e-6) pspd = pspd < 0 ? -1e-6 : 1e-6;
+      function getPuckParameters(mat) {
+        const add = mat.additional || {};
+        let pspd = Number.isFinite(add.puck_pspd) ? add.puck_pspd : 0.3;
+        if (Math.abs(pspd) < 1e-6) pspd = pspd < 0 ? -1e-6 : 1e-6;
 
-    const pspz = Number.isFinite(add.puck_pspz) ? add.puck_pspz : 0.35;
+        const pspz = Number.isFinite(add.puck_pspz) ? add.puck_pspz : 0.35;
 
-    const S = Math.max(mat.strength.S, EPS);
-    const Yc = Math.max(mat.strength.Yc, EPS);
-    const rootTerm = Math.sqrt(Math.max(1.0 + (2.0 * pspd * Yc) / S, 0));
-    const Rass = 0.5 * (S / pspd) * (rootTerm - 1.0);
-    const Pssd = (pspd * Rass) / S;
-    const tauxyc = S * Math.sqrt(Math.max(1.0 + 2.0 * Pssd, 0));
+        const S = Math.max(mat.strength.S, EPS);
+        const Yc = Math.max(mat.strength.Yc, EPS);
+        const rootTerm = Math.sqrt(Math.max(1.0 + (2.0 * pspd * Yc) / S, 0));
+        const Rass = 0.5 * (S / pspd) * (rootTerm - 1.0);
+        const Pssd = (pspd * Rass) / S;
+        const tauxyc = S * Math.sqrt(Math.max(1.0 + 2.0 * Pssd, 0));
 
-    return {
-        pspd,
-        pspz,
-        Rass: Number.isFinite(Rass) ? Rass : 0,
-        Pssd: Number.isFinite(Pssd) ? Pssd : 0,
-        tauxyc: Number.isFinite(tauxyc) ? tauxyc : S
-    };
-}
+        return {
+          pspd,
+          pspz,
+          Rass: Number.isFinite(Rass) ? Rass : 0,
+          Pssd: Number.isFinite(Pssd) ? Pssd : 0,
+          tauxyc: Number.isFinite(tauxyc) ? tauxyc : S,
+        };
+      }
 
-function computeFibreFailureReserveFactor(stress, mat) {
-    const sx = stress.sigma1;
-    if (sx > EPS) return Math.max(mat.strength.Xt, EPS) / sx;
-    if (sx < -EPS) return -Math.max(mat.strength.Xc, EPS) / sx;
-    return Number.POSITIVE_INFINITY;
-}
-
-function computeFibreFailureIndex(stress, mat) {
-    const rf = computeFibreFailureReserveFactor(stress, mat);
-    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
-}
-
-function computePuckMatrixExposure(stress, mat, puck) {
-    const s = mat.strength;
-    const sy = stress.sigma2;
-    const txy = stress.tau12;
-    const S = Math.max(s.S, EPS);
-
-    if (Math.abs(sy) < EPS && Math.abs(txy) < EPS) {
-        return { Azfb: 0, mode: "none" };
-    }
-
-    if (sy > 0) {
-        const a = ((1.0 - (puck.pspz * Math.max(s.Yt, EPS)) / S) / Math.max(s.Yt, EPS)) ** 2;
-        const b = 1.0 / (S * S);
-        const c = puck.pspz / S;
-        const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
-        return { Azfb: Math.max(Azfb, 0), mode: "A" };
-    }
-
-    const ratioLimit = Math.abs(puck.Rass) / Math.max(Math.abs(puck.tauxyc), EPS);
-    const ratio = Math.abs(txy) > EPS ? Math.abs(sy / txy) : Number.POSITIVE_INFINITY;
-    if (Math.abs(txy) > EPS && ratio <= ratioLimit) {
-        const a = (puck.pspd / S) ** 2;
-        const b = 1.0 / (S * S);
-        const c = puck.pspd / S;
-        const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
-        return { Azfb: Math.max(Azfb, 0), mode: "B" };
-    }
-
-    const sySafe = sy < -EPS ? sy : -EPS;
-    const a = 1.0 / Math.max(s.Yc * s.Yc, EPS);
-    const b = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
-    const Azfb = (a * sySafe * sySafe + b * txy * txy) * (-Math.max(s.Yc, EPS) / sySafe);
-    return { Azfb: Math.max(Azfb, 0), mode: "C" };
-}
-
-function computePuckReserveFactor(stress, mat) {
-    if (Math.abs(stress.sigma1) < EPS && Math.abs(stress.sigma2) < EPS && Math.abs(stress.tau12) < EPS) {
+      function computeFibreFailureReserveFactor(stress, mat) {
+        const sx = stress.sigma1;
+        if (sx > EPS) return Math.max(mat.strength.Xt, EPS) / sx;
+        if (sx < -EPS) return -Math.max(mat.strength.Xc, EPS) / sx;
         return Number.POSITIVE_INFINITY;
-    }
+      }
 
-    const s = mat.strength;
-    const puck = getPuckParameters(mat);
+      function computeFibreFailureIndex(stress, mat) {
+        const rf = computeFibreFailureReserveFactor(stress, mat);
+        return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+      }
 
-    const Afb = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
-    const Azfb = computePuckMatrixExposure(stress, mat, puck).Azfb;
+      function computePuckMatrixExposure(stress, mat, puck) {
+        const s = mat.strength;
+        const sy = stress.sigma2;
+        const txy = stress.tau12;
+        const S = Math.max(s.S, EPS);
 
-    const exposure = Math.max(Afb, Azfb);
-    return exposure > EPS ? 1.0 / exposure : Number.POSITIVE_INFINITY;
-}
+        if (Math.abs(sy) < EPS && Math.abs(txy) < EPS) {
+          return { Azfb: 0, mode: "none" };
+        }
 
-function computePuckFailureIndex(stress, mat) {
-    const rf = computePuckReserveFactor(stress, mat);
-    return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
-}
+        if (sy > 0) {
+          const a = ((1.0 - (puck.pspz * Math.max(s.Yt, EPS)) / S) / Math.max(s.Yt, EPS)) ** 2;
+          const b = 1.0 / (S * S);
+          const c = puck.pspz / S;
+          const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
+          return { Azfb: Math.max(Azfb, 0), mode: "A" };
+        }
 
-function solveReserveFactorFromQuadratic(Q, L) {
-    if (!Number.isFinite(Q) || !Number.isFinite(L)) return Number.POSITIVE_INFINITY;
-    if (Math.abs(Q) < EPS) {
-        if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
-        return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
-    }
-    const disc = L * L + 4.0 * Q;
-    if (disc <= EPS) return Number.POSITIVE_INFINITY;
-    const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
-    return rf > EPS ? rf : Number.POSITIVE_INFINITY;
-}
+        const ratioLimit = Math.abs(puck.Rass) / Math.max(Math.abs(puck.tauxyc), EPS);
+        const ratio = Math.abs(txy) > EPS ? Math.abs(sy / txy) : Number.POSITIVE_INFINITY;
+        if (Math.abs(txy) > EPS && ratio <= ratioLimit) {
+          const a = (puck.pspd / S) ** 2;
+          const b = 1.0 / (S * S);
+          const c = puck.pspd / S;
+          const Azfb = Math.sqrt(Math.max(a * sy * sy + b * txy * txy, 0)) + c * sy;
+          return { Azfb: Math.max(Azfb, 0), mode: "B" };
+        }
 
-function createIndexedParametricGeometry(thetaSegments, phiSegments, getPoint) {
-    const positions = [];
-    const indices = [];
+        const sySafe = sy < -EPS ? sy : -EPS;
+        const a = 1.0 / Math.max(s.Yc * s.Yc, EPS);
+        const b = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
+        const Azfb = (a * sySafe * sySafe + b * txy * txy) * (-Math.max(s.Yc, EPS) / sySafe);
+        return { Azfb: Math.max(Azfb, 0), mode: "C" };
+      }
 
-    for (let i = 0; i <= phiSegments; i += 1) {
-        const v = i / phiSegments;
-        for (let j = 0; j <= thetaSegments; j += 1) {
+      function computePuckReserveFactor(stress, mat) {
+        if (Math.abs(stress.sigma1) < EPS && Math.abs(stress.sigma2) < EPS && Math.abs(stress.tau12) < EPS) {
+          return Number.POSITIVE_INFINITY;
+        }
+
+        const s = mat.strength;
+        const puck = getPuckParameters(mat);
+
+        const Afb = stress.sigma1 >= 0 ? stress.sigma1 / Math.max(s.Xt, EPS) : -stress.sigma1 / Math.max(s.Xc, EPS);
+        const Azfb = computePuckMatrixExposure(stress, mat, puck).Azfb;
+
+        const exposure = Math.max(Afb, Azfb);
+        return exposure > EPS ? 1.0 / exposure : Number.POSITIVE_INFINITY;
+      }
+
+      function computePuckFailureIndex(stress, mat) {
+        const rf = computePuckReserveFactor(stress, mat);
+        return Number.isFinite(rf) && rf > EPS ? 1.0 / rf : 0;
+      }
+
+      function solveReserveFactorFromQuadratic(Q, L) {
+        if (!Number.isFinite(Q) || !Number.isFinite(L)) return Number.POSITIVE_INFINITY;
+        if (Math.abs(Q) < EPS) {
+          if (Math.abs(L) < EPS) return Number.POSITIVE_INFINITY;
+          return L > EPS ? 1.0 / L : Number.POSITIVE_INFINITY;
+        }
+        const disc = L * L + 4.0 * Q;
+        if (disc <= EPS) return Number.POSITIVE_INFINITY;
+        const rf = (Math.sqrt(disc) - L) / (2.0 * Q);
+        return rf > EPS ? rf : Number.POSITIVE_INFINITY;
+      }
+
+      function createIndexedParametricGeometry(thetaSegments, phiSegments, getPoint) {
+        const positions = [];
+        const indices = [];
+
+        for (let i = 0; i <= phiSegments; i += 1) {
+          const v = i / phiSegments;
+          for (let j = 0; j <= thetaSegments; j += 1) {
             const u = j / thetaSegments;
             const p = getPoint(u, v);
             positions.push(p.x, p.y, p.z);
+          }
         }
-    }
 
-    const ring = thetaSegments + 1;
-    for (let i = 0; i < phiSegments; i += 1) {
-        for (let j = 0; j < thetaSegments; j += 1) {
+        const ring = thetaSegments + 1;
+        for (let i = 0; i < phiSegments; i += 1) {
+          for (let j = 0; j < thetaSegments; j += 1) {
             const a = i * ring + j;
             const b = a + 1;
             const c = a + ring;
             const d = c + 1;
             indices.push(a, c, b, b, c, d);
+          }
         }
-    }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    return geometry;
-}
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setIndex(indices);
+        geometry.computeVertexNormals();
+        return geometry;
+      }
 
-function appendGridPatch(buffers, uSegments, vSegments, getPoint, flipWinding) {
-    const base = buffers.positions.length / 3;
-    for (let iv = 0; iv <= vSegments; iv += 1) {
-        const v = iv / vSegments;
-        for (let iu = 0; iu <= uSegments; iu += 1) {
+      function appendGridPatch(buffers, uSegments, vSegments, getPoint, flipWinding) {
+        const base = buffers.positions.length / 3;
+        for (let iv = 0; iv <= vSegments; iv += 1) {
+          const v = iv / vSegments;
+          for (let iu = 0; iu <= uSegments; iu += 1) {
             const u = iu / uSegments;
             const p = getPoint(u, v);
             buffers.positions.push(p.x, p.y, p.z);
+          }
         }
-    }
 
-    const row = uSegments + 1;
-    for (let iv = 0; iv < vSegments; iv += 1) {
-        for (let iu = 0; iu < uSegments; iu += 1) {
+        const row = uSegments + 1;
+        for (let iv = 0; iv < vSegments; iv += 1) {
+          for (let iu = 0; iu < uSegments; iu += 1) {
             const a = base + iv * row + iu;
             const b = a + 1;
             const c = a + row;
             const d = c + 1;
             if (flipWinding) buffers.indices.push(a, b, c, b, d, c);
             else buffers.indices.push(a, c, b, b, c, d);
+          }
         }
-    }
-}
+      }
 
-function solveQuadraticEllipsoid(params) {
-    const { a11, a22, a12, a33, b1, b2, c } = params;
-    const det = a11 * a22 - a12 * a12;
-    if (Math.abs(det) < 1e-18 || a33 <= 1e-18) return null;
+      function solveQuadraticEllipsoid(params) {
+        const { a11, a22, a12, a33, b1, b2, c } = params;
+        const det = a11 * a22 - a12 * a12;
+        if (Math.abs(det) < 1e-18 || a33 <= 1e-18) return null;
 
-    const inv00 = a22 / det;
-    const inv01 = -a12 / det;
-    const inv10 = -a12 / det;
-    const inv11 = a11 / det;
+        const inv00 = a22 / det;
+        const inv01 = -a12 / det;
+        const inv10 = -a12 / det;
+        const inv11 = a11 / det;
 
-    const cx = -0.5 * (inv00 * b1 + inv01 * b2);
-    const cy = -0.5 * (inv10 * b1 + inv11 * b2);
-    const cz = 0;
+        const cx = -0.5 * (inv00 * b1 + inv01 * b2);
+        const cy = -0.5 * (inv10 * b1 + inv11 * b2);
+        const cz = 0;
 
-    const constShifted =
-        c +
-        (a11 * cx * cx + 2.0 * a12 * cx * cy + a22 * cy * cy + a33 * cz * cz) +
-        b1 * cx +
-        b2 * cy;
+        const constShifted = c + (a11 * cx * cx + 2.0 * a12 * cx * cy + a22 * cy * cy + a33 * cz * cz) + b1 * cx + b2 * cy;
 
-    const rhs = -constShifted;
-    if (rhs <= EPS) return null;
+        const rhs = -constShifted;
+        if (rhs <= EPS) return null;
 
-    const traceHalf = 0.5 * (a11 + a22);
-    const delta = Math.sqrt(Math.max(a12 * a12 + 0.25 * (a11 - a22) * (a11 - a22), 0));
-    const lambda1 = traceHalf + delta;
-    const lambda2 = traceHalf - delta;
-    if (lambda1 <= EPS || lambda2 <= EPS) return null;
+        const traceHalf = 0.5 * (a11 + a22);
+        const delta = Math.sqrt(Math.max(a12 * a12 + 0.25 * (a11 - a22) * (a11 - a22), 0));
+        const lambda1 = traceHalf + delta;
+        const lambda2 = traceHalf - delta;
+        if (lambda1 <= EPS || lambda2 <= EPS) return null;
 
-    const alpha = 0.5 * Math.atan2(2.0 * a12, a11 - a22);
-    return {
-        center: new THREE.Vector3(cx, cy, cz),
-        alpha,
-        axisA: Math.sqrt(rhs / lambda1),
-        axisB: Math.sqrt(rhs / lambda2),
-        axisC: Math.sqrt(rhs / a33)
-    };
-}
+        const alpha = 0.5 * Math.atan2(2.0 * a12, a11 - a22);
+        return {
+          center: new THREE.Vector3(cx, cy, cz),
+          alpha,
+          axisA: Math.sqrt(rhs / lambda1),
+          axisB: Math.sqrt(rhs / lambda2),
+          axisC: Math.sqrt(rhs / a33),
+        };
+      }
 
-function validateTsaiWuGeometry(geometry, debugData, mat) {
-    const pos = geometry.getAttribute("position");
-    if (!pos || pos.count === 0) return false;
+      function validateTsaiWuGeometry(geometry, debugData, mat) {
+        const pos = geometry.getAttribute("position");
+        if (!pos || pos.count === 0) return false;
 
-    let allFinite = true;
-    for (let i = 0; i < pos.count; i += 1) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
-        const z = pos.getZ(i);
-        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+        let allFinite = true;
+        for (let i = 0; i < pos.count; i += 1) {
+          const x = pos.getX(i);
+          const y = pos.getY(i);
+          const z = pos.getZ(i);
+          if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
             allFinite = false;
             break;
+          }
         }
-    }
-    if (!allFinite) {
-        console.warn("[Tsai-Wu] geometry rejected: non-finite vertices detected");
-        return false;
-    }
+        if (!allFinite) {
+          console.warn("[Tsai-Wu] geometry rejected: non-finite vertices detected");
+          return false;
+        }
 
-    geometry.computeBoundingBox();
-    const bbox = geometry.boundingBox;
-    const maxValue = getMaxStrength(mat);
-    const limit = 10.0 * maxValue;
-    const bboxValues = [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z];
-    const absurd = bboxValues.some(v => !Number.isFinite(v) || Math.abs(v) > limit);
+        geometry.computeBoundingBox();
+        const bbox = geometry.boundingBox;
+        const maxValue = getMaxStrength(mat);
+        const limit = 10.0 * maxValue;
+        const bboxValues = [bbox.min.x, bbox.min.y, bbox.min.z, bbox.max.x, bbox.max.y, bbox.max.z];
+        const absurd = bboxValues.some((v) => !Number.isFinite(v) || Math.abs(v) > limit);
 
-    console.log("[Tsai-Wu] center", debugData.center, "semiAxes", debugData.semiAxes, "bbox", {
-        min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
-        max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z }
-    });
+        console.log("[Tsai-Wu] center", debugData.center, "semiAxes", debugData.semiAxes, "bbox", {
+          min: { x: bbox.min.x, y: bbox.min.y, z: bbox.min.z },
+          max: { x: bbox.max.x, y: bbox.max.y, z: bbox.max.z },
+        });
 
-    if (absurd) {
-        console.warn("[Tsai-Wu] geometry rejected: bounding box out of expected range", { limit, bbox });
-        return false;
-    }
-    return true;
-}
+        if (absurd) {
+          console.warn("[Tsai-Wu] geometry rejected: bounding box out of expected range", { limit, bbox });
+          return false;
+        }
+        return true;
+      }
 
-function buildRotatedEllipsoidGeometry(params, quality) {
-    const solved = solveQuadraticEllipsoid(params);
-    if (!solved) return null;
+      function buildRotatedEllipsoidGeometry(params, quality) {
+        const solved = solveQuadraticEllipsoid(params);
+        if (!solved) return null;
 
-    const thetaSegments = Math.max(24, quality.directThetaSegments);
-    const phiSegments = Math.max(16, quality.directPhiSegments);
-    const cA = Math.cos(solved.alpha);
-    const sA = Math.sin(solved.alpha);
+        const thetaSegments = Math.max(24, quality.directThetaSegments);
+        const phiSegments = Math.max(16, quality.directPhiSegments);
+        const cA = Math.cos(solved.alpha);
+        const sA = Math.sin(solved.alpha);
 
-    const geometry = createIndexedParametricGeometry(thetaSegments, phiSegments, (u, v) => {
-        const theta = u * Math.PI * 2.0;
-        const phi = v * Math.PI;
-        const sinPhi = Math.sin(phi);
+        const geometry = createIndexedParametricGeometry(thetaSegments, phiSegments, (u, v) => {
+          const theta = u * Math.PI * 2.0;
+          const phi = v * Math.PI;
+          const sinPhi = Math.sin(phi);
 
-        const localX = solved.axisA * sinPhi * Math.cos(theta);
-        const localY = solved.axisB * sinPhi * Math.sin(theta);
-        const localZ = solved.axisC * Math.cos(phi);
+          const localX = solved.axisA * sinPhi * Math.cos(theta);
+          const localY = solved.axisB * sinPhi * Math.sin(theta);
+          const localZ = solved.axisC * Math.cos(phi);
 
-        const x = solved.center.x + localX * cA - localY * sA;
-        const y = solved.center.y + localX * sA + localY * cA;
-        const z = solved.center.z + localZ;
-        return new THREE.Vector3(x, y, z);
-    });
+          const x = solved.center.x + localX * cA - localY * sA;
+          const y = solved.center.y + localX * sA + localY * cA;
+          const z = solved.center.z + localZ;
+          return new THREE.Vector3(x, y, z);
+        });
 
-    return geometry;
-}
+        return geometry;
+      }
 
-function buildMaxStressGeometry(mat) {
-    const s = mat.strength;
-    const width = Math.max(s.Xt + s.Xc, EPS);
-    const height = Math.max(s.Yt + s.Yc, EPS);
-    const depth = Math.max(2.0 * s.S, EPS);
-    const centerX = 0.5 * (s.Xt - s.Xc);
-    const centerY = 0.5 * (s.Yt - s.Yc);
+      function buildMaxStressGeometry(mat) {
+        const s = mat.strength;
+        const width = Math.max(s.Xt + s.Xc, EPS);
+        const height = Math.max(s.Yt + s.Yc, EPS);
+        const depth = Math.max(2.0 * s.S, EPS);
+        const centerX = 0.5 * (s.Xt - s.Xc);
+        const centerY = 0.5 * (s.Yt - s.Yc);
 
-    const geometry = new THREE.BoxGeometry(width, height, depth);
-    geometry.translate(centerX, centerY, 0);
-    return geometry;
-}
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        geometry.translate(centerX, centerY, 0);
+        return geometry;
+      }
 
-function buildTsaiWuGeometry(mat, quality) {
-    const c = getTsaiWuCoefficients(mat);
-    const F1 = c.F1;
-    const F2 = c.F2;
-    const F11 = c.F11;
-    const F22 = c.F22;
-    const F12 = c.F12;
-    const F66 = c.F66;
+      function buildTsaiWuGeometry(mat, quality) {
+        const c = getTsaiWuCoefficients(mat);
+        const F1 = c.F1;
+        const F2 = c.F2;
+        const F11 = c.F11;
+        const F22 = c.F22;
+        const F12 = c.F12;
+        const F66 = c.F66;
 
-    const denominator = 2.0 * (F11 * F22 - F12 * F12);
-    const small = 1e-18;
-    if (Math.abs(denominator) < small || F66 <= small) return null;
+        const denominator = 2.0 * (F11 * F22 - F12 * F12);
+        const small = 1e-18;
+        if (Math.abs(denominator) < small || F66 <= small) return null;
 
-    const s2 = (F12 * F1 - F11 * F2) / denominator;
-    const centerX = -(F1 + 2.0 * F12 * s2) / (2.0 * F11);
-    const centerY = s2;
+        const s2 = (F12 * F1 - F11 * F2) / denominator;
+        const centerX = -(F1 + 2.0 * F12 * s2) / (2.0 * F11);
+        const centerY = s2;
 
-    const mDotS = 0.5 * F1 * centerX + 0.5 * F2 * centerY;
-    const temp1 = 0.5 * (F11 + F22);
-    const temp2 = Math.sqrt(Math.max(F12 * F12 + 0.25 * (F11 - F22) * (F11 - F22), 0));
-    const lambda1 = temp1 + temp2;
-    const lambda2 = temp1 - temp2;
-    const lambda3 = F66;
-    const positiveTerm = 1.0 - mDotS;
+        const mDotS = 0.5 * F1 * centerX + 0.5 * F2 * centerY;
+        const temp1 = 0.5 * (F11 + F22);
+        const temp2 = Math.sqrt(Math.max(F12 * F12 + 0.25 * (F11 - F22) * (F11 - F22), 0));
+        const lambda1 = temp1 + temp2;
+        const lambda2 = temp1 - temp2;
+        const lambda3 = F66;
+        const positiveTerm = 1.0 - mDotS;
 
-    if (positiveTerm <= EPS || lambda1 <= EPS || lambda2 <= EPS || lambda3 <= EPS) return null;
+        if (positiveTerm <= EPS || lambda1 <= EPS || lambda2 <= EPS || lambda3 <= EPS) return null;
 
-    const halfA = Math.sqrt(positiveTerm / lambda1);
-    const halfB = Math.sqrt(positiveTerm / lambda2);
-    const halfC = Math.sqrt(positiveTerm / lambda3);
+        const halfA = Math.sqrt(positiveTerm / lambda1);
+        const halfB = Math.sqrt(positiveTerm / lambda2);
+        const halfC = Math.sqrt(positiveTerm / lambda3);
 
-    let alpha = Math.PI * 0.5;
-    if (Math.abs(F12) > EPS) {
-        const ratio = 1.0 + ((F11 - lambda2) * (F11 - lambda2)) / (F12 * F12);
-        alpha = -Math.sign(F12) * Math.asin(1.0 / Math.sqrt(Math.max(ratio, 1.0)));
-    }
+        let alpha = Math.PI * 0.5;
+        if (Math.abs(F12) > EPS) {
+          const ratio = 1.0 + ((F11 - lambda2) * (F11 - lambda2)) / (F12 * F12);
+          alpha = -Math.sign(F12) * Math.asin(1.0 / Math.sqrt(Math.max(ratio, 1.0)));
+        }
 
-    const polarSegments = Math.max(24, Math.floor(quality.directPhiSegments));
-    const azimuthSegments = Math.max(2 * polarSegments, Math.floor(quality.directThetaSegments));
-    const positions = [];
-    const normals = [];
-    const indices = [];
+        const polarSegments = Math.max(24, Math.floor(quality.directPhiSegments));
+        const azimuthSegments = Math.max(2 * polarSegments, Math.floor(quality.directThetaSegments));
+        const positions = [];
+        const normals = [];
+        const indices = [];
 
-    const ca = Math.cos(alpha);
-    const sa = Math.sin(alpha);
+        const ca = Math.cos(alpha);
+        const sa = Math.sin(alpha);
 
-    for (let i = 0; i <= polarSegments; i += 1) {
-        const theta = (Math.PI * i) / polarSegments;
-        const st = Math.sin(theta);
-        const ct = Math.cos(theta);
+        for (let i = 0; i <= polarSegments; i += 1) {
+          const theta = (Math.PI * i) / polarSegments;
+          const st = Math.sin(theta);
+          const ct = Math.cos(theta);
 
-        for (let j = 0; j <= azimuthSegments; j += 1) {
+          for (let j = 0; j <= azimuthSegments; j += 1) {
             const phi = (2.0 * Math.PI * j) / azimuthSegments;
             const cp = Math.cos(phi);
             const sp = Math.sin(phi);
@@ -1075,249 +1072,251 @@ function buildTsaiWuGeometry(mat, quality) {
 
             if (norm > EPS) normals.push(nx / norm, ny / norm, nz / norm);
             else normals.push(0, 0, 1);
+          }
         }
-    }
 
-    const rowSize = azimuthSegments + 1;
-    for (let i = 0; i < polarSegments; i += 1) {
-        for (let j = 0; j < azimuthSegments; j += 1) {
+        const rowSize = azimuthSegments + 1;
+        for (let i = 0; i < polarSegments; i += 1) {
+          for (let j = 0; j < azimuthSegments; j += 1) {
             const a = i * rowSize + j;
             const b = a + 1;
             const cIdx = a + rowSize;
             const d = cIdx + 1;
             indices.push(a, cIdx, b, b, cIdx, d);
+          }
         }
-    }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-    geometry.setIndex(indices);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+        geometry.setIndex(indices);
 
-    const valid = validateTsaiWuGeometry(
-        geometry,
-        {
+        const valid = validateTsaiWuGeometry(
+          geometry,
+          {
             center: { x: centerX, y: centerY, z: 0 },
             semiAxes: { a: halfA, b: halfB, c: halfC },
-            alpha
-        },
-        mat
-    );
-    if (!valid) {
-        geometry.dispose();
-        return null;
-    }
+            alpha,
+          },
+          mat
+        );
+        if (!valid) {
+          geometry.dispose();
+          return null;
+        }
 
-    geometry.computeBoundingSphere();
-    return geometry;
-}
+        geometry.computeBoundingSphere();
+        return geometry;
+      }
 
-function buildVonMisesGeometry(mat, quality) {
-    const r = getIsotropicReferenceStrength(mat);
-    const invR2 = 1.0 / Math.max(r * r, EPS);
-    return buildRotatedEllipsoidGeometry(
-        {
+      function buildVonMisesGeometry(mat, quality) {
+        const r = getIsotropicReferenceStrength(mat);
+        const invR2 = 1.0 / Math.max(r * r, EPS);
+        return buildRotatedEllipsoidGeometry(
+          {
             a11: invR2,
             a22: invR2,
             a12: -0.5 * invR2,
             a33: 3.0 * invR2,
             b1: 0,
             b2: 0,
-            c: -1.0
-        },
-        quality
-    );
-}
+            c: -1.0,
+          },
+          quality
+        );
+      }
 
-function buildTrescaGeometry(mat, quality) {
-    const r = getIsotropicReferenceStrength(mat);
-    const thetaSegments = Math.max(48, quality.trescaThetaSegments);
-    const coneRings = Math.max(8, quality.trescaConeRings);
-    const cylRings = Math.max(8, quality.trescaCylinderRings);
+      function buildTrescaGeometry(mat, quality) {
+        const r = getIsotropicReferenceStrength(mat);
+        const thetaSegments = Math.max(48, quality.trescaThetaSegments);
+        const coneRings = Math.max(8, quality.trescaConeRings);
+        const cylRings = Math.max(8, quality.trescaCylinderRings);
 
-    const uValues = [];
-    for (let i = 0; i <= coneRings; i += 1) {
-        uValues.push(-r + (r * 0.5 * i) / coneRings);
-    }
-    for (let i = 1; i <= cylRings; i += 1) {
-        uValues.push(-0.5 * r + (r * i) / cylRings);
-    }
-    for (let i = 1; i <= coneRings; i += 1) {
-        uValues.push(0.5 * r + (r * 0.5 * i) / coneRings);
-    }
+        const uValues = [];
+        for (let i = 0; i <= coneRings; i += 1) {
+          uValues.push(-r + (r * 0.5 * i) / coneRings);
+        }
+        for (let i = 1; i <= cylRings; i += 1) {
+          uValues.push(-0.5 * r + (r * i) / cylRings);
+        }
+        for (let i = 1; i <= coneRings; i += 1) {
+          uValues.push(0.5 * r + (r * 0.5 * i) / coneRings);
+        }
 
-    const phiSegments = uValues.length - 1;
-    return createIndexedParametricGeometry(thetaSegments, phiSegments, (uNorm, vNorm) => {
-        const theta = uNorm * Math.PI * 2.0;
-        const ringIndex = Math.round(vNorm * phiSegments);
-        const u = uValues[Math.min(Math.max(ringIndex, 0), uValues.length - 1)];
-        const radius = Math.min(0.5 * r, r - Math.abs(u));
-        const v = radius * Math.cos(theta);
-        const w = radius * Math.sin(theta);
-        return new THREE.Vector3(u + v, u - v, w);
-    });
-}
+        const phiSegments = uValues.length - 1;
+        return createIndexedParametricGeometry(thetaSegments, phiSegments, (uNorm, vNorm) => {
+          const theta = uNorm * Math.PI * 2.0;
+          const ringIndex = Math.round(vNorm * phiSegments);
+          const u = uValues[Math.min(Math.max(ringIndex, 0), uValues.length - 1)];
+          const radius = Math.min(0.5 * r, r - Math.abs(u));
+          const v = radius * Math.cos(theta);
+          const w = radius * Math.sin(theta);
+          return new THREE.Vector3(u + v, u - v, w);
+        });
+      }
 
-function buildFibreFailureGeometry(mat) {
-    const s = mat.strength;
-    const xT = Math.max(s.Xt, EPS);
-    const xC = Math.max(s.Xc, EPS);
-    const yMax = Math.max(s.Yt, EPS);
-    const yMin = -Math.max(s.Yc, EPS);
-    const zMax = Math.max(s.S, EPS);
-    const zMin = -Math.max(s.S, EPS);
+      function buildFibreFailureGeometry(mat) {
+        const s = mat.strength;
+        const xT = Math.max(s.Xt, EPS);
+        const xC = Math.max(s.Xc, EPS);
+        const yMax = Math.max(s.Yt, EPS);
+        const yMin = -Math.max(s.Yc, EPS);
+        const zMax = Math.max(s.S, EPS);
+        const zMin = -Math.max(s.S, EPS);
 
-    const positions = [
-        xT, yMin, zMax,
-        xT, yMin, zMin,
-        xT, yMax, zMin,
-        xT, yMax, zMax,
-        -xC, yMin, zMax,
-        -xC, yMax, zMax,
-        -xC, yMax, zMin,
-        -xC, yMin, zMin
-    ];
+        const positions = [
+          xT,
+          yMin,
+          zMax,
+          xT,
+          yMin,
+          zMin,
+          xT,
+          yMax,
+          zMin,
+          xT,
+          yMax,
+          zMax,
+          -xC,
+          yMin,
+          zMax,
+          -xC,
+          yMax,
+          zMax,
+          -xC,
+          yMax,
+          zMin,
+          -xC,
+          yMin,
+          zMin,
+        ];
 
-    const normals = [
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0
-    ];
+        const normals = [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0];
 
-    const indices = [
-        0, 1, 2,
-        0, 2, 3,
-        4, 5, 6,
-        4, 6, 7
-    ];
+        const indices = [0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7];
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-    geometry.setIndex(indices);
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-    return geometry;
-}
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+        geometry.setIndex(indices);
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        return geometry;
+      }
 
-function computePuckSectionCoordinates(mat, puck, quality) {
-    const s = mat.strength;
-    const modeA = Math.max(12, Math.floor(quality.puckModeASegments));
-    const modeB = Math.max(4, Math.floor(quality.puckModeBSegments));
-    const modeC = Math.max(12, Math.floor(quality.puckModeCSegments));
-    const total = modeA + 2 * modeB + modeC;
+      function computePuckSectionCoordinates(mat, puck, quality) {
+        const s = mat.strength;
+        const modeA = Math.max(12, Math.floor(quality.puckModeASegments));
+        const modeB = Math.max(4, Math.floor(quality.puckModeBSegments));
+        const modeC = Math.max(12, Math.floor(quality.puckModeCSegments));
+        const total = modeA + 2 * modeB + modeC;
 
-    const y = new Array(total + 1).fill(0);
-    const z = new Array(total + 1).fill(0);
-    const yNormal = new Array(total + 1).fill(0);
-    const zNormal = new Array(total + 1).fill(0);
+        const y = new Array(total + 1).fill(0);
+        const z = new Array(total + 1).fill(0);
+        const yNormal = new Array(total + 1).fill(0);
+        const zNormal = new Array(total + 1).fill(0);
 
-    const S = Math.max(s.S, EPS);
-    const Yt = Math.max(s.Yt, EPS);
-    const Yc = Math.max(s.Yc, EPS);
+        const S = Math.max(s.S, EPS);
+        const Yt = Math.max(s.Yt, EPS);
+        const Yc = Math.max(s.Yc, EPS);
 
-    const aA = ((1.0 - (puck.pspz * Yt) / S) / Yt) ** 2;
-    const bA = 1.0 / (S * S);
-    const cA = puck.pspz / S;
-    for (let j = 0; j < modeA; j += 1) {
-        const phi = (Math.PI * j) / modeA;
-        const yy = Yt * Math.sin(phi);
-        const zz = Math.sqrt(Math.abs(((1.0 - cA * yy) * (1.0 - cA * yy) - aA * yy * yy) / bA));
-        y[j] = yy;
-        z[j] = phi <= Math.PI * 0.5 ? -zz : zz;
+        const aA = ((1.0 - (puck.pspz * Yt) / S) / Yt) ** 2;
+        const bA = 1.0 / (S * S);
+        const cA = puck.pspz / S;
+        for (let j = 0; j < modeA; j += 1) {
+          const phi = (Math.PI * j) / modeA;
+          const yy = Yt * Math.sin(phi);
+          const zz = Math.sqrt(Math.abs(((1.0 - cA * yy) * (1.0 - cA * yy) - aA * yy * yy) / bA));
+          y[j] = yy;
+          z[j] = phi <= Math.PI * 0.5 ? -zz : zz;
 
-        const denom = Math.sqrt(Math.max(Math.abs(aA * y[j] * y[j] + bA * z[j] * z[j]), EPS));
-        yNormal[j] = aA * y[j] / denom + cA;
-        zNormal[j] = (bA * z[j]) / denom;
-    }
+          const denom = Math.sqrt(Math.max(Math.abs(aA * y[j] * y[j] + bA * z[j] * z[j]), EPS));
+          yNormal[j] = (aA * y[j]) / denom + cA;
+          zNormal[j] = (bA * z[j]) / denom;
+        }
 
-    const deltaY = puck.Rass / modeB;
-    const aB = (puck.pspd / S) ** 2;
-    const bB = 1.0 / (S * S);
-    const cB = puck.pspd / S;
-    for (let j = 0; j < modeB; j += 1) {
-        const yPos = -deltaY * j;
-        const zPosCore = ((1.0 - cB * yPos) * (1.0 - cB * yPos) - aB * yPos * yPos) / bB;
-        y[modeA + j] = yPos;
-        z[modeA + j] = Math.sqrt(Math.max(zPosCore, 0));
+        const deltaY = puck.Rass / modeB;
+        const aB = (puck.pspd / S) ** 2;
+        const bB = 1.0 / (S * S);
+        const cB = puck.pspd / S;
+        for (let j = 0; j < modeB; j += 1) {
+          const yPos = -deltaY * j;
+          const zPosCore = ((1.0 - cB * yPos) * (1.0 - cB * yPos) - aB * yPos * yPos) / bB;
+          y[modeA + j] = yPos;
+          z[modeA + j] = Math.sqrt(Math.max(zPosCore, 0));
 
-        const denomPos = Math.sqrt(Math.max(aB * y[modeA + j] * y[modeA + j] + bB * z[modeA + j] * z[modeA + j], EPS));
-        yNormal[modeA + j] = aB * y[modeA + j] / denomPos + cB;
-        zNormal[modeA + j] = (bB * z[modeA + j]) / denomPos;
+          const denomPos = Math.sqrt(Math.max(aB * y[modeA + j] * y[modeA + j] + bB * z[modeA + j] * z[modeA + j], EPS));
+          yNormal[modeA + j] = (aB * y[modeA + j]) / denomPos + cB;
+          zNormal[modeA + j] = (bB * z[modeA + j]) / denomPos;
 
-        const yNeg = -puck.Rass + deltaY * j;
-        const zNegCore = ((1.0 - cB * yNeg) * (1.0 - cB * yNeg) - aB * yNeg * yNeg) / bB;
-        const negIdx = modeA + modeB + modeC + j;
-        y[negIdx] = yNeg;
-        z[negIdx] = -Math.sqrt(Math.max(zNegCore, 0));
+          const yNeg = -puck.Rass + deltaY * j;
+          const zNegCore = ((1.0 - cB * yNeg) * (1.0 - cB * yNeg) - aB * yNeg * yNeg) / bB;
+          const negIdx = modeA + modeB + modeC + j;
+          y[negIdx] = yNeg;
+          z[negIdx] = -Math.sqrt(Math.max(zNegCore, 0));
 
-        const denomNeg = Math.sqrt(Math.max(aB * y[negIdx] * y[negIdx] + bB * z[negIdx] * z[negIdx], EPS));
-        yNormal[negIdx] = aB * y[negIdx] / denomNeg + cB;
-        zNormal[negIdx] = (bB * z[negIdx]) / denomNeg;
-    }
+          const denomNeg = Math.sqrt(Math.max(aB * y[negIdx] * y[negIdx] + bB * z[negIdx] * z[negIdx], EPS));
+          yNormal[negIdx] = (aB * y[negIdx]) / denomNeg + cB;
+          zNormal[negIdx] = (bB * z[negIdx]) / denomNeg;
+        }
 
-    const aC = 1.0 / (Yc * Yc);
-    const bC = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
-    const cC = -1.0 / Yc;
-    for (let j = 0; j < modeC; j += 1) {
-        const phi = (Math.PI * j) / modeC;
-        const yy = -(Yc - puck.Rass) * Math.sin(phi) - puck.Rass;
-        const zzCore = (cC * yy - aC * yy * yy) / bC;
-        const zz = Math.sqrt(Math.max(zzCore, 0));
-        const idx = modeA + modeB + j;
-        y[idx] = yy;
-        z[idx] = phi <= Math.PI * 0.5 ? zz : -zz;
+        const aC = 1.0 / (Yc * Yc);
+        const bC = (0.5 / ((1.0 + puck.Pssd) * S)) ** 2;
+        const cC = -1.0 / Yc;
+        for (let j = 0; j < modeC; j += 1) {
+          const phi = (Math.PI * j) / modeC;
+          const yy = -(Yc - puck.Rass) * Math.sin(phi) - puck.Rass;
+          const zzCore = (cC * yy - aC * yy * yy) / bC;
+          const zz = Math.sqrt(Math.max(zzCore, 0));
+          const idx = modeA + modeB + j;
+          y[idx] = yy;
+          z[idx] = phi <= Math.PI * 0.5 ? zz : -zz;
 
-        yNormal[idx] = 2.0 * y[idx] / (Yc * Yc) + 1.0 / Yc;
-        zNormal[idx] = z[idx] / (2.0 * (1.0 + puck.Pssd) * (1.0 + puck.Pssd) * S * S);
-    }
+          yNormal[idx] = (2.0 * y[idx]) / (Yc * Yc) + 1.0 / Yc;
+          zNormal[idx] = z[idx] / (2.0 * (1.0 + puck.Pssd) * (1.0 + puck.Pssd) * S * S);
+        }
 
-    y[total] = y[0];
-    z[total] = z[0];
-    yNormal[total] = yNormal[0];
-    zNormal[total] = zNormal[0];
-    return { y, z, yNormal, zNormal, total };
-}
+        y[total] = y[0];
+        z[total] = z[0];
+        yNormal[total] = yNormal[0];
+        zNormal[total] = zNormal[0];
+        return { y, z, yNormal, zNormal, total };
+      }
 
-function buildPuckGeometry(mat, quality) {
-    const puck = getPuckParameters(mat);
-    const section = computePuckSectionCoordinates(mat, puck, quality);
+      function buildPuckGeometry(mat, quality) {
+        const puck = getPuckParameters(mat);
+        const section = computePuckSectionCoordinates(mat, puck, quality);
 
-    const s = mat.strength;
-    const Xt = Math.max(s.Xt, EPS);
-    const Xc = Math.max(s.Xc, EPS);
-    const numFiberSegments = Math.max(20, Math.floor(quality.puckFiberSegments));
-    const numFaceSegments = Math.max(2, Math.floor(quality.puckFaceSegments));
+        const s = mat.strength;
+        const Xt = Math.max(s.Xt, EPS);
+        const Xc = Math.max(s.Xc, EPS);
+        const numFiberSegments = Math.max(20, Math.floor(quality.puckFiberSegments));
+        const numFaceSegments = Math.max(2, Math.floor(quality.puckFaceSegments));
 
-    function normalizeTriplet(x, y, z) {
-        const len = Math.hypot(x, y, z);
-        if (len > EPS) return [x / len, y / len, z / len];
-        return [0, 0, 1];
-    }
+        function normalizeTriplet(x, y, z) {
+          const len = Math.hypot(x, y, z);
+          if (len > EPS) return [x / len, y / len, z / len];
+          return [0, 0, 1];
+        }
 
-    function pushTriangle(buffers, p0, p1, p2, n0, n1, n2) {
-        buffers.positions.push(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
-        buffers.normals.push(n0[0], n0[1], n0[2], n1[0], n1[1], n1[2], n2[0], n2[1], n2[2]);
-    }
+        function pushTriangle(buffers, p0, p1, p2, n0, n1, n2) {
+          buffers.positions.push(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
+          buffers.normals.push(n0[0], n0[1], n0[2], n1[0], n1[1], n1[2], n2[0], n2[1], n2[2]);
+        }
 
-    function pushQuad(buffers, p0, p1, p2, p3, n0, n1, n2, n3) {
-        pushTriangle(buffers, p0, p1, p2, n0, n1, n2);
-        pushTriangle(buffers, p0, p2, p3, n0, n2, n3);
-    }
+        function pushQuad(buffers, p0, p1, p2, p3, n0, n1, n2, n3) {
+          pushTriangle(buffers, p0, p1, p2, n0, n1, n2);
+          pushTriangle(buffers, p0, p2, p3, n0, n2, n3);
+        }
 
-    const buffers = { positions: [], normals: [] };
-    const deltaX = (Xt + Xc) / numFiberSegments;
+        const buffers = { positions: [], normals: [] };
+        const deltaX = (Xt + Xc) / numFiberSegments;
 
-    for (let i = 0; i < numFiberSegments; i += 1) {
-        const x0 = i * deltaX - Xc;
-        const x1 = (i + 1) * deltaX - Xc;
+        for (let i = 0; i < numFiberSegments; i += 1) {
+          const x0 = i * deltaX - Xc;
+          const x1 = (i + 1) * deltaX - Xc;
 
-        for (let j = 0; j < section.total; j += 1) {
+          for (let j = 0; j < section.total; j += 1) {
             const p0 = [x0, section.y[j], section.z[j]];
             const p1 = [x0, section.y[j + 1], section.z[j + 1]];
             const p2 = [x1, section.y[j + 1], section.z[j + 1]];
@@ -1329,234 +1328,219 @@ function buildPuckGeometry(mat, quality) {
             const n3 = normalizeTriplet(0, section.yNormal[j], section.zNormal[j]);
 
             pushQuad(buffers, p0, p1, p2, p3, n0, n1, n2, n3);
+          }
         }
-    }
 
-    const deltaFace = 1.0 / numFaceSegments;
-    for (let i = 0; i < numFaceSegments; i += 1) {
-        const r0 = deltaFace * i;
-        const r1 = deltaFace * (i + 1);
-        for (let j = 0; j < section.total; j += 1) {
+        const deltaFace = 1.0 / numFaceSegments;
+        for (let i = 0; i < numFaceSegments; i += 1) {
+          const r0 = deltaFace * i;
+          const r1 = deltaFace * (i + 1);
+          for (let j = 0; j < section.total; j += 1) {
             const p0 = [Xt, r1 * section.y[j], r1 * section.z[j]];
             const p1 = [Xt, r1 * section.y[j + 1], r1 * section.z[j + 1]];
             const p2 = [Xt, r0 * section.y[j + 1], r0 * section.z[j + 1]];
             const p3 = [Xt, r0 * section.y[j], r0 * section.z[j]];
             pushQuad(buffers, p0, p1, p2, p3, [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]);
+          }
         }
-    }
 
-    for (let i = 0; i < numFaceSegments; i += 1) {
-        const r0 = deltaFace * i;
-        const r1 = deltaFace * (i + 1);
-        for (let j = 0; j < section.total; j += 1) {
+        for (let i = 0; i < numFaceSegments; i += 1) {
+          const r0 = deltaFace * i;
+          const r1 = deltaFace * (i + 1);
+          for (let j = 0; j < section.total; j += 1) {
             const p0 = [-Xc, r0 * section.y[j], r0 * section.z[j]];
             const p1 = [-Xc, r0 * section.y[j + 1], r0 * section.z[j + 1]];
             const p2 = [-Xc, r1 * section.y[j + 1], r1 * section.z[j + 1]];
             const p3 = [-Xc, r1 * section.y[j], r1 * section.z[j]];
             pushQuad(buffers, p0, p1, p2, p3, [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0]);
+          }
         }
-    }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(buffers.normals, 3));
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-    return geometry;
-}
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
+        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(buffers.normals, 3));
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        return geometry;
+      }
 
-function buildHashinGeometry(mat, quality) {
-    const s = mat.strength;
-    const sigma1Breaks = [-Math.max(s.Xc, EPS), 0, Math.max(s.Xt, EPS)];
-    const sigma2Breaks = [-Math.max(s.Yc, EPS), 0, Math.max(s.Yt, EPS)];
-    const segX = Math.max(8, Math.floor(quality.hashinIntervalSegmentsX));
-    const segY = Math.max(6, Math.floor(quality.hashinIntervalSegmentsY));
-    const wallSeg = Math.max(8, Math.floor(quality.hashinWallSegments));
+      function buildHashinGeometry(mat, quality) {
+        const s = mat.strength;
+        const sigma1Breaks = [-Math.max(s.Xc, EPS), 0, Math.max(s.Xt, EPS)];
+        const sigma2Breaks = [-Math.max(s.Yc, EPS), 0, Math.max(s.Yt, EPS)];
+        const segX = Math.max(8, Math.floor(quality.hashinIntervalSegmentsX));
+        const segY = Math.max(6, Math.floor(quality.hashinIntervalSegmentsY));
+        const wallSeg = Math.max(8, Math.floor(quality.hashinWallSegments));
 
-    const buffers = { positions: [], indices: [] };
+        const buffers = { positions: [], indices: [] };
 
-    function addIntervalPatch(x0, x1, y0, y1, tauSign) {
-        appendGridPatch(
+        function addIntervalPatch(x0, x1, y0, y1, tauSign) {
+          appendGridPatch(
             buffers,
             segX,
             segY,
             (u, v) => {
-                const sigma1 = x0 + (x1 - x0) * u;
-                const sigma2 = y0 + (y1 - y0) * v;
-                const tau = tauSign * computeHashinTauCap(sigma1, sigma2, mat);
-                return new THREE.Vector3(sigma1, sigma2, tau);
+              const sigma1 = x0 + (x1 - x0) * u;
+              const sigma2 = y0 + (y1 - y0) * v;
+              const tau = tauSign * computeHashinTauCap(sigma1, sigma2, mat);
+              return new THREE.Vector3(sigma1, sigma2, tau);
             },
             tauSign < 0
-        );
-    }
+          );
+        }
 
-    // Hashin desktop-like branch intervals: (fiber tension/compression) x (matrix tension/compression)
-    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], +1);
-    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], +1);
-    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], +1);
-    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], +1);
+        // Hashin desktop-like branch intervals: (fiber tension/compression) x (matrix tension/compression)
+        addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], +1);
+        addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], +1);
+        addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], +1);
+        addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], +1);
 
-    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], -1);
-    addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], -1);
-    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], -1);
-    addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], -1);
+        addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[0], sigma2Breaks[1], -1);
+        addIntervalPatch(sigma1Breaks[0], sigma1Breaks[1], sigma2Breaks[1], sigma2Breaks[2], -1);
+        addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[0], sigma2Breaks[1], -1);
+        addIntervalPatch(sigma1Breaks[1], sigma1Breaks[2], sigma2Breaks[1], sigma2Breaks[2], -1);
 
-    // Closure wall on fiber-compression boundary where tau can stay finite.
-    appendGridPatch(
-        buffers,
-        segY,
-        wallSeg,
-        (u, v) => {
+        // Closure wall on fiber-compression boundary where tau can stay finite.
+        appendGridPatch(
+          buffers,
+          segY,
+          wallSeg,
+          (u, v) => {
             const sigma1 = sigma1Breaks[0];
             const sigma2 = sigma2Breaks[0] + (sigma2Breaks[2] - sigma2Breaks[0]) * u;
             const cap = computeHashinTauCap(sigma1, sigma2, mat);
             const tau = cap * (1.0 - 2.0 * v);
             return new THREE.Vector3(sigma1, sigma2, tau);
-        },
-        false
-    );
+          },
+          false
+        );
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
-    geometry.setIndex(buffers.indices);
-    geometry.computeVertexNormals();
-    return geometry;
-}
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(buffers.positions, 3));
+        geometry.setIndex(buffers.indices);
+        geometry.computeVertexNormals();
+        return geometry;
+      }
 
-function computeTriangleArea(pointA, pointB, pointC) {
-    const abx = pointB[0] - pointA[0];
-    const aby = pointB[1] - pointA[1];
-    const abz = pointB[2] - pointA[2];
+      function computeTriangleArea(pointA, pointB, pointC) {
+        const abx = pointB[0] - pointA[0];
+        const aby = pointB[1] - pointA[1];
+        const abz = pointB[2] - pointA[2];
 
-    const acx = pointC[0] - pointA[0];
-    const acy = pointC[1] - pointA[1];
-    const acz = pointC[2] - pointA[2];
+        const acx = pointC[0] - pointA[0];
+        const acy = pointC[1] - pointA[1];
+        const acz = pointC[2] - pointA[2];
 
-    const cx = aby * acz - abz * acy;
-    const cy = abz * acx - abx * acz;
-    const cz = abx * acy - aby * acx;
-    return 0.5 * Math.hypot(cx, cy, cz);
-}
+        const cx = aby * acz - abz * acy;
+        const cy = abz * acx - abx * acz;
+        const cz = abx * acy - aby * acx;
+        return 0.5 * Math.hypot(cx, cy, cz);
+      }
 
-function getElamxStyleNormal(pointA, pointB, pointC) {
-    const xvecX = pointB[0] - pointA[0];
-    const xvecY = pointB[1] - pointA[1];
-    const xvecZ = pointB[2] - pointA[2];
+      function getElamxStyleNormal(pointA, pointB, pointC) {
+        const xvecX = pointB[0] - pointA[0];
+        const xvecY = pointB[1] - pointA[1];
+        const xvecZ = pointB[2] - pointA[2];
 
-    const yvecX = pointC[0] - pointA[0];
-    const yvecY = pointC[1] - pointA[1];
-    const yvecZ = pointC[2] - pointA[2];
+        const yvecX = pointC[0] - pointA[0];
+        const yvecY = pointC[1] - pointA[1];
+        const yvecZ = pointC[2] - pointA[2];
 
-    const nx = -(xvecY * yvecZ - xvecZ * yvecY);
-    const ny = -(xvecZ * yvecX - xvecX * yvecZ);
-    const nz = -(xvecX * yvecY - xvecY * yvecX);
+        const nx = -(xvecY * yvecZ - xvecZ * yvecY);
+        const ny = -(xvecZ * yvecX - xvecX * yvecZ);
+        const nz = -(xvecX * yvecY - xvecY * yvecX);
 
-    const len = Math.hypot(nx, ny, nz);
-    if (len > EPS) return [nx / len, ny / len, nz / len];
-    return [0, 0, 1];
-}
+        const len = Math.hypot(nx, ny, nz);
+        if (len > EPS) return [nx / len, ny / len, nz / len];
+        return [0, 0, 1];
+      }
 
-function squaredDistance(pointA, pointB) {
-    const dx = pointB[0] - pointA[0];
-    const dy = pointB[1] - pointA[1];
-    const dz = pointB[2] - pointA[2];
-    return dx * dx + dy * dy + dz * dz;
-}
+      function squaredDistance(pointA, pointB) {
+        const dx = pointB[0] - pointA[0];
+        const dy = pointB[1] - pointA[1];
+        const dz = pointB[2] - pointA[2];
+        return dx * dx + dy * dy + dz * dz;
+      }
 
-function buildReserveFactorRadialGeometry(criterion, mat, quality) {
-    const numPointsPhi = Math.max(20, Math.floor(quality.radialPhiSegments));
-    const numPointsTheta = Math.max(2 * numPointsPhi, Math.floor(quality.radialThetaSegments));
+      function buildReserveFactorRadialGeometry(criterion, mat, quality) {
+        const numPointsPhi = Math.max(20, Math.floor(quality.radialPhiSegments));
+        const numPointsTheta = Math.max(2 * numPointsPhi, Math.floor(quality.radialThetaSegments));
 
-    const deltaTheta = Math.PI / Math.max(numPointsTheta - 1, 1);
-    const deltaPhi = (2.0 * Math.PI) / Math.max(numPointsPhi - 1, 1);
+        const deltaTheta = Math.PI / Math.max(numPointsTheta - 1, 1);
+        const deltaPhi = (2.0 * Math.PI) / Math.max(numPointsPhi - 1, 1);
 
-    const scaleX = 0.5 * (mat.strength.Xt + mat.strength.Xc);
-    const scaleYZ = (mat.strength.Yt + mat.strength.Yc + mat.strength.S) / 3.0;
-    const transX = 0.5 * (mat.strength.Xt - mat.strength.Xc);
+        const scaleX = 0.5 * (mat.strength.Xt + mat.strength.Xc);
+        const scaleYZ = (mat.strength.Yt + mat.strength.Yc + mat.strength.S) / 3.0;
+        const transX = 0.5 * (mat.strength.Xt - mat.strength.Xc);
 
-    const points = new Array(numPointsTheta);
-    let rfMax = 0;
+        const points = new Array(numPointsTheta);
+        let rfMax = 0;
 
-    for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
-        const theta = iTheta * deltaTheta;
-        const sinTheta = Math.sin(theta);
-        const sigma1Trial = Math.cos(theta) * scaleX + transX;
+        for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
+          const theta = iTheta * deltaTheta;
+          const sinTheta = Math.sin(theta);
+          const sigma1Trial = Math.cos(theta) * scaleX + transX;
 
-        points[iTheta] = new Array(numPointsPhi);
+          points[iTheta] = new Array(numPointsPhi);
 
-        for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
+          for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
             const phi = iPhi * deltaPhi;
             const sigma2Trial = sinTheta * Math.cos(phi) * scaleYZ;
             const tau12Trial = sinTheta * Math.sin(phi) * scaleYZ;
 
-            const rfRaw = criterion.computeReserveFactor(
-                { sigma1: sigma1Trial, sigma2: sigma2Trial, tau12: tau12Trial },
-                mat
-            );
+            const rfRaw = criterion.computeReserveFactor({ sigma1: sigma1Trial, sigma2: sigma2Trial, tau12: tau12Trial }, mat);
 
             const rfValid = Number.isFinite(rfRaw) && rfRaw > EPS;
             if (rfValid) {
-                if (rfRaw > rfMax) rfMax = rfRaw;
+              if (rfRaw > rfMax) rfMax = rfRaw;
             }
 
             points[iTheta][iPhi] = {
-                sigma1Trial,
-                sigma2Trial,
-                tau12Trial,
-                rfRaw: rfValid ? rfRaw : Number.NaN,
-                point: null
+              sigma1Trial,
+              sigma2Trial,
+              tau12Trial,
+              rfRaw: rfValid ? rfRaw : Number.NaN,
+              point: null,
             };
+          }
         }
-    }
 
-    const rfFallback = Number.isFinite(rfMax) && rfMax > EPS ? rfMax : 1.0;
+        const rfFallback = Number.isFinite(rfMax) && rfMax > EPS ? rfMax : 1.0;
 
-    for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
-        for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
+        for (let iTheta = 0; iTheta < numPointsTheta; iTheta += 1) {
+          for (let iPhi = 0; iPhi < numPointsPhi; iPhi += 1) {
             const sample = points[iTheta][iPhi];
             const rfUse = Number.isFinite(sample.rfRaw) && sample.rfRaw > EPS ? sample.rfRaw : rfFallback;
 
-            sample.point = [
-                sample.sigma1Trial * rfUse,
-                sample.sigma2Trial * rfUse,
-                sample.tau12Trial * rfUse
-            ];
+            sample.point = [sample.sigma1Trial * rfUse, sample.sigma2Trial * rfUse, sample.tau12Trial * rfUse];
+          }
         }
-    }
 
-    const positions = [];
-    const normals = [];
-    const scaleRef = Math.max(getMaxStrength(mat), 1.0);
-    const edgeTolSq = Math.max(scaleRef * scaleRef * 1e-16, 1e-20);
-    const areaTol = Math.max(scaleRef * scaleRef * 1e-14, 1e-18);
+        const positions = [];
+        const normals = [];
+        const scaleRef = Math.max(getMaxStrength(mat), 1.0);
+        const edgeTolSq = Math.max(scaleRef * scaleRef * 1e-16, 1e-20);
+        const areaTol = Math.max(scaleRef * scaleRef * 1e-14, 1e-18);
 
-    function tryAddTriangle(pointA, pointB, pointC, normalA, normalB, normalC) {
-        const abSq = squaredDistance(pointA, pointB);
-        const bcSq = squaredDistance(pointB, pointC);
-        const caSq = squaredDistance(pointC, pointA);
-        if (abSq <= edgeTolSq || bcSq <= edgeTolSq || caSq <= edgeTolSq) {
+        function tryAddTriangle(pointA, pointB, pointC, normalA, normalB, normalC) {
+          const abSq = squaredDistance(pointA, pointB);
+          const bcSq = squaredDistance(pointB, pointC);
+          const caSq = squaredDistance(pointC, pointA);
+          if (abSq <= edgeTolSq || bcSq <= edgeTolSq || caSq <= edgeTolSq) {
             return;
-        }
+          }
 
-        const area = computeTriangleArea(pointA, pointB, pointC);
-        if (!Number.isFinite(area) || area <= areaTol) {
+          const area = computeTriangleArea(pointA, pointB, pointC);
+          if (!Number.isFinite(area) || area <= areaTol) {
             return;
+          }
+
+          positions.push(pointA[0], pointA[1], pointA[2], pointB[0], pointB[1], pointB[2], pointC[0], pointC[1], pointC[2]);
+          normals.push(normalA[0], normalA[1], normalA[2], normalB[0], normalB[1], normalB[2], normalC[0], normalC[1], normalC[2]);
         }
 
-        positions.push(
-            pointA[0], pointA[1], pointA[2],
-            pointB[0], pointB[1], pointB[2],
-            pointC[0], pointC[1], pointC[2]
-        );
-        normals.push(
-            normalA[0], normalA[1], normalA[2],
-            normalB[0], normalB[1], normalB[2],
-            normalC[0], normalC[1], normalC[2]
-        );
-    }
-
-    for (let iTheta = 0; iTheta < numPointsTheta - 1; iTheta += 1) {
-        for (let iPhi = 0; iPhi < numPointsPhi - 1; iPhi += 1) {
+        for (let iTheta = 0; iTheta < numPointsTheta - 1; iTheta += 1) {
+          for (let iPhi = 0; iPhi < numPointsPhi - 1; iPhi += 1) {
             const point1 = points[iTheta][iPhi].point;
             const point2 = points[iTheta][iPhi + 1].point;
             const point3 = points[iTheta + 1][iPhi + 1].point;
@@ -1570,313 +1554,313 @@ function buildReserveFactorRadialGeometry(criterion, mat, quality) {
             // eLamX-style quad triangulation: (p4,p3,p2) and (p4,p2,p1)
             tryAddTriangle(point4, point3, point2, normal4, normal3, normal2);
             tryAddTriangle(point4, point2, point1, normal4, normal2, normal1);
+          }
         }
-    }
 
-    if (positions.length === 0) return null;
+        if (positions.length === 0) return null;
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
 
-    return geometry;
-}
+        return geometry;
+      }
 
-function evaluateCriterionFailureIndex(criterion, stress, mat) {
-    if (typeof criterion.computeFailureIndex === "function") {
-        const fi = criterion.computeFailureIndex(stress, mat);
-        return Number.isFinite(fi) ? Math.max(fi, 0) : Number.POSITIVE_INFINITY;
-    }
-    if (typeof criterion.computeReserveFactor === "function") {
-        const rf = criterion.computeReserveFactor(stress, mat);
-        if (!Number.isFinite(rf) || rf <= EPS) return Number.POSITIVE_INFINITY;
-        return 1.0 / rf;
-    }
-    return Number.POSITIVE_INFINITY;
-}
+      function evaluateCriterionFailureIndex(criterion, stress, mat) {
+        if (typeof criterion.computeFailureIndex === "function") {
+          const fi = criterion.computeFailureIndex(stress, mat);
+          return Number.isFinite(fi) ? Math.max(fi, 0) : Number.POSITIVE_INFINITY;
+        }
+        if (typeof criterion.computeReserveFactor === "function") {
+          const rf = criterion.computeReserveFactor(stress, mat);
+          if (!Number.isFinite(rf) || rf <= EPS) return Number.POSITIVE_INFINITY;
+          return 1.0 / rf;
+        }
+        return Number.POSITIVE_INFINITY;
+      }
 
-function sampleCriterionFieldToMarchingCubes(criterion, marchingObject, mat) {
-    const size = marchingObject.size;
-    const size2 = size * size;
-    const clamp = surfaceConfig.marchingFieldClamp;
-    const range = getMaxStrength(mat) * surfaceConfig.marchingRangeFactor;
+      function sampleCriterionFieldToMarchingCubes(criterion, marchingObject, mat) {
+        const size = marchingObject.size;
+        const size2 = size * size;
+        const clamp = surfaceConfig.marchingFieldClamp;
+        const range = getMaxStrength(mat) * surfaceConfig.marchingRangeFactor;
 
-    for (let z = 0; z < size; z += 1) {
-        const nz = (z / (size - 1)) * 2 - 1;
-        const tau12 = nz * range;
-        const zOffset = z * size2;
+        for (let z = 0; z < size; z += 1) {
+          const nz = (z / (size - 1)) * 2 - 1;
+          const tau12 = nz * range;
+          const zOffset = z * size2;
 
-        for (let y = 0; y < size; y += 1) {
+          for (let y = 0; y < size; y += 1) {
             const ny = (y / (size - 1)) * 2 - 1;
             const sigma2 = ny * range;
             const yzOffset = zOffset + y * size;
 
             for (let x = 0; x < size; x += 1) {
-                const nx = (x / (size - 1)) * 2 - 1;
-                const sigma1 = nx * range;
-                const fi = evaluateCriterionFailureIndex(criterion, { sigma1, sigma2, tau12 }, mat);
-                let fieldValue = 1.0 - fi;
-                if (!Number.isFinite(fieldValue)) fieldValue = -clamp;
-                fieldValue = Math.max(-clamp, Math.min(clamp, fieldValue));
-                marchingObject.field[yzOffset + x] = fieldValue;
+              const nx = (x / (size - 1)) * 2 - 1;
+              const sigma1 = nx * range;
+              const fi = evaluateCriterionFailureIndex(criterion, { sigma1, sigma2, tau12 }, mat);
+              let fieldValue = 1.0 - fi;
+              if (!Number.isFinite(fieldValue)) fieldValue = -clamp;
+              fieldValue = Math.max(-clamp, Math.min(clamp, fieldValue));
+              marchingObject.field[yzOffset + x] = fieldValue;
             }
+          }
         }
-    }
-}
+      }
 
-function buildSurfaceGeometryMarching(criterion, mat) {
-    const mc = new THREE.MarchingCubes(surfaceConfig.marchingResolution, new THREE.MeshBasicMaterial(), false, false);
-    mc.isolation = 0;
-    mc.reset();
-    sampleCriterionFieldToMarchingCubes(criterion, mc, mat);
-    const geometry = mc.generateBufferGeometry();
-    geometry.computeVertexNormals();
-    return geometry;
-}
+      function buildSurfaceGeometryMarching(criterion, mat) {
+        const mc = new THREE.MarchingCubes(surfaceConfig.marchingResolution, new THREE.MeshBasicMaterial(), false, false);
+        mc.isolation = 0;
+        mc.reset();
+        sampleCriterionFieldToMarchingCubes(criterion, mc, mat);
+        const geometry = mc.generateBufferGeometry();
+        geometry.computeVertexNormals();
+        return geometry;
+      }
 
-const CRITERIA = [
-    {
-        id: "max_strain",
-        name: "Maximum Strain",
-        category: "general",
-        color: "#63b3ff",
-        strategy: "radial_rf",
-        computeReserveFactor: computeMaximumStrainReserveFactor,
-        computeFailureIndex: computeMaximumStrainFailureIndex
-    },
-    {
-        id: "max_stress",
-        name: "Maximum Stress",
-        category: "general",
-        color: "#9fb0c1",
-        strategy: "direct",
-        buildGeometry: buildMaxStressGeometry,
-        computeFailureIndex: computeMaximumStressFailureIndex,
-        computeReserveFactor: computeMaximumStressReserveFactor
-    },
-    {
-        id: "hashin",
-        name: "Hashin",
-        category: "composite",
-        color: "#f472b6",
-        strategy: "direct",
-        buildGeometry: buildHashinGeometry,
-        computeReserveFactor: computeHashinReserveFactor,
-        computeFailureIndex: computeHashinFailureIndex
-    },
-    {
-        id: "tsai_hill",
-        name: "Tsai-Hill",
-        category: "composite",
-        color: "#4dd6c2",
-        strategy: "radial_rf",
-        computeReserveFactor: computeTsaiHillReserveFactor,
-        computeFailureIndex: computeTsaiHillFailureIndex
-    },
-    {
-        id: "tsai_wu",
-        name: "Tsai-Wu",
-        category: "composite",
-        color: "#8ab6ff",
-        strategy: "direct",
-        renderOrder: 10,
-        showEdges: false,
-        buildGeometry: buildTsaiWuGeometry,
-        computeReserveFactor: computeTsaiWuReserveFactor,
-        computeFailureIndex: computeTsaiWuFailureIndex
-    },
-    {
-        id: "puck",
-        name: "Puck",
-        category: "composite",
-        color: "#a3e635",
-        strategy: "direct",
-        buildGeometry: buildPuckGeometry,
-        computeReserveFactor: computePuckReserveFactor,
-        computeFailureIndex: computePuckFailureIndex
-    },
-    {
-        id: "fibre_failure",
-        name: "Fibre Failure",
-        category: "composite",
-        color: "#fb7185",
-        strategy: "direct",
-        buildGeometry: buildFibreFailureGeometry,
-        computeReserveFactor: computeFibreFailureReserveFactor,
-        computeFailureIndex: computeFibreFailureIndex
-    },
-    {
-        id: "tresca",
-        name: "Tresca",
-        category: "general",
-        color: "#ffad5a",
-        strategy: "direct",
-        buildGeometry: buildTrescaGeometry,
-        computeReserveFactor: computeTrescaReserveFactor,
-        computeFailureIndex: computeTrescaFailureIndex
-    },
-    {
-        id: "von_mises",
-        name: "von Mises",
-        category: "general",
-        color: "#ffe06e",
-        strategy: "direct",
-        buildGeometry: buildVonMisesGeometry,
-        computeReserveFactor: computeVonMisesReserveFactor,
-        computeFailureIndex: computeVonMisesFailureIndex
-    }
-];
+      const CRITERIA = [
+        {
+          id: "max_strain",
+          name: "Maximum Strain",
+          category: "general",
+          color: "#63b3ff",
+          strategy: "radial_rf",
+          computeReserveFactor: computeMaximumStrainReserveFactor,
+          computeFailureIndex: computeMaximumStrainFailureIndex,
+        },
+        {
+          id: "max_stress",
+          name: "Maximum Stress",
+          category: "general",
+          color: "#9fb0c1",
+          strategy: "direct",
+          buildGeometry: buildMaxStressGeometry,
+          computeFailureIndex: computeMaximumStressFailureIndex,
+          computeReserveFactor: computeMaximumStressReserveFactor,
+        },
+        {
+          id: "hashin",
+          name: "Hashin",
+          category: "composite",
+          color: "#f472b6",
+          strategy: "direct",
+          buildGeometry: buildHashinGeometry,
+          computeReserveFactor: computeHashinReserveFactor,
+          computeFailureIndex: computeHashinFailureIndex,
+        },
+        {
+          id: "tsai_hill",
+          name: "Tsai-Hill",
+          category: "composite",
+          color: "#4dd6c2",
+          strategy: "radial_rf",
+          computeReserveFactor: computeTsaiHillReserveFactor,
+          computeFailureIndex: computeTsaiHillFailureIndex,
+        },
+        {
+          id: "tsai_wu",
+          name: "Tsai-Wu",
+          category: "composite",
+          color: "#8ab6ff",
+          strategy: "direct",
+          renderOrder: 10,
+          showEdges: false,
+          buildGeometry: buildTsaiWuGeometry,
+          computeReserveFactor: computeTsaiWuReserveFactor,
+          computeFailureIndex: computeTsaiWuFailureIndex,
+        },
+        {
+          id: "puck",
+          name: "Puck",
+          category: "composite",
+          color: "#a3e635",
+          strategy: "direct",
+          buildGeometry: buildPuckGeometry,
+          computeReserveFactor: computePuckReserveFactor,
+          computeFailureIndex: computePuckFailureIndex,
+        },
+        {
+          id: "fibre_failure",
+          name: "Fibre Failure",
+          category: "composite",
+          color: "#fb7185",
+          strategy: "direct",
+          buildGeometry: buildFibreFailureGeometry,
+          computeReserveFactor: computeFibreFailureReserveFactor,
+          computeFailureIndex: computeFibreFailureIndex,
+        },
+        {
+          id: "tresca",
+          name: "Tresca",
+          category: "general",
+          color: "#ffad5a",
+          strategy: "direct",
+          buildGeometry: buildTrescaGeometry,
+          computeReserveFactor: computeTrescaReserveFactor,
+          computeFailureIndex: computeTrescaFailureIndex,
+        },
+        {
+          id: "von_mises",
+          name: "von Mises",
+          category: "general",
+          color: "#ffe06e",
+          strategy: "direct",
+          buildGeometry: buildVonMisesGeometry,
+          computeReserveFactor: computeVonMisesReserveFactor,
+          computeFailureIndex: computeVonMisesFailureIndex,
+        },
+      ];
 
-const initialActiveCriteria = ["puck"];
-const activeCriteria = new Set(initialActiveCriteria);
-let displayScale = getDisplayScale(material);
+      const initialActiveCriteria = ["puck"];
+      const activeCriteria = new Set(initialActiveCriteria);
+      let displayScale = getDisplayScale(material);
 
-const geometryCache = new Map();
-const meshCache = new Map();
+      const geometryCache = new Map();
+      const meshCache = new Map();
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1a1a);
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x1a1a1a);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100);
-camera.position.set(3.0, 2.0, 2.7);
-camera.lookAt(0, 0, 0);
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100);
+      camera.position.set(3.0, 2.0, 2.7);
+      camera.lookAt(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById("container").appendChild(renderer.domElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.getElementById("container").appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.maxDistance = 24;
-controls.minDistance = 0.5;
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.maxDistance = 24;
+      controls.minDistance = 0.5;
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.48));
-const lightA = new THREE.PointLight(0xffffff, 0.62);
-lightA.position.set(4400, 4200, 4000);
-scene.add(lightA);
-const lightB = new THREE.PointLight(0x9fd7ff, 0.24);
-lightB.position.set(-3800, -2400, 3800);
-scene.add(lightB);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.48));
+      const lightA = new THREE.PointLight(0xffffff, 0.62);
+      lightA.position.set(4400, 4200, 4000);
+      scene.add(lightA);
+      const lightB = new THREE.PointLight(0x9fd7ff, 0.24);
+      lightB.position.set(-3800, -2400, 3800);
+      scene.add(lightB);
 
-const scaledContentGroup = new THREE.Group();
-scaledContentGroup.scale.setScalar(displayScale);
-scaledContentGroup.rotation.x = -0.5 * Math.PI;
-scene.add(scaledContentGroup);
+      const scaledContentGroup = new THREE.Group();
+      scaledContentGroup.scale.setScalar(displayScale);
+      scaledContentGroup.rotation.x = -0.5 * Math.PI;
+      scene.add(scaledContentGroup);
 
-const axesGroup = new THREE.Group();
-const surfaceGroup = new THREE.Group();
-scaledContentGroup.add(axesGroup);
-scaledContentGroup.add(surfaceGroup);
+      const axesGroup = new THREE.Group();
+      const surfaceGroup = new THREE.Group();
+      scaledContentGroup.add(axesGroup);
+      scaledContentGroup.add(surfaceGroup);
 
-function createAxisLine(start, end, color) {
-    const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-    return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color }));
-}
+      function createAxisLine(start, end, color) {
+        const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+        return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color }));
+      }
 
-function createAxisLabel(text, position, color, sizeWorld) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 320;
-    canvas.height = 110;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "bold 56px Inter, Manrope, sans-serif";
-    ctx.fillStyle = color;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      function createAxisLabel(text, position, color, sizeWorld) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 320;
+        canvas.height = 110;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "bold 56px Inter, Manrope, sans-serif";
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
-    sprite.position.copy(position);
-    sprite.scale.set(sizeWorld, sizeWorld * 0.32, 1);
-    return sprite;
-}
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+        sprite.position.copy(position);
+        sprite.scale.set(sizeWorld, sizeWorld * 0.32, 1);
+        return sprite;
+      }
 
-function buildAxes() {
-    const axisLength = getMaxStrength(material) * 1.08;
-    const labelOffset = axisLength * 1.13;
-    const labelSize = axisLength * 0.22;
+      function buildAxes() {
+        const axisLength = getMaxStrength(material) * 1.08;
+        const labelOffset = axisLength * 1.13;
+        const labelSize = axisLength * 0.22;
 
-    axesGroup.add(createAxisLine(new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0), 0xff5050));
-    axesGroup.add(createAxisLine(new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0), 0x57de57));
-    axesGroup.add(createAxisLine(new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength), 0x5a86ff));
+        axesGroup.add(createAxisLine(new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0), 0xff5050));
+        axesGroup.add(createAxisLine(new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0), 0x57de57));
+        axesGroup.add(createAxisLine(new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength), 0x5a86ff));
 
-    axesGroup.add(createAxisLabel("\u03c3\u2225", new THREE.Vector3(labelOffset, 0, 0), "#ff8080", labelSize));
-    axesGroup.add(createAxisLabel("\u03c3\u22a5", new THREE.Vector3(0, labelOffset, 0), "#8fff8f", labelSize));
-    axesGroup.add(createAxisLabel("\u03c4", new THREE.Vector3(0, 0, labelOffset), "#8fb0ff", labelSize));
-}
+        axesGroup.add(createAxisLabel("\u03c3\u2225", new THREE.Vector3(labelOffset, 0, 0), "#ff8080", labelSize));
+        axesGroup.add(createAxisLabel("\u03c3\u22a5", new THREE.Vector3(0, labelOffset, 0), "#8fff8f", labelSize));
+        axesGroup.add(createAxisLabel("\u03c4", new THREE.Vector3(0, 0, labelOffset), "#8fb0ff", labelSize));
+      }
 
-function clearAxes() {
-    while (axesGroup.children.length > 0) {
-        const child = axesGroup.children[0];
-        axesGroup.remove(child);
-        if (child.geometry) child.geometry.dispose();
+      function clearAxes() {
+        while (axesGroup.children.length > 0) {
+          const child = axesGroup.children[0];
+          axesGroup.remove(child);
+          if (child.geometry) child.geometry.dispose();
 
-        if (child.material) {
+          if (child.material) {
             const materials = Array.isArray(child.material) ? child.material : [child.material];
-            materials.forEach(matPart => {
-                if (matPart.map) matPart.map.dispose();
-                matPart.dispose();
+            materials.forEach((matPart) => {
+              if (matPart.map) matPart.map.dispose();
+              matPart.dispose();
             });
+          }
         }
-    }
-}
+      }
 
-function refreshDisplayScaleAndAxes() {
-    displayScale = getDisplayScale(material);
-    scaledContentGroup.scale.setScalar(displayScale);
-    clearAxes();
-    buildAxes();
-}
+      function refreshDisplayScaleAndAxes() {
+        displayScale = getDisplayScale(material);
+        scaledContentGroup.scale.setScalar(displayScale);
+        clearAxes();
+        buildAxes();
+      }
 
-function setStatus(message) {
-    document.getElementById("render-status").textContent = message;
-}
+      function setStatus(message) {
+        document.getElementById("render-status").textContent = message;
+      }
 
-function getValueByPath(root, path) {
-    let current = root;
-    for (let i = 0; i < path.length; i += 1) {
-        if (current == null) return undefined;
-        current = current[path[i]];
-    }
-    return current;
-}
+      function getValueByPath(root, path) {
+        let current = root;
+        for (let i = 0; i < path.length; i += 1) {
+          if (current == null) return undefined;
+          current = current[path[i]];
+        }
+        return current;
+      }
 
-function setValueByPath(root, path, value) {
-    let current = root;
-    for (let i = 0; i < path.length - 1; i += 1) {
-        const key = path[i];
-        if (typeof current[key] !== "object" || current[key] == null) current[key] = {};
-        current = current[key];
-    }
-    current[path[path.length - 1]] = value;
-}
+      function setValueByPath(root, path, value) {
+        let current = root;
+        for (let i = 0; i < path.length - 1; i += 1) {
+          const key = path[i];
+          if (typeof current[key] !== "object" || current[key] == null) current[key] = {};
+          current = current[key];
+        }
+        current[path[path.length - 1]] = value;
+      }
 
-function makeDidacticFieldKey(field) {
-    return field.path.join(".");
-}
+      function makeDidacticFieldKey(field) {
+        return field.path.join(".");
+      }
 
-function buildDidacticParameterPanel() {
-    const container = document.getElementById("parameter-groups");
-    if (!container) return;
-    container.innerHTML = "";
-    didacticInputMap.clear();
+      function buildDidacticParameterPanel() {
+        const container = document.getElementById("parameter-groups");
+        if (!container) return;
+        container.innerHTML = "";
+        didacticInputMap.clear();
 
-    didacticParameterGroups.forEach(group => {
-        const groupBlock = document.createElement("div");
-        groupBlock.className = "param-group";
+        didacticParameterGroups.forEach((group) => {
+          const groupBlock = document.createElement("div");
+          groupBlock.className = "param-group";
 
-        const title = document.createElement("div");
-        title.className = "param-group-title";
-        title.textContent = group.title;
-        groupBlock.appendChild(title);
+          const title = document.createElement("div");
+          title.className = "param-group-title";
+          title.textContent = group.title;
+          groupBlock.appendChild(title);
 
-        group.fields.forEach(field => {
+          group.fields.forEach((field) => {
             const row = document.createElement("div");
             row.className = "param-row";
 
@@ -1888,9 +1872,9 @@ function buildDidacticParameterPanel() {
             input.className = "param-input";
             input.type = field.type === "boolean" ? "checkbox" : "number";
             if (field.type !== "boolean") {
-                if (field.step !== undefined) input.step = String(field.step);
-                if (field.min !== undefined) input.min = String(field.min);
-                if (field.max !== undefined) input.max = String(field.max);
+              if (field.step !== undefined) input.step = String(field.step);
+              if (field.min !== undefined) input.min = String(field.min);
+              if (field.max !== undefined) input.max = String(field.max);
             }
 
             label.htmlFor = `didactic-${makeDidacticFieldKey(field)}`;
@@ -1901,346 +1885,342 @@ function buildDidacticParameterPanel() {
             groupBlock.appendChild(row);
 
             didacticInputMap.set(makeDidacticFieldKey(field), { input, field });
+          });
+
+          container.appendChild(groupBlock);
         });
 
-        container.appendChild(groupBlock);
-    });
+        syncDidacticInputsFromMaterial();
+      }
 
-    syncDidacticInputsFromMaterial();
-}
-
-function syncDidacticInputsFromMaterial() {
-    didacticInputMap.forEach(({ input, field }) => {
-        const value = getValueByPath(material, field.path);
-        if (field.type === "boolean") {
+      function syncDidacticInputsFromMaterial() {
+        didacticInputMap.forEach(({ input, field }) => {
+          const value = getValueByPath(material, field.path);
+          if (field.type === "boolean") {
             input.checked = Boolean(value);
-        } else {
+          } else {
             input.value = Number.isFinite(value) ? String(value) : "";
-        }
-    });
-}
+          }
+        });
+      }
 
-function coerceDidacticNumber(rawValue, fallbackValue, field) {
-    let value = Number(rawValue);
-    if (!Number.isFinite(value)) value = fallbackValue;
-    if (field.min !== undefined) value = Math.max(value, field.min);
-    if (field.max !== undefined) value = Math.min(value, field.max);
-    return value;
-}
+      function coerceDidacticNumber(rawValue, fallbackValue, field) {
+        let value = Number(rawValue);
+        if (!Number.isFinite(value)) value = fallbackValue;
+        if (field.min !== undefined) value = Math.max(value, field.min);
+        if (field.max !== undefined) value = Math.min(value, field.max);
+        return value;
+      }
 
-function clearSurfaceCaches() {
-    meshCache.forEach(entry => {
-        if (entry.mesh.parent === surfaceGroup) {
+      function clearSurfaceCaches() {
+        meshCache.forEach((entry) => {
+          if (entry.mesh.parent === surfaceGroup) {
             surfaceGroup.remove(entry.mesh);
-        }
+          }
 
-        entry.mesh.traverse(node => {
+          entry.mesh.traverse((node) => {
             if (node !== entry.mesh && node.geometry) {
-                node.geometry.dispose();
+              node.geometry.dispose();
             }
             if (node.material) {
-                if (Array.isArray(node.material)) node.material.forEach(matPart => matPart.dispose());
-                else node.material.dispose();
+              if (Array.isArray(node.material)) node.material.forEach((matPart) => matPart.dispose());
+              else node.material.dispose();
             }
+          });
         });
-    });
 
-    meshCache.clear();
+        meshCache.clear();
 
-    geometryCache.forEach(geometry => {
-        geometry.dispose();
-    });
-    geometryCache.clear();
-}
+        geometryCache.forEach((geometry) => {
+          geometry.dispose();
+        });
+        geometryCache.clear();
+      }
 
-function applyDidacticParameters() {
-    didacticInputMap.forEach(({ input, field }) => {
-        const currentValue = getValueByPath(material, field.path);
-        const nextValue =
-            field.type === "boolean"
-                ? Boolean(input.checked)
-                : coerceDidacticNumber(input.value, Number(currentValue), field);
-        setValueByPath(material, field.path, nextValue);
-    });
+      function applyDidacticParameters() {
+        didacticInputMap.forEach(({ input, field }) => {
+          const currentValue = getValueByPath(material, field.path);
+          const nextValue = field.type === "boolean" ? Boolean(input.checked) : coerceDidacticNumber(input.value, Number(currentValue), field);
+          setValueByPath(material, field.path, nextValue);
+        });
 
-    syncDidacticInputsFromMaterial();
-    refreshDisplayScaleAndAxes();
-    clearSurfaceCaches();
-    rebuildSurfaces();
-}
+        syncDidacticInputsFromMaterial();
+        refreshDisplayScaleAndAxes();
+        clearSurfaceCaches();
+        rebuildSurfaces();
+      }
 
-function resetDidacticParametersToDefaults() {
-    material.core = JSON.parse(JSON.stringify(defaultMaterial.core));
-    material.strength = JSON.parse(JSON.stringify(defaultMaterial.strength));
-    material.additional = JSON.parse(JSON.stringify(defaultMaterial.additional));
+      function resetDidacticParametersToDefaults() {
+        material.core = JSON.parse(JSON.stringify(defaultMaterial.core));
+        material.strength = JSON.parse(JSON.stringify(defaultMaterial.strength));
+        material.additional = JSON.parse(JSON.stringify(defaultMaterial.additional));
 
-    syncDidacticInputsFromMaterial();
-    refreshDisplayScaleAndAxes();
-    clearSurfaceCaches();
-    rebuildSurfaces();
-}
+        syncDidacticInputsFromMaterial();
+        refreshDisplayScaleAndAxes();
+        clearSurfaceCaches();
+        rebuildSurfaces();
+      }
 
-function buildCriterionGeometry(criterion) {
-    let mode = "none";
-    let geometry = null;
+      function buildCriterionGeometry(criterion) {
+        let mode = "none";
+        let geometry = null;
 
-    if (typeof criterion.buildGeometry === "function") {
-        mode = "direct";
-        geometry = criterion.buildGeometry(material, surfaceQuality);
-        if (!geometry && criterion.id === "tsai_wu") {
+        if (typeof criterion.buildGeometry === "function") {
+          mode = "direct";
+          geometry = criterion.buildGeometry(material, surfaceQuality);
+          if (!geometry && criterion.id === "tsai_wu") {
             console.warn("[Tsai-Wu] direct geometry unavailable; not using radial fallback for this criterion");
-        } else if (!geometry && typeof criterion.computeReserveFactor === "function") {
+          } else if (!geometry && typeof criterion.computeReserveFactor === "function") {
             mode = "radial_rf_fallback";
             geometry = buildReserveFactorRadialGeometry(criterion, material, surfaceQuality);
+          }
+        } else if (typeof criterion.computeReserveFactor === "function") {
+          mode = "radial_rf";
+          geometry = buildReserveFactorRadialGeometry(criterion, material, surfaceQuality);
+        } else if (surfaceConfig.useMarchingFallback && typeof criterion.computeFailureIndex === "function") {
+          mode = "marching_fallback";
+          geometry = buildSurfaceGeometryMarching(criterion, material);
         }
-    } else if (typeof criterion.computeReserveFactor === "function") {
-        mode = "radial_rf";
-        geometry = buildReserveFactorRadialGeometry(criterion, material, surfaceQuality);
-    } else if (surfaceConfig.useMarchingFallback && typeof criterion.computeFailureIndex === "function") {
-        mode = "marching_fallback";
-        geometry = buildSurfaceGeometryMarching(criterion, material);
-    }
 
-    if (!geometry) return { geometry: null, mode };
-    const positionAttr = geometry.getAttribute("position");
-    if (!positionAttr || positionAttr.count === 0) {
-        geometry.dispose();
-        return { geometry: null, mode };
-    }
+        if (!geometry) return { geometry: null, mode };
+        const positionAttr = geometry.getAttribute("position");
+        if (!positionAttr || positionAttr.count === 0) {
+          geometry.dispose();
+          return { geometry: null, mode };
+        }
 
-    return { geometry, mode };
-}
+        return { geometry, mode };
+      }
 
-function applySurfaceOpacityToMaterial(materialObj) {
-    if (!materialObj || !materialObj.isMaterial) return;
-    materialObj.transparent = surfaceOpacity < 0.999;
-    materialObj.opacity = surfaceOpacity;
-    materialObj.depthWrite = surfaceOpacity >= 0.999;
-    materialObj.needsUpdate = true;
-}
+      function applySurfaceOpacityToMaterial(materialObj) {
+        if (!materialObj || !materialObj.isMaterial) return;
+        materialObj.transparent = surfaceOpacity < 0.999;
+        materialObj.opacity = surfaceOpacity;
+        materialObj.depthWrite = surfaceOpacity >= 0.999;
+        materialObj.needsUpdate = true;
+      }
 
-function applySurfaceOpacityToVisibleSurfaces() {
-    meshCache.forEach(entry => {
-        entry.mesh.traverse(node => {
+      function applySurfaceOpacityToVisibleSurfaces() {
+        meshCache.forEach((entry) => {
+          entry.mesh.traverse((node) => {
             if (!node.isMesh || !node.material) return;
             if (Array.isArray(node.material)) {
-                node.material.forEach(applySurfaceOpacityToMaterial);
+              node.material.forEach(applySurfaceOpacityToMaterial);
             } else {
-                applySurfaceOpacityToMaterial(node.material);
+              applySurfaceOpacityToMaterial(node.material);
             }
+          });
         });
-    });
-}
+      }
 
-function syncSurfaceOpacityInputs() {
-    const rangeInput = document.getElementById("surface-opacity-range");
-    const numberInput = document.getElementById("surface-opacity-number");
-    if (!rangeInput || !numberInput) return;
-    const formatted = surfaceOpacity.toFixed(2);
-    rangeInput.value = formatted;
-    numberInput.value = formatted;
-}
+      function syncSurfaceOpacityInputs() {
+        const rangeInput = document.getElementById("surface-opacity-range");
+        const numberInput = document.getElementById("surface-opacity-number");
+        if (!rangeInput || !numberInput) return;
+        const formatted = surfaceOpacity.toFixed(2);
+        rangeInput.value = formatted;
+        numberInput.value = formatted;
+      }
 
-function setSurfaceOpacity(value) {
-    surfaceOpacity = clampSurfaceOpacity(value);
-    try {
-        sessionStorage.setItem(SESSION_SURFACE_OPACITY_KEY, String(surfaceOpacity));
-    } catch (_err) {
-        // Ignore storage write failures in restricted browsing contexts.
-    }
-    syncSurfaceOpacityInputs();
-    applySurfaceOpacityToVisibleSurfaces();
-}
+      function setSurfaceOpacity(value) {
+        surfaceOpacity = clampSurfaceOpacity(value);
+        try {
+          sessionStorage.setItem(SESSION_SURFACE_OPACITY_KEY, String(surfaceOpacity));
+        } catch (_err) {
+          // Ignore storage write failures in restricted browsing contexts.
+        }
+        syncSurfaceOpacityInputs();
+        applySurfaceOpacityToVisibleSurfaces();
+      }
 
-function initSurfaceOpacityControls() {
-    const rangeInput = document.getElementById("surface-opacity-range");
-    const numberInput = document.getElementById("surface-opacity-number");
-    if (!rangeInput || !numberInput) return;
+      function initSurfaceOpacityControls() {
+        const rangeInput = document.getElementById("surface-opacity-range");
+        const numberInput = document.getElementById("surface-opacity-number");
+        if (!rangeInput || !numberInput) return;
 
-    const onInput = event => {
-        setSurfaceOpacity(Number(event.target.value));
-    };
+        const onInput = (event) => {
+          setSurfaceOpacity(Number(event.target.value));
+        };
 
-    rangeInput.addEventListener("input", onInput);
-    numberInput.addEventListener("input", onInput);
-    syncSurfaceOpacityInputs();
-}
+        rangeInput.addEventListener("input", onInput);
+        numberInput.addEventListener("input", onInput);
+        syncSurfaceOpacityInputs();
+      }
 
-function getGeometryForCriterion(criterion) {
-    const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
-    const cacheKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
-    if (geometryCache.has(cacheKey)) {
-        return { geometry: geometryCache.get(cacheKey), cacheKey, builtNow: false };
-    }
+      function getGeometryForCriterion(criterion) {
+        const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
+        const cacheKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
+        if (geometryCache.has(cacheKey)) {
+          return { geometry: geometryCache.get(cacheKey), cacheKey, builtNow: false };
+        }
 
-    const built = buildCriterionGeometry(criterion);
-    if (!built.geometry) return { geometry: null, cacheKey, builtNow: false };
+        const built = buildCriterionGeometry(criterion);
+        if (!built.geometry) return { geometry: null, cacheKey, builtNow: false };
 
-    geometryCache.set(cacheKey, built.geometry);
-    return { geometry: built.geometry, cacheKey, builtNow: true };
-}
+        geometryCache.set(cacheKey, built.geometry);
+        return { geometry: built.geometry, cacheKey, builtNow: true };
+      }
 
-function createSurfaceMaterial(criterion) {
-    const materialObj = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(criterion.color),
-        transparent: true,
-        opacity: surfaceOpacity,
-        roughness: 0.44,
-        metalness: 0.06,
-        side: THREE.DoubleSide,
-        depthWrite: false
-    });
-    applySurfaceOpacityToMaterial(materialObj);
-    return materialObj;
-}
+      function createSurfaceMaterial(criterion) {
+        const materialObj = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(criterion.color),
+          transparent: true,
+          opacity: surfaceOpacity,
+          roughness: 0.44,
+          metalness: 0.06,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        applySurfaceOpacityToMaterial(materialObj);
+        return materialObj;
+      }
 
-function createCriterionObject(criterion, geometry) {
-    const mesh = new THREE.Mesh(geometry, createSurfaceMaterial(criterion));
-    mesh.renderOrder = criterion.renderOrder || 0;
+      function createCriterionObject(criterion, geometry) {
+        const mesh = new THREE.Mesh(geometry, createSurfaceMaterial(criterion));
+        mesh.renderOrder = criterion.renderOrder || 0;
 
-    if (criterion.showEdges) {
-        const edgeGeometry = new THREE.EdgesGeometry(geometry, 24);
-        const edgeMaterial = new THREE.LineBasicMaterial({
+        if (criterion.showEdges) {
+          const edgeGeometry = new THREE.EdgesGeometry(geometry, 24);
+          const edgeMaterial = new THREE.LineBasicMaterial({
             color: new THREE.Color(criterion.edgeColor || criterion.color),
             transparent: true,
             opacity: criterion.edgeOpacity || 0.8,
-            depthWrite: false
+            depthWrite: false,
+          });
+          const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+          edges.renderOrder = mesh.renderOrder + 1;
+          mesh.add(edges);
+        }
+
+        return mesh;
+      }
+
+      function attachCriterionSurface(criterion) {
+        const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
+        const expectedKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
+        let entry = meshCache.get(criterion.id);
+        let builtNow = false;
+
+        if (!entry || entry.cacheKey !== expectedKey) {
+          if (entry && entry.mesh.parent === surfaceGroup) {
+            surfaceGroup.remove(entry.mesh);
+          }
+          const geoInfo = getGeometryForCriterion(criterion);
+          if (!geoInfo.geometry) return { shown: false, builtNow: false };
+          const mesh = createCriterionObject(criterion, geoInfo.geometry);
+          entry = { cacheKey: geoInfo.cacheKey, mesh };
+          meshCache.set(criterion.id, entry);
+          builtNow = geoInfo.builtNow;
+        }
+
+        if (!entry.mesh.parent) {
+          surfaceGroup.add(entry.mesh);
+        }
+        return { shown: true, builtNow };
+      }
+
+      function hideInactiveSurfaces(activeIds) {
+        meshCache.forEach((entry, criterionId) => {
+          if (activeIds.has(criterionId)) return;
+          if (entry.mesh.parent === surfaceGroup) {
+            surfaceGroup.remove(entry.mesh);
+          }
         });
-        const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-        edges.renderOrder = mesh.renderOrder + 1;
-        mesh.add(edges);
-    }
+      }
 
-    return mesh;
-}
+      function rebuildSurfaces() {
+        const active = CRITERIA.filter((c) => activeCriteria.has(c.id));
+        const activeIds = new Set(active.map((c) => c.id));
+        const start = performance.now();
 
-function attachCriterionSurface(criterion) {
-    const modeHint = criterion.strategy || (criterion.buildGeometry ? "direct" : criterion.computeReserveFactor ? "radial_rf" : "unknown");
-    const expectedKey = makeGeometryCacheKey(criterion.id, material, surfaceQuality, modeHint);
-    let entry = meshCache.get(criterion.id);
-    let builtNow = false;
+        let shown = 0;
+        let builtNowCount = 0;
+        active.forEach((criterion) => {
+          const result = attachCriterionSurface(criterion);
+          if (result.shown) shown += 1;
+          if (result.builtNow) builtNowCount += 1;
+        });
 
-    if (!entry || entry.cacheKey !== expectedKey) {
-        if (entry && entry.mesh.parent === surfaceGroup) {
-            surfaceGroup.remove(entry.mesh);
-        }
-        const geoInfo = getGeometryForCriterion(criterion);
-        if (!geoInfo.geometry) return { shown: false, builtNow: false };
-        const mesh = createCriterionObject(criterion, geoInfo.geometry);
-        entry = { cacheKey: geoInfo.cacheKey, mesh };
-        meshCache.set(criterion.id, entry);
-        builtNow = geoInfo.builtNow;
-    }
+        hideInactiveSurfaces(activeIds);
 
-    if (!entry.mesh.parent) {
-        surfaceGroup.add(entry.mesh);
-    }
-    return { shown: true, builtNow };
-}
+        const elapsed = performance.now() - start;
+        const reused = Math.max(shown - builtNowCount, 0);
+        setStatus(`Rendered ${shown}/${active.length} surfaces in ${elapsed.toFixed(0)} ms (new: ${builtNowCount}, cached: ${reused})`);
+      }
 
-function hideInactiveSurfaces(activeIds) {
-    meshCache.forEach((entry, criterionId) => {
-        if (activeIds.has(criterionId)) return;
-        if (entry.mesh.parent === surfaceGroup) {
-            surfaceGroup.remove(entry.mesh);
-        }
-    });
-}
+      function buildCriteriaPanel() {
+        const compositeContainer = document.getElementById("criteria-list-composite");
+        const generalContainer = document.getElementById("criteria-list-general");
+        compositeContainer.innerHTML = "";
+        generalContainer.innerHTML = "";
 
-function rebuildSurfaces() {
-    const active = CRITERIA.filter(c => activeCriteria.has(c.id));
-    const activeIds = new Set(active.map(c => c.id));
-    const start = performance.now();
+        CRITERIA.forEach((criterion) => {
+          const row = buildCriterionRow(criterion);
+          if (criterion.category === "general") generalContainer.appendChild(row);
+          else compositeContainer.appendChild(row);
+        });
+      }
 
-    let shown = 0;
-    let builtNowCount = 0;
-    active.forEach(criterion => {
-        const result = attachCriterionSurface(criterion);
-        if (result.shown) shown += 1;
-        if (result.builtNow) builtNowCount += 1;
-    });
+      function buildCriterionRow(criterion) {
+        const row = document.createElement("div");
+        row.className = "criterion-row";
 
-    hideInactiveSurfaces(activeIds);
+        const left = document.createElement("div");
+        left.className = "criterion-left";
 
-    const elapsed = performance.now() - start;
-    const reused = Math.max(shown - builtNowCount, 0);
-    setStatus(`Rendered ${shown}/${active.length} surfaces in ${elapsed.toFixed(0)} ms (new: ${builtNowCount}, cached: ${reused})`);
-}
+        const dot = document.createElement("span");
+        dot.className = "criterion-dot";
+        dot.style.background = criterion.color;
 
-function buildCriteriaPanel() {
-    const compositeContainer = document.getElementById("criteria-list-composite");
-    const generalContainer = document.getElementById("criteria-list-general");
-    compositeContainer.innerHTML = "";
-    generalContainer.innerHTML = "";
+        const name = document.createElement("span");
+        name.className = "criterion-name";
+        name.textContent = criterion.name;
 
-    CRITERIA.forEach(criterion => {
-        const row = buildCriterionRow(criterion);
-        if (criterion.category === "general") generalContainer.appendChild(row);
-        else compositeContainer.appendChild(row);
-    });
-}
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = activeCriteria.has(criterion.id);
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) activeCriteria.add(criterion.id);
+          else activeCriteria.delete(criterion.id);
+          rebuildSurfaces();
+        });
 
-function buildCriterionRow(criterion) {
-    const row = document.createElement("div");
-    row.className = "criterion-row";
+        left.appendChild(dot);
+        left.appendChild(name);
+        row.appendChild(left);
+        row.appendChild(checkbox);
+        return row;
+      }
 
-    const left = document.createElement("div");
-    left.className = "criterion-left";
+      function resetView() {
+        camera.position.set(3.0, 2.0, 2.7);
+        camera.up.set(0, 1, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
 
-    const dot = document.createElement("span");
-    dot.className = "criterion-dot";
-    dot.style.background = criterion.color;
+      document.getElementById("btn-reset-view").addEventListener("click", resetView);
+      document.getElementById("btn-apply-params").addEventListener("click", applyDidacticParameters);
+      document.getElementById("btn-reset-params").addEventListener("click", resetDidacticParametersToDefaults);
 
-    const name = document.createElement("span");
-    name.className = "criterion-name";
-    name.textContent = criterion.name;
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = activeCriteria.has(criterion.id);
-    checkbox.addEventListener("change", () => {
-        if (checkbox.checked) activeCriteria.add(criterion.id);
-        else activeCriteria.delete(criterion.id);
-        rebuildSurfaces();
-    });
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
 
-    left.appendChild(dot);
-    left.appendChild(name);
-    row.appendChild(left);
-    row.appendChild(checkbox);
-    return row;
-}
-
-function resetView() {
-    camera.position.set(3.0, 2.0, 2.7);
-    camera.up.set(0, 1, 0);
-    controls.target.set(0, 0, 0);
-    controls.update();
-}
-
-document.getElementById("btn-reset-view").addEventListener("click", resetView);
-document.getElementById("btn-apply-params").addEventListener("click", applyDidacticParameters);
-document.getElementById("btn-reset-params").addEventListener("click", resetDidacticParametersToDefaults);
-
-window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-buildAxes();
-buildDidacticParameterPanel();
-buildCriteriaPanel();
-initSurfaceOpacityControls();
-rebuildSurfaces();
-animate();
-</script>
-
-</body>
+      buildAxes();
+      buildDidacticParameterPanel();
+      buildCriteriaPanel();
+      initSurfaceOpacityControls();
+      rebuildSurfaces();
+      animate();
+    </script>
+  </body>
 </html>
