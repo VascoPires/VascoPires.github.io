@@ -4,6 +4,7 @@ title: "Failure Criteria Visualizer"
 description: Interactive 3D demo of composite and general failure surfaces in stress space.
 img:
 importance: 4
+resource_section: teaching-tools
 tags: ["Demo", "Interactive", "Composites"]
 redirect: /failure-criteria/
 ---

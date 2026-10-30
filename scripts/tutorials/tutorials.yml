@@ -1,0 +1,117 @@
+# Tutorial series published from the Obsidian vault.
+#
+#   python scripts/tutorials/build_tutorials.py            # all series
+#   python scripts/tutorials/build_tutorials.py abaqus_plate_with_hole
+#
+# For every series the script writes
+#   _courses/<id>.md                      overview page with one card per part
+#   _courses/<part slug>.md               one page per part
+#   assets/img/tutorials/<id>/            every image the notes use (owned by the script, wiped on each run)
+#   assets/downloads/<offline_zip>        standalone HTML version for Moodle
+#
+# To add a part: write the note in Obsidian, add an entry under `parts`, run the script.
+# `publish: false` keeps a part out of the website and the zip (links to it become plain text).
+# To add a new series: copy the whole block below and change the fields.
+
+vault: "C:/Users/p2321038/Dropbox/My Second Brain"
+
+series:
+  - id: abaqus_plate_with_hole
+    title: "Abaqus Tutorial: 2D Plate with a Hole"
+    offline_zip: abaqus_plate_with_hole_moodle_parts_1_4_without_header.zip
+    show_offline_download: false
+    folder: "800 Teaching/Abaqus Tutorials"      # inside the vault
+    intro: >-
+      This series walks through building, refining and post-processing a plate-with-hole model in
+      Abaqus/CAE, from a first quick model to stress concentrations and nonlinear materials. Every
+      part can be done at home with the Abaqus Learning Edition (1000-node limit).
+    cover: assets/img/plate_hole/cover.svg
+    date: 2025-10-03
+    importance: 4
+    tags: ["ABAQUS", "Tutorial"]
+    parts:
+      - note: "Part 1 - PlateHole set up"
+        slug: abaqus_tutorial_part1
+        title: "Part 1: Setting a Quick Model"
+        card: "Geometry, material, mesh, boundary conditions and a first run of the full plate."
+        thumb: assets/img/plate_hole/tut1.svg
+        figure_aliases:
+          plate-with-hole: 1
+      - note: "Part 2 - PlateHole symmetries"
+        slug: abaqus_tutorial_part2
+        title: "Part 2: Taking Advantage of Symmetries"
+        card: "Quarter model, symmetry boundary conditions and loading through a reference point."
+        thumb: assets/img/plate_hole/tut2.svg
+        # Publication corrections for this read-only Obsidian source note.
+        text_overrides:
+          - from: "displacement of $+1.5$ m."
+            to: "displacement of $+1.5$ mm."
+          - from: "there is a explanation in [here](https://help.3ds.com) for details."
+            to: "see the [Abaqus coupling documentation](https://docs.software.vt.edu/abaqusv2025/English/SIMACAECSTRefMap/simacst-c-coupling.htm) for details."
+      - note: "Part 3 - PlateHole getting a good mesh"
+        slug: abaqus_tutorial_part3
+        publish: true
+        title: "Part 3: Getting a Good Mesh"
+        card: "Partitions around the hole, a structured mesh, and linear vs quadratic elements below the 1000-node limit."
+        thumb: assets/img/plate_hole/tut3.svg
+      - note: "Part 4 - Getting outputs and post-processing"
+        slug: abaqus_tutorial_part4
+        publish: true
+        title: "Part 4: Outputs and Post-processing"
+        card: "Sets, history outputs, display options and stress averaging, probing values, stress paths and force-displacement curves."
+        thumb: assets/img/plate_hole/part4.svg
+        text_overrides:
+          - from: "![[Files/averaging_results.png]]"
+            to: "![[Files/averaging_results.png|700]]"
+      - note: "Part 5 - PlateHole StressConcentrations"
+        slug: abaqus_tutorial_part5
+        publish: false          # set to true (or delete this line) when the part is ready
+        title: "Part 5: Stress Concentrations"
+        card: "The stress concentration factor, the de Havilland Comet, and how the shape of the hole and rounded corners change the peak stress."
+        thumb: assets/img/plate_hole/part5.svg
+      - note: "Part 6 - PlateHole MatModel"
+        slug: abaqus_tutorial_part6
+        publish: false          # set to true (or delete this line) when the part is ready
+        title: "Part 6: Material Models"
+        card: "Plasticity with and without hardening, the plastic zone, and a hyperelastic rubber."
+        thumb: assets/img/plate_hole/tut5.svg
+
+  - id: abaqus_controller_shell
+    title: "Abaqus Tutorial: Lower Shell of a Game Controller"
+    folder: "800 Teaching/Abaqus Tutorials/Controller"      # inside the vault
+    intro: >-
+      A thin-walled plastic part modelled with shells and beams in Abaqus/CAE (practical L05). The
+      tutorial covers shell offsets, beam ribs, joining shells to solids, loading through a reference
+      point with a distributing coupling, and symmetric and antisymmetric half models.
+    cover: assets/img/controller/cover.png
+    date: 2026-10-29
+    importance: 4
+    tags: ["ABAQUS", "Tutorial"]
+    parts:
+      - note: "L05 - Controller lower shell"
+        slug: abaqus_controller_l05
+        title: "L05: Lower Shell of a Game Controller"
+        card: "S4R shells with offsets, B31 rib beams, the shell-to-solid tie trap, a three-point bend through a coupled RP, and four load cases."
+        thumb: assets/img/controller/part1.png
+
+  - id: abaqus_beam_shell_solid
+    title: "Abaqus Tutorial: Solid, Shell or Beam?"
+    offline_zip: abaqus_beam_shell_solid_moodle.zip
+    show_offline_download: false
+    offline_overview: false     # the zip opens straight on the page, no overview with cards
+    folder: "800 Teaching/Abaqus Tutorials/Beam Shell Solid"
+    intro: >-
+      A 90-minute practical on one PMMA I-beam modelled three times, as a solid, as a beam and as a
+      shell. All three give the same tip deflection; the cost of getting it differs by a factor of a
+      thousand, and in 2026 that cost is paid in RAM.
+    cover: assets/img/beam_shell_solid/cover.png
+    date: 2026-10-29
+    importance: 4
+    tags: ["ABAQUS", "Tutorial"]
+    parts:
+      - note: "Solid Shell or Beam"
+        slug: abaqus_beam_shell_solid_tutorial
+        title: "Beam example, Solid, Shell or Beam?"
+        subtitle: ""          # no line under the title on the page
+        card: "Finish a solid, a beam and a shell model of the same I-beam, compare the results and price the RAM."
+        thumb: assets/img/beam_shell_solid/cover.png

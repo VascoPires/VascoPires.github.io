@@ -82,8 +82,6 @@ permalink: /failure-criteria/
       #criteria-panel h3 {
         margin: 0 0 8px;
         font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
         color: var(--accent);
         border-bottom: 1px solid #3f3f3f;
         padding-bottom: 6px;
@@ -110,8 +108,6 @@ permalink: /failure-criteria/
       .criteria-group-title {
         font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
         color: var(--accent);
         margin: 10px 0 6px;
         padding-bottom: 4px;
@@ -173,8 +169,6 @@ permalink: /failure-criteria/
       .param-group-title {
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
         color: #9edbff;
         margin-bottom: 5px;
       }
@@ -235,8 +229,6 @@ permalink: /failure-criteria/
       .panel-bottom-title {
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
         color: #9edbff;
         margin-bottom: 6px;
       }
@@ -252,6 +244,63 @@ permalink: /failure-criteria/
         width: 100%;
         accent-color: #67c8ff;
         cursor: pointer;
+      }
+
+      .stress-inputs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .stress-inputs label {
+        display: grid;
+        gap: 4px;
+      }
+
+      .stress-inputs .param-input {
+        min-width: 0;
+      }
+
+      .load-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 70px;
+        align-items: center;
+        gap: 8px;
+        margin: 6px 0 10px;
+      }
+
+      #stress-summary {
+        margin-top: 8px;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      #stress-results {
+        display: grid;
+        gap: 5px;
+        margin-top: 8px;
+      }
+
+      .stress-result {
+        display: grid;
+        grid-template-columns: 10px minmax(0, 1fr);
+        gap: 8px;
+        align-items: start;
+        padding: 6px;
+        border: 1px solid #4f4f4f;
+        border-radius: 7px;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .stress-result.reached {
+        border-color: #f4b35f;
+        background: rgba(244, 179, 95, 0.1);
+      }
+
+      .stress-result strong {
+        display: block;
       }
 
       .btn-secondary {
@@ -307,6 +356,32 @@ permalink: /failure-criteria/
       <div class="criteria-group">
         <div class="criteria-group-title">General Failure Criteria</div>
         <div id="criteria-list-general"></div>
+      </div>
+      <div class="criteria-group">
+        <div class="criteria-group-title">Stress state &amp; loading</div>
+        <div class="small-note">Base stresses in MPa. The load factor multiplies all three components together.</div>
+        <div class="stress-inputs">
+          <label class="param-label" for="stress-sigma1"
+            >σ∥ <input id="stress-sigma1" class="param-input" type="number" step="any" value="300"
+          /></label>
+          <label class="param-label" for="stress-sigma2"
+            >σ⊥ <input id="stress-sigma2" class="param-input" type="number" step="any" value="60"
+          /></label>
+          <label class="param-label" for="stress-tau12"
+            >τ12 <input id="stress-tau12" class="param-input" type="number" step="any" value="40"
+          /></label>
+        </div>
+        <label class="param-label" for="load-factor-range">Proportional load factor</label>
+        <div class="load-controls">
+          <input id="load-factor-range" class="opacity-range" type="range" min="0" max="2" step="0.01" value="1" />
+          <input id="load-factor-number" class="param-input" type="number" min="0" step="any" value="1" aria-label="Proportional load factor" />
+        </div>
+        <button id="btn-first-failure" class="btn" type="button">Go to first failure</button>
+        <div class="small-note" style="margin-top: 8px">
+          White point: current load. Colored points: failure thresholds. Base RF is the multiplier from the base stress state to failure.
+        </div>
+        <div id="stress-summary" aria-live="polite"></div>
+        <div id="stress-results"></div>
       </div>
       <div class="criteria-group">
         <div class="criteria-group-title">Didactic Parameters</div>
@@ -1716,6 +1791,9 @@ permalink: /failure-criteria/
       const initialActiveCriteria = ["puck"];
       const activeCriteria = new Set(initialActiveCriteria);
       let displayScale = getDisplayScale(material);
+      const baseStress = { sigma1: 300, sigma2: 60, tau12: 40 };
+      let loadFactor = 1;
+      let stressComparisons = [];
 
       const geometryCache = new Map();
       const meshCache = new Map();
@@ -1753,8 +1831,23 @@ permalink: /failure-criteria/
 
       const axesGroup = new THREE.Group();
       const surfaceGroup = new THREE.Group();
+      const stressGroup = new THREE.Group();
       scaledContentGroup.add(axesGroup);
       scaledContentGroup.add(surfaceGroup);
+      scaledContentGroup.add(stressGroup);
+
+      const loadRay = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, depthTest: false })
+      );
+      const stressPoint = new THREE.Mesh(
+        new THREE.SphereGeometry(getMaxStrength(material) * 0.018, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false })
+      );
+      const failureMarkers = new THREE.Group();
+      loadRay.renderOrder = 20;
+      stressPoint.renderOrder = 22;
+      stressGroup.add(loadRay, failureMarkers, stressPoint);
 
       function createAxisLine(start, end, color) {
         const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
@@ -1820,6 +1913,148 @@ permalink: /failure-criteria/
 
       function setStatus(message) {
         document.getElementById("render-status").textContent = message;
+      }
+
+      function scaledStress(factor) {
+        return {
+          sigma1: baseStress.sigma1 * factor,
+          sigma2: baseStress.sigma2 * factor,
+          tau12: baseStress.tau12 * factor,
+        };
+      }
+
+      function stressVector(stress) {
+        return new THREE.Vector3(stress.sigma1, stress.sigma2, stress.tau12);
+      }
+
+      function formatStressValue(value) {
+        return Number.isFinite(value) ? String(Number(value.toPrecision(3))) : "∞";
+      }
+
+      function clearFailureMarkers() {
+        while (failureMarkers.children.length > 0) {
+          const marker = failureMarkers.children[0];
+          failureMarkers.remove(marker);
+          marker.geometry.dispose();
+          marker.material.dispose();
+        }
+      }
+
+      function updateStressGeometry() {
+        const finiteFactors = stressComparisons.map(({ reserveFactor }) => reserveFactor).filter(Number.isFinite);
+        const farthestFailure = finiteFactors.length ? Math.max(...finiteFactors) : 0;
+        const rayEnd = Math.max(loadFactor, farthestFailure * 1.08, 1);
+        const nextGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), stressVector(scaledStress(rayEnd))]);
+        loadRay.geometry.dispose();
+        loadRay.geometry = nextGeometry;
+        stressPoint.position.copy(stressVector(scaledStress(loadFactor)));
+        const firstFailure = finiteFactors.length ? Math.min(...finiteFactors) : Number.POSITIVE_INFINITY;
+        stressPoint.material.color.set(loadFactor >= firstFailure ? 0xffbd6a : 0xffffff);
+      }
+
+      function renderStressComparison() {
+        const range = document.getElementById("load-factor-range");
+        const number = document.getElementById("load-factor-number");
+        const summary = document.getElementById("stress-summary");
+        const results = document.getElementById("stress-results");
+        const firstButton = document.getElementById("btn-first-failure");
+        const finiteFactors = stressComparisons.map(({ reserveFactor }) => reserveFactor).filter(Number.isFinite);
+        const firstFailure = finiteFactors.length ? Math.min(...finiteFactors) : Number.POSITIVE_INFINITY;
+        const lastFailure = finiteFactors.length ? Math.max(...finiteFactors) : 0;
+        range.max = String(Math.max(2, Math.ceil(Math.max(lastFailure * 1.2, loadFactor) * 10) / 10));
+        range.value = String(loadFactor);
+        number.value = String(Number(loadFactor.toPrecision(6)));
+        firstButton.disabled = !Number.isFinite(firstFailure);
+
+        const current = scaledStress(loadFactor);
+        const components = `Applied: (${formatStressValue(current.sigma1)}, ${formatStressValue(current.sigma2)}, ${formatStressValue(
+          current.tau12
+        )}) MPa.`;
+        summary.textContent = !stressComparisons.length
+          ? `${components} Select a criterion to compare.`
+          : Number.isFinite(firstFailure)
+            ? `${components} First failure at ${formatStressValue(firstFailure)}× base load.`
+            : `${components} No finite failure point in this stress direction.`;
+
+        results.replaceChildren();
+        stressComparisons.forEach(({ criterion, reserveFactor }) => {
+          const row = document.createElement("div");
+          row.className = "stress-result";
+          const reached = Number.isFinite(reserveFactor) && loadFactor >= reserveFactor;
+          if (reached) row.classList.add("reached");
+
+          const dot = document.createElement("span");
+          dot.className = "criterion-dot";
+          dot.style.background = criterion.color;
+          const details = document.createElement("div");
+          const title = document.createElement("strong");
+          title.textContent = criterion.name;
+          const currentIndex = evaluateCriterionFailureIndex(criterion, current, material);
+          const values = document.createElement("span");
+          values.textContent = `Base RF: ${formatStressValue(reserveFactor)}× · Current FI: ${formatStressValue(currentIndex)} · ${
+            reached ? "Failure reached" : "Below failure"
+          }`;
+          details.append(title, values);
+          row.append(dot, details);
+          results.appendChild(row);
+        });
+
+        updateStressGeometry();
+      }
+
+      function refreshStressComparison() {
+        stressComparisons = CRITERIA.filter((criterion) => activeCriteria.has(criterion.id))
+          .map((criterion) => ({ criterion, reserveFactor: criterion.computeReserveFactor(baseStress, material) }))
+          .sort((a, b) => a.reserveFactor - b.reserveFactor);
+
+        clearFailureMarkers();
+        stressPoint.geometry.dispose();
+        stressPoint.geometry = new THREE.SphereGeometry(getMaxStrength(material) * 0.018, 16, 12);
+        stressComparisons.forEach(({ criterion, reserveFactor }) => {
+          if (!Number.isFinite(reserveFactor) || reserveFactor <= 0) return;
+          const marker = new THREE.Mesh(
+            new THREE.SphereGeometry(getMaxStrength(material) * 0.012, 12, 8),
+            new THREE.MeshBasicMaterial({ color: criterion.color, depthTest: false })
+          );
+          marker.position.copy(stressVector(scaledStress(reserveFactor)));
+          marker.renderOrder = 21;
+          failureMarkers.add(marker);
+        });
+        renderStressComparison();
+      }
+
+      function initStressControls() {
+        [
+          ["stress-sigma1", "sigma1"],
+          ["stress-sigma2", "sigma2"],
+          ["stress-tau12", "tau12"],
+        ].forEach(([id, key]) => {
+          const input = document.getElementById(id);
+          input.addEventListener("change", () => {
+            const value = Number(input.value);
+            if (input.value.trim() !== "" && Number.isFinite(value)) baseStress[key] = value;
+            input.value = String(baseStress[key]);
+            refreshStressComparison();
+          });
+        });
+
+        document.getElementById("load-factor-range").addEventListener("input", (event) => {
+          loadFactor = Number(event.target.value);
+          renderStressComparison();
+        });
+        document.getElementById("load-factor-number").addEventListener("change", (event) => {
+          const value = Number(event.target.value);
+          if (event.target.value.trim() !== "" && Number.isFinite(value) && value >= 0) loadFactor = value;
+          renderStressComparison();
+        });
+        document.getElementById("btn-first-failure").addEventListener("click", () => {
+          const firstFailure = stressComparisons.find(({ reserveFactor }) => Number.isFinite(reserveFactor));
+          if (firstFailure) {
+            loadFactor = firstFailure.reserveFactor;
+            renderStressComparison();
+          }
+        });
+        refreshStressComparison();
       }
 
       function getValueByPath(root, path) {
@@ -2146,6 +2381,7 @@ permalink: /failure-criteria/
         const elapsed = performance.now() - start;
         const reused = Math.max(shown - builtNowCount, 0);
         setStatus(`Rendered ${shown}/${active.length} surfaces in ${elapsed.toFixed(0)} ms (new: ${builtNowCount}, cached: ${reused})`);
+        refreshStressComparison();
       }
 
       function buildCriteriaPanel() {
@@ -2219,6 +2455,7 @@ permalink: /failure-criteria/
       buildDidacticParameterPanel();
       buildCriteriaPanel();
       initSurfaceOpacityControls();
+      initStressControls();
       rebuildSurfaces();
       animate();
     </script>

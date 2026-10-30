@@ -2,14 +2,38 @@
 layout: page
 permalink: /teaching/
 title: teaching & resources
-description: 
+description:
 nav: true
 nav_order: 6
 horizontal: false
+resource_sections:
+  - id: teaching-tools
+    title: Teaching tools
+  - id: courses-tutorials
+    title: Courses & tutorials
+  - id: student-projects
+    title: Student projects
 ---
 
-Welcome! This page collects courses, tutorials, and interactive demos. 
+Teaching tools, courses, and tutorials for students, educators, and anyone curious about mechanics and materials.
+
 <style>
+.teaching-section {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--global-divider-color);
+}
+
+.teaching-section h2 {
+  margin-bottom: 0.5rem;
+}
+
+.teaching-section-description {
+  max-width: 46rem;
+  margin-bottom: 1.5rem;
+  color: var(--global-text-color-light);
+}
+
 .teaching-tag {
   display: inline-block;
   padding: 3px 8px;
@@ -26,8 +50,15 @@ Welcome! This page collects courses, tutorials, and interactive demos.
 
 {% assign visible_courses = site.courses | where_exp: "item", "item.hidden != true" %}
 {% assign sorted_courses = visible_courses | sort: "importance" | reverse %}
+{% for section in page.resource_sections %}
+
+<section class="teaching-section" aria-labelledby="{{ section.id }}">
+  <h2 id="{{ section.id }}">{{ section.title }}</h2>
+  <p class="teaching-section-description">{{ section.description }}</p>
 <div class="row row-cols-1 row-cols-md-3">
   {% for course in sorted_courses %}
+  {% assign resource_section = course.resource_section | default: "courses-tutorials" %}
+  {% if resource_section == section.id %}
   <div class="col mb-4 d-flex">
     <a class="w-100" href="{% if course.redirect %}{{ course.redirect }}{% else %}{{ course.url | relative_url }}{% endif %}">
       <div class="card h-100 hoverable">
@@ -42,11 +73,14 @@ Welcome! This page collects courses, tutorials, and interactive demos.
               {% endfor %}
             </div>
           {% endif %}
-          <h4 class="card-title">{{ course.title }}</h4>
+          <h3 class="card-title h4">{{ course.title }}</h3>
           <p class="card-text">{{ course.description }}</p>
         </div>
       </div>
     </a>
   </div>
+  {% endif %}
   {% endfor %}
 </div>
+</section>
+{% endfor %}

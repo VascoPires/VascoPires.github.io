@@ -3,6 +3,8 @@ layout: page
 title: academic stuff
 nav: true
 nav_order: 8
+robots: noindex, nofollow
+sitemap: false
 dropdown: true
 children:
 #  - title: teaching

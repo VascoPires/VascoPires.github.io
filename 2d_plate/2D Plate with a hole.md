@@ -172,7 +172,7 @@ For this example, we’ll keep things simple and use a **dependent instance** . 
 Now, onto the **meshing** step.  
 Meshing is one of the most important parts of any finite element analysis, but here we’ll focus on the basics just to get our model running.
 
-Start by defining a **global seed size** of approximately _1.5_.   Then, click on the **mesh icon** (second row, first position) to generate the mesh for your part.  The expected result is shown in Figure [[Files/mesh.png]].
+Start by defining a **global seed size** of approximately _1.6_.   Then, click on the **mesh icon** (second row, first position) to generate the mesh for your part.  The expected result is shown in Figure [[Files/mesh.png]].
 
 ![[Files/mesh.png|Mesh of the plate with a 2D hole.]]
 

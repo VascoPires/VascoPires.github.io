@@ -12,3 +12,6 @@ vendor
 .idea
 *.zip
 tutorials_offline_full.zip
+# offline tutorial bundles are published on the site (scripts/tutorials/build_tutorials.py)
+!assets/downloads/*_offline.zip
+scripts/tutorials/.cache/

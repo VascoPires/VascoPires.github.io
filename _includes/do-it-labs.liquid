@@ -1,0 +1,484 @@
+<link rel="stylesheet" href="{{ '/assets/css/do-it-labs.css' | relative_url }}?v=branch-cutaway-3">
+<article class="doit-flow">
+  <a class="doit-back" href="{{ '/teaching/' | relative_url }}">Back to teaching &amp; resources</a>
+  <header class="doit-intro">
+    <div>
+      <h1>Do it Labs</h1>
+      <p class="doit-lead">
+        A package tips.<br>
+        A chain sags.<br>
+        A tree grows.<br>
+        A rover lands.
+      </p>
+      <p>
+        Familiar observations become questions about mechanics. These student investigations and later computational explorations follow the questions
+        wherever they lead.
+      </p>
+    </div>
+    <figure class="doit-opening">
+      <a href="#tree-mechanics" aria-label="Explore tree shape, grain, and growth">
+        <img
+          src="{{ '/assets/img/do-it-labs/branch40_front_s40.webp' | relative_url }}"
+          width="1440"
+          height="810"
+          alt="Rendered branch junction with bark peeled back to reveal the modeled wood grain"
+          fetchpriority="high"
+        >
+      </a>
+      <figcaption>A look inside the tree models. <a href="#tree-mechanics">Explore the tree work</a></figcaption>
+    </figure>
+  </header>
+  <nav class="doit-contents" aria-label="Lab themes">
+    {% for theme in site.data.do_it_labs.themes -%}
+      <a href="#{{ theme.id }}">{{ theme.title }}</a>
+    {%- endfor %}
+  </nav>
+
+  {% assign checkout = site.data.do_it_labs.themes[0] %}
+  <section class="doit-chapter doit-checkout" id="{{ checkout.id }}" aria-labelledby="checkout-title">
+    <div class="doit-copy">
+      <h2 id="checkout-title">
+        When does a package<br class="doit-desktop-break">
+        slide or fall?
+      </h2>
+      <p>{{ checkout.introduction }}</p>
+      <dl class="doit-studies">
+        {% for study in checkout.studies %}
+          <dt>{{ study.title }}</dt>
+          <dd>{{ study.description }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+    <div class="doit-media doit-experiment" data-package-experiment>
+      <div class="doit-package-stage">
+        <figure class="doit-media">
+          <h3>Watch the package</h3>
+          <svg viewBox="0 0 520 340" role="img" aria-labelledby="package-diagram-title package-diagram-desc">
+            <title id="package-diagram-title">Will the package stay upright?</title>
+            <desc id="package-diagram-desc">A block on a conveyor with moving belt markings and rotating rollers. A stable block travels with the belt while the camera follows. The dashed load line shows initial stability. On playback, the block tips about its lower left corner or slides left relative to the accelerating belt.</desc>
+            <defs><clipPath id="doit-belt-window"><rect x="-120" y="270" width="800" height="34"/></clipPath></defs>
+            <g clip-path="url(#doit-belt-window)">
+              <rect x="-120" y="270" width="800" height="34" class="doit-belt-bed"/>
+              <g data-belt-rollers>
+                {% for roller in (0..8) %}{% assign roller_x = roller | times: 90 | minus: 100 %}
+                  <g data-belt-roller transform="translate({{ roller_x }} 287)"><circle r="13" class="doit-belt-roller"/><path d="M-9 0 H9 M0 -9 V9" class="doit-belt-spoke"/></g>
+                {% endfor %}
+              </g>
+              <g data-belt-markings>
+                {% for mark in (0..13) %}{% assign mark_x = mark | times: 60 | minus: 120 %}<path d="M{{ mark_x }} 271 v5" class="doit-belt-mark"/>{% endfor %}
+              </g>
+            </g>
+            <line x1="32" y1="270" x2="488" y2="270" class="doit-diagram-ground"/>
+            <g data-package-body>
+            <rect data-package-box x="220" y="130" width="70" height="140" class="doit-package-box"/>
+            <circle data-package-center cx="255" cy="200" r="5" class="doit-diagram-point"/>
+            </g>
+            <circle data-package-pivot cx="220" cy="270" r="5" class="doit-diagram-point" visibility="hidden"/>
+            <path data-package-resultant d="M255 200 L237 270" class="doit-diagram-dashed"/>
+            <circle data-package-projection cx="237" cy="270" r="6" class="doit-diagram-point"/>
+            <path d="M340 305 H435 M421 297 L435 305 L421 313" class="doit-diagram-line"/>
+            <text x="340" y="330">Belt acceleration</text>
+          </svg>
+        </figure>
+        <figure class="doit-media" data-package-plots>
+          <h3>Where does it start?</h3>
+          <svg viewBox="0 0 520 340" role="img" aria-labelledby="package-map-title package-map-desc">
+            <title id="package-map-title">First instability by package proportions and belt acceleration</title>
+            <desc id="package-map-desc">Stable at low acceleration. Short wide packages reach sliding first; tall narrow packages reach tipping first. The marker follows the controls.</desc>
+            <path data-package-zone="stable" d="" class="doit-zone-stable"/><path data-package-zone="sliding" d="" class="doit-zone-sliding"/><path data-package-zone="tipping" d="" class="doit-zone-tipping"/>
+            <path d="M50 55 V260 H450" class="doit-diagram-line"/>
+            <path data-package-boundary d="" class="doit-diagram-dashed"/>
+            <text x="72" y="95">Sliding</text><text x="260" y="100">Tipping</text><text x="180" y="230">Stable</text>
+            <circle data-package-map-point cx="210" cy="135" r="6" class="doit-diagram-point"/>
+            <text x="28" y="264">0</text><text x="28" y="195">3</text><text x="28" y="126">6</text><text x="28" y="60">9</text>
+            <text x="50" y="285">1</text><text x="210" y="285" text-anchor="middle">2</text><text x="450" y="285" text-anchor="end">3.5</text>
+            <text x="250" y="320" text-anchor="middle">Height / width</text><text x="50" y="30">Acceleration (m/s²)</text>
+          </svg>
+          <figcaption>Stable · sliding first · tipping first. Static friction: 0.6.</figcaption>
+        </figure>
+      </div>
+
+      <div class="doit-experiment-controls" hidden>
+        <label for="package-ratio">Height / width <output data-package-ratio>2.0</output></label>
+        <input id="package-ratio" type="range" min="1" max="3.5" step="0.1" value="2">
+        <label for="package-acceleration">Belt acceleration <output data-package-acceleration>5.5 m/s²</output></label>
+        <input id="package-acceleration" type="range" min="0" max="9" step="0.1" value="5.5">
+        <div class="doit-landing-actions">
+          <button type="button" data-package-play>Run simulation</button><button type="button" data-package-reset>Reset</button>
+        </div>
+        <div class="doit-belt-readout">
+          <span>Belt speed <output data-belt-speed>0.00 m/s</output></span
+          ><span data-belt-travel>0.00 m travelled</span>
+        </div>
+        <label for="package-progress">Simulation time <output data-package-time>0.00 s</output></label>
+        <input id="package-progress" type="range" min="0" max="1000" step="1" value="0" aria-valuetext="0.00 seconds">
+        <p class="doit-model-result" data-package-status role="status">Ready to run.</p>
+      </div>
+    </div>
+  </section>
+
+  {% assign chain = site.data.do_it_labs.themes[1] %}
+  <section class="doit-chapter doit-split doit-chain" id="{{ chain.id }}" aria-labelledby="chain-title">
+    <div class="doit-copy">
+      <h2 id="chain-title">Why do chains sag?</h2>
+      <p>{{ chain.introduction }}</p>
+      <dl class="doit-studies">
+        {% for study in chain.studies %}
+          <dt>{{ study.title }}</dt>
+          <dd>{{ study.description }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+    <figure class="doit-media doit-experiment" data-chain-experiment>
+      <svg viewBox="0 0 520 340" role="img" aria-labelledby="chain-diagram-title chain-diagram-desc">
+        <title id="chain-diagram-title">A hanging chain between fixed supports</title>
+        <desc id="chain-diagram-desc">The chain hangs symmetrically between two supports three metres apart. Increasing the chain length increases its sag.</desc>
+        <path d="M40 60 V32 H480 V60" class="doit-diagram-dashed"/>
+        <text x="260" y="23" text-anchor="middle">3 m between supports</text>
+        <path data-chain-baseline d="" class="doit-chain-baseline"/>
+        <path data-chain-line d="M40.00 65.00 L44.40 72.81 L48.80 80.37 L53.20 87.70 L57.60 94.81 L62.00 101.69 L66.40 108.35 L70.80 114.80 L75.20 121.04 L79.60 127.08 L84.00 132.92 L88.40 138.56 L92.80 144.01 L97.20 149.27 L101.60 154.35 L106.00 159.25 L110.40 163.97 L114.80 168.52 L119.20 172.90 L123.60 177.12 L128.00 181.17 L132.40 185.06 L136.80 188.80 L141.20 192.38 L145.60 195.80 L150.00 199.08 L154.40 202.21 L158.80 205.20 L163.20 208.04 L167.60 210.74 L172.00 213.31 L176.40 215.74 L180.80 218.03 L185.20 220.19 L189.60 222.22 L194.00 224.11 L198.40 225.88 L202.80 227.52 L207.20 229.04 L211.60 230.43 L216.00 231.69 L220.40 232.84 L224.80 233.86 L229.20 234.75 L233.60 235.53 L238.00 236.19 L242.40 236.72 L246.80 237.14 L251.20 237.44 L255.60 237.62 L260.00 237.68 L264.40 237.62 L268.80 237.44 L273.20 237.14 L277.60 236.72 L282.00 236.19 L286.40 235.53 L290.80 234.75 L295.20 233.86 L299.60 232.84 L304.00 231.69 L308.40 230.43 L312.80 229.04 L317.20 227.52 L321.60 225.88 L326.00 224.11 L330.40 222.22 L334.80 220.19 L339.20 218.03 L343.60 215.74 L348.00 213.31 L352.40 210.74 L356.80 208.04 L361.20 205.20 L365.60 202.21 L370.00 199.08 L374.40 195.80 L378.80 192.38 L383.20 188.80 L387.60 185.06 L392.00 181.17 L396.40 177.12 L400.80 172.90 L405.20 168.52 L409.60 163.97 L414.00 159.25 L418.40 154.35 L422.80 149.27 L427.20 144.01 L431.60 138.56 L436.00 132.92 L440.40 127.08 L444.80 121.04 L449.20 114.80 L453.60 108.35 L458.00 101.69 L462.40 94.81 L466.80 87.70 L471.20 80.37 L475.60 72.81 L480.00 65.00" class="doit-chain-line"/>
+        <circle cx="40" cy="65" r="6" class="doit-diagram-point"/><circle cx="480" cy="65" r="6" class="doit-diagram-point"/>
+        <path data-chain-sag d="M260 65 V237.68" class="doit-diagram-dashed"/>
+        <text data-chain-sag-label x="274" y="158.34">Sag</text>
+      </svg>
+      <div class="doit-experiment-controls" hidden>
+        <div class="doit-landing-actions">
+          <button type="button" data-chain-play>Play years</button><button type="button" data-chain-reset>Reset</button>
+        </div>
+        <label for="chain-years">Time under load <output data-chain-years>0 years</output></label>
+        <input id="chain-years" type="range" min="0" max="30" step="0.1" value="0">
+        <label class="doit-creep-toggle" for="chain-magnify"><input id="chain-magnify" type="checkbox" checked> Magnify creep change ×500</label>
+        <p class="doit-model-result" data-chain-status role="status"></p>
+        <p class="doit-chain-scale" data-chain-scale>Creep change shown ×500; readouts use actual values.</p>
+      </div>
+      <figcaption>Small length changes can noticeably change the sag. Creep coefficients are assumed model inputs.</figcaption>
+    </figure>
+  </section>
+
+  <section class="doit-chapter doit-trees" id="tree-mechanics" aria-labelledby="tree-title">
+    <header class="doit-tree-intro">
+      <h2 id="tree-title">
+        How do trees carry<br>
+        loads and adapt?
+      </h2>
+      <p>
+        A branch junction, a knot, a hole: different starting points for exploring the same connection between shape, material direction, and
+        mechanical response. The earlier student work and the ongoing models belong to one story.
+      </p>
+    </header>
+    <div class="doit-tree-study doit-shape">
+      <div class="doit-copy">
+        <h3>Start with the shape</h3>
+        <p>The earlier student investigation compared branch junctions, branch angles, and wood anisotropy in simplified finite-element models.</p>
+        <p>What changes when a sharp junction becomes a smooth curve?</p>
+      </div>
+      <figure class="doit-media">
+        <img
+          src="{{ '/assets/img/do-it-labs/branch40_front_s40.webp' | relative_url }}"
+          width="1440"
+          height="810"
+          alt="Rendered branch junction showing its shape and the modeled wood grain"
+          loading="lazy"
+        >
+      </figure>
+    </div>
+    <div class="doit-grain" data-grain-viewer data-url="{{ '/assets/data/do-it-grain.json' | relative_url }}">
+      <div class="doit-growth-heading">
+        <h3>
+          Same hole.<br>
+          Different fiber directions.
+        </h3>
+        <p>Follow the grain around a knot. Turning the fibers changes how the load passes through the wood—and which stresses remain.</p>
+      </div>
+      <div data-grain-content hidden>
+        <div class="doit-grain-toolbar">
+          <label for="grain-shape"
+            >Knot shape
+            <select id="grain-shape">
+              <option value="circle">Rounded hole</option>
+              <option value="diamond_r1">Sharp hole</option>
+            </select></label
+          >
+          <label for="grain-state"
+            >Fiber arrangement
+            <select id="grain-state">
+              <option value="0">Straight grain</option>
+              <option value="1">First reorientation</option>
+              <option value="2" selected>Stress-following grain</option>
+            </select></label
+          >
+        </div>
+        <div class="doit-grain-stage">
+          <figure>
+            <svg viewBox="0 0 580 260" role="img" aria-labelledby="grain-field-title grain-field-description">
+              <title id="grain-field-title">Computed wood fiber directions</title>
+              <desc id="grain-field-description">Fiber paths around a knot hole, with horizontal tension applied to the board.</desc>
+              <g class="doit-grain-load" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M40 130H8m8-6-8 6 8 6M540 130h32m-8-6 8 6-8 6"/></g>
+              <g data-grain-lines fill="none" stroke="currentColor" stroke-width="0.9"/>
+              <path data-grain-outline fill="none" stroke="currentColor" stroke-width="1.4"/>
+              <text x="290" y="247" text-anchor="middle">Tension along the board</text>
+            </svg>
+            <figcaption data-grain-caption></figcaption>
+          </figure>
+          <figure>
+            <svg viewBox="0 0 360 260" role="img" aria-labelledby="grain-chart-title">
+              <title id="grain-chart-title">Predicted first failure versus reorientation step</title>
+              <text x="45" y="22">Predicted first failure / MPa</text>
+              <g data-grain-grid/>
+              <path data-grain-curve fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <circle data-grain-marker r="5" fill="currentColor"/>
+              <text x="190" y="247" text-anchor="middle">Reorientation step</text>
+            </svg>
+            <figcaption data-grain-result aria-live="polite"></figcaption>
+          </figure>
+        </div>
+        <p class="doit-grain-finding" data-grain-finding></p>
+        <p class="doit-grain-note">
+          Saved finite-element results for a spruce-like board. Fiber reorientation follows principal stress; it does not directly optimize strength.
+        </p>
+      </div>
+      <p data-grain-error hidden>The fiber comparison could not load. Reload the page to try again.</p>
+    </div>
+    <div class="doit-trunk" data-trunk-viewer data-url="{{ '/assets/data/do-it-trunk.json' | relative_url }}">
+      <div class="doit-growth-heading">
+        <h3>
+          What changes when<br>
+          a branch carries weight?
+        </h3>
+        <p>Compare an empty hole with a loaded branch. The unrolled trunk surface reveals the fiber paths and local failure index.</p>
+      </div>
+      <p data-trunk-status role="status" hidden>Loading saved model results…</p>
+      <div data-trunk-content hidden>
+        <div class="doit-grain-toolbar">
+          <label for="trunk-view"
+            >Show
+            <select id="trunk-view">
+              <option value="grain">Fiber directions</option>
+              <option value="index" selected>Failure-index map</option>
+            </select></label
+          >
+          <label for="trunk-state"
+            >Trunk fibers
+            <select id="trunk-state">
+              <option value="0">Straight grain</option>
+              <option value="1" selected>Stress-following grain</option>
+            </select></label
+          >
+        </div>
+        <div class="doit-trunk-comparison">
+          {% assign trunk_cases = 'trunk_hole,trunk_branch_weight' | split: ',' %}
+          {% assign trunk_labels = 'Hole,Branch with weight' | split: ',' %}
+          {% for case in trunk_cases %}
+            <figure data-trunk-case="{{ case }}">
+              <h4>{{ trunk_labels[forloop.index0] }}</h4>
+              <svg viewBox="0 0 320 460" role="img" aria-labelledby="{{ case }}-title {{ case }}-desc">
+                <title id="{{ case }}-title">{{ trunk_labels[forloop.index0] }}: computed trunk response</title>
+                <desc id="{{ case }}-desc" data-trunk-desc></desc>
+                <defs><clipPath id="{{ case }}-window"><rect x="25" y="50" width="270" height="360"/></clipPath></defs>
+                <g clip-path="url(#{{ case }}-window)"><g><g data-trunk-map></g>
+                {% unless forloop.first %}<circle cx="160" cy="230" r="45" class="doit-branch-core"/>{% endunless %}
+                <g data-trunk-lines fill="none" stroke="currentColor" stroke-width="1"/>
+                <path data-trunk-outline fill="none" stroke="currentColor" stroke-width="1.4"/>
+                </g></g>
+                <g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M160 44V12m-6 8 6-8 6 8"/></g>
+                <text x="160" y="439" text-anchor="middle">{% if forloop.first %}60 mm opening{% elsif forloop.last %}100 mm branch + 1 kN downward{% else %}100 mm branch{% endif %}</text>
+              </svg>
+              <figcaption>
+                <span data-trunk-index></span><br>
+                <span data-trunk-transverse></span>
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+        <div class="doit-trunk-legend" data-trunk-legend hidden>
+          <span>Failure index</span>
+          <svg viewBox="0 0 200 12" aria-hidden="true">
+            <defs><linearGradient id="trunk-scale"><stop stop-color="#f5f1e8"/><stop offset="0.5" stop-color="#ecab4d"/><stop offset="1" stop-color="#9b1839"/></linearGradient></defs><rect width="200" height="12" fill="url(#trunk-scale)"/>
+          </svg>
+          <span>0 · 0.25 · 1 or higher</span>
+        </div>
+        <p class="doit-grain-finding" data-trunk-finding aria-live="polite"></p>
+        <p class="doit-grain-note">
+          A 2D model under 10 MPa axial tension. The branch is an end-grain inclusion; its fibers remain fixed while trunk fibers reorient. “Weight”
+          is an assumed 1 kN downward load, not a measured branch mass. The hole and branch diameters differ. A failure index of 1 marks the model’s
+          failure threshold. Color spacing follows the square root of the index to reveal small values.
+        </p>
+      </div>
+      <p data-trunk-error hidden>The trunk comparison could not load. Reload the page to try again.</p>
+    </div>
+    <div id="tree-growth" class="doit-growth doit-seasons" data-season-viewer data-url="{{ '/assets/data/do-it-growth.json' | relative_url }}">
+      <div class="doit-growth-heading">
+        <h3>
+          Follow the growth.<br>
+          Keep the results in view.
+        </h3>
+        <p>
+          The model adds wood around overloaded regions. Move through the model seasons to follow the front, the wood added, and the failure index
+          together.
+        </p>
+      </div>
+      <p data-season-status role="status" hidden>Loading growth seasons…</p>
+      <div data-season-content hidden>
+        <div class="doit-grain-toolbar">
+          <label for="season-case"
+            >Model
+            <select id="season-case">
+              <option value="trunk_hole">Hole in the trunk</option>
+              <option value="trunk_branch40_weight">Loaded branch, 40°</option>
+            </select></label
+          >
+          <label class="doit-season-view-switch" for="season-view"
+            >View
+            <select id="season-view">
+              <option value="front">Growth front</option>
+              <option value="response">Wood added + failure index</option>
+            </select></label
+          >
+          <div class="doit-season-actions">
+            <button type="button" data-season-play>Play</button><button type="button" data-season-reset>Reset</button>
+          </div>
+        </div>
+        <div class="doit-season-controls">
+          <div class="doit-control-label">
+            <label for="growth-season">Model season</label><output for="growth-season" data-season-label>0</output>
+          </div>
+          <input id="growth-season" type="range" min="0" max="40" step="1" value="0">
+        </div>
+        <figure
+          class="doit-media doit-season-render"
+          data-season-render
+          data-base="{{ '/assets/img/do-it-labs/hole_cut_s' | relative_url }}"
+          data-branch-base="{{ '/assets/img/do-it-labs/branch40_weight_cut_s' | relative_url }}"
+        >
+          <img
+            src="{{ '/assets/img/do-it-labs/hole_cut_s05.webp' | relative_url }}"
+            width="1440"
+            height="810"
+            alt="Cutaway of the hole growth model"
+            loading="lazy"
+          >
+        </figure>
+        <div class="doit-season-stage">
+          <figure data-season-panel="front">
+            <h4>Growth front</h4>
+            <svg viewBox="0 0 360 440" role="img" aria-labelledby="season-front-title">
+              <title id="season-front-title">Growth fronts on the unrolled trunk surface</title>
+              <path d="M50 44V396H310" class="doit-season-axis"/>
+              <text x="18" y="220" text-anchor="middle" transform="rotate(-90 18 220)">Up the trunk / mm</text>
+              <g data-season-fronts fill="none"/>
+              <path data-season-footprint class="doit-season-core"/>
+              <text x="180" y="428" text-anchor="middle">Round the trunk / mm</text>
+              <text x="44" y="400" text-anchor="end">−220</text><text x="44" y="48" text-anchor="end">220</text><text x="52" y="414" text-anchor="middle">−160</text><text x="308" y="414" text-anchor="middle">160</text>
+            </svg>
+            <figcaption>The front marks 20% extra thickness. Faint contours show earlier seasons.</figcaption>
+          </figure>
+          <figure data-season-panel="response">
+            <h4>Wood added and failure index</h4>
+            <svg viewBox="0 0 640 440" role="img" aria-labelledby="season-response-title season-response-desc">
+              <title id="season-response-title">Wood added and peak failure index by model season</title>
+              <desc id="season-response-desc">Brown bars show wood added per season against the left axis in cubic centimetres. The red line shows peak failure index against the right axis. The dashed line marks failure index 1.</desc>
+              <g data-season-response-axis/>
+              <g data-season-bars/>
+              <path data-season-threshold class="doit-season-threshold"/>
+              <path data-season-failure-line fill="none" stroke="currentColor" stroke-width="3"/>
+              <path data-season-cursor class="doit-plot-cursor"/>
+              <circle data-season-failure-marker r="6" fill="currentColor"/>
+              <text x="315" y="425" text-anchor="middle">Model season</text>
+            </svg>
+            <figcaption>
+              <span data-season-volume></span><br>
+              <span data-season-failure></span>
+            </figcaption>
+          </figure>
+        </div>
+        <p class="doit-grain-note">
+          A season is one model iteration, not a calibrated year. Growth starts from adapted grain; volume comes from the thickness model.
+        </p>
+      </div>
+      <p data-season-error hidden>The growth results could not load. Reload the page to try again.</p>
+    </div>
+  </section>
+  <section
+    class="doit-chapter doit-landing"
+    id="lunar-landing"
+    aria-labelledby="landing-title"
+    data-landing-experiment
+    data-response-url="{{ '/assets/data/do-it-landing.json' | relative_url }}"
+  >
+    <header class="doit-tree-intro">
+      <h2 id="landing-title">
+        Touch down.<br>
+        Stay down.
+      </h2>
+      <div>
+        <p>A lunar rover reaches the ground. The legs can store the impact energy, but where does that energy go next?</p>
+        <p>Follow the damped touchdown and its solved response, then take the challenge from energy absorption to leg strength and buckling.</p>
+      </div>
+    </header>
+    <div class="doit-landing-comparison">
+      <figure class="doit-landing-panel" data-landing-panel="damped">
+        <h3>Lunar touchdown</h3>
+        <p>Energy-absorbing landing gear</p>
+        <svg viewBox="0 0 420 320" role="img" aria-label="Lunar rover descending, compressing its landing gear, and settling">
+          <line x1="32" y1="292" x2="388" y2="292" class="doit-diagram-ground"/>
+          <g data-lander-body><rect x="140" y="55" width="140" height="40" rx="3" class="doit-lander-body"/><line x1="175" y1="49" x2="245" y2="49" class="doit-lander-panel-line"/></g>
+          <path data-lander-legs d="M156 95 L106 181 M264 95 L314 181" class="doit-lander-legs"/>
+          <path data-lander-feet d="M86 181 H126 M294 181 H334" class="doit-lander-feet"/>
+        </svg>
+        <figcaption data-landing-state>Before touchdown</figcaption>
+      </figure>
+      <figure class="doit-landing-panel doit-response-plot">
+        <h3>The solved response</h3>
+        <p>Compression and gear force</p>
+        <svg viewBox="0 0 420 320" role="img" aria-labelledby="landing-plot-title landing-plot-desc">
+          <title id="landing-plot-title">Landing gear compression and force over time</title>
+          <desc id="landing-plot-desc">The compression rises after touchdown then settles. The force peaks at contact and then falls. Each response is normalized separately, with a cursor synchronized to the rover.</desc>
+          <path d="M48 55 V270 H390" class="doit-plot-axis"/>
+          <text x="48" y="302">0</text><text x="390" y="302" text-anchor="end">2.3 s</text>
+          <path data-landing-compression d="M48.00 270.00 L49.84 230.66 L51.51 199.63 L53.17 172.72 L54.84 149.60 L56.51 129.94 L58.17 113.46 L59.84 99.87 L61.50 88.91 L63.18 80.32 L64.85 73.86 L66.51 69.31 L68.18 66.48 L69.84 65.15 L71.51 65.16 L73.17 66.34 L74.85 68.54 L76.52 71.60 L78.19 75.42 L79.85 79.86 L81.52 84.82 L83.18 90.20 L84.85 95.91 L86.53 101.87 L88.19 108.02 L89.86 114.28 L91.52 120.60 L93.19 126.92 L94.85 133.22 L96.52 139.44 L98.20 145.55 L99.87 151.54 L101.53 157.36 L103.20 163.00 L104.86 168.45 L106.53 173.70 L108.19 178.72 L109.87 183.53 L111.54 188.10 L113.20 192.44 L114.87 196.56 L116.53 200.44 L118.20 204.09 L119.86 207.52 L121.54 210.73 L123.21 213.72 L124.88 216.50 L126.54 219.09 L128.21 221.48 L129.87 223.68 L131.54 225.71 L133.20 227.57 L134.88 229.27 L136.55 230.81 L138.21 232.21 L139.88 233.48 L141.54 234.62 L143.21 235.64 L144.88 236.55 L146.56 237.35 L148.22 238.06 L149.89 238.68 L151.55 239.22 L153.22 239.68 L154.88 240.07 L156.55 240.40 L158.23 240.67 L159.89 240.89 L161.56 241.07 L163.22 241.19 L164.89 241.29 L166.56 241.34 L168.22 241.37 L169.90 241.37 L171.57 241.35 L173.23 241.30 L174.90 241.24 L176.56 241.17 L178.23 241.08 L179.89 240.98 L181.57 240.87 L183.24 240.76 L184.90 240.64 L186.57 240.52 L188.23 240.39 L189.90 240.27 L191.57 240.14 L193.25 240.02 L194.91 239.89 L196.58 239.77 L198.24 239.65 L199.91 239.54 L201.57 239.42 L203.24 239.31 L204.90 239.21 L206.58 239.11 L208.25 239.01 L209.91 238.92 L211.58 238.84 L213.25 238.75 L214.91 238.68 L216.58 238.60 L218.26 238.53 L219.92 238.47 L221.59 238.41 L223.25 238.36 L224.92 238.30 L226.58 238.26 L228.25 238.21 L229.93 238.17 L231.59 238.13 L233.26 238.10 L234.93 238.07 L236.59 238.04 L238.26 238.02 L239.92 237.99 L241.60 237.97 L243.27 237.96 L244.93 237.94 L246.60 237.93 L248.26 237.91 L249.93 237.90 L251.59 237.89 L253.27 237.89 L254.94 237.88 L256.61 237.87 L258.27 237.87 L259.94 237.87 L261.60 237.86 L263.27 237.86 L264.95 237.86 L266.61 237.86 L268.28 237.86 L269.94 237.86 L271.61 237.86 L273.27 237.86 L274.94 237.86 L276.62 237.86 L278.28 237.87 L279.95 237.87 L281.62 237.87 L283.28 237.87 L284.95 237.88 L286.61 237.88 L288.28 237.88 L289.96 237.88 L291.62 237.89 L293.29 237.89 L294.95 237.89 L296.62 237.89 L298.28 237.90 L299.95 237.90 L301.63 237.90 L303.30 237.90 L304.96 237.90 L306.63 237.91 L308.29 237.91 L309.96 237.91 L311.62 237.91 L313.30 237.91 L314.97 237.91 L316.63 237.92 L318.30 237.92 L319.96 237.92 L321.63 237.92 L323.30 237.92 L324.98 237.92 L326.64 237.92 L328.31 237.92 L329.97 237.92 L331.64 237.92 L333.30 237.92 L334.97 237.93 L336.65 237.93 L338.31 237.93 L339.98 237.93 L341.64 237.93 L343.31 237.93 L344.97 237.93 L346.64 237.93 L348.32 237.93 L349.99 237.93 L351.65 237.93 L353.32 237.93 L354.98 237.93 L356.65 237.93 L358.31 237.93 L359.98 237.93 L361.66 237.93 L363.32 237.93 L364.99 237.93 L366.65 237.93 L368.32 237.93 L369.99 237.93 L371.65 237.93 L373.33 237.93 L375.00 237.93 L376.66 237.93 L378.33 237.93 L379.99 237.93 L381.66 237.93 L383.32 237.93 L385.00 237.93 L386.67 237.93 L388.33 237.93 L390.00 237.93" class="doit-compression-curve"/>
+          <path data-landing-force d="M48.00 64.94 L49.84 80.88 L51.51 94.76 L53.17 108.03 L54.84 120.69 L56.51 132.72 L58.17 144.12 L59.84 154.90 L61.50 165.05 L63.18 174.59 L64.85 183.52 L66.51 191.87 L68.18 199.65 L69.84 206.87 L71.51 213.56 L73.17 219.73 L74.85 225.42 L76.52 230.64 L78.19 235.41 L79.85 239.76 L81.52 243.71 L83.18 247.29 L84.85 250.51 L86.53 253.40 L88.19 255.98 L89.86 258.27 L91.52 260.29 L93.19 262.06 L94.85 263.61 L96.52 264.94 L98.20 266.07 L99.87 267.03 L101.53 267.83 L103.20 268.48 L104.86 268.99 L106.53 269.39 L108.19 269.67 L109.87 269.86 L111.54 269.97 L113.20 269.99 L114.87 269.95 L116.53 269.86 L118.20 269.71 L119.86 269.52 L121.54 269.29 L123.21 269.03 L124.88 268.75 L126.54 268.45 L128.21 268.13 L129.87 267.80 L131.54 267.47 L133.20 267.13 L134.88 266.78 L136.55 266.44 L138.21 266.10 L139.88 265.77 L141.54 265.44 L143.21 265.13 L144.88 264.82 L146.56 264.52 L148.22 264.23 L149.89 263.95 L151.55 263.69 L153.22 263.44 L154.88 263.20 L156.55 262.97 L158.23 262.75 L159.89 262.55 L161.56 262.36 L163.22 262.18 L164.89 262.02 L166.56 261.86 L168.22 261.72 L169.90 261.58 L171.57 261.46 L173.23 261.35 L174.90 261.24 L176.56 261.15 L178.23 261.06 L179.89 260.98 L181.57 260.91 L183.24 260.85 L184.90 260.79 L186.57 260.74 L188.23 260.69 L189.90 260.65 L191.57 260.61 L193.25 260.58 L194.91 260.56 L196.58 260.53 L198.24 260.52 L199.91 260.50 L201.57 260.49 L203.24 260.48 L204.90 260.47 L206.58 260.46 L208.25 260.46 L209.91 260.46 L211.58 260.46 L213.25 260.46 L214.91 260.46 L216.58 260.46 L218.26 260.47 L219.92 260.47 L221.59 260.47 L223.25 260.48 L224.92 260.49 L226.58 260.49 L228.25 260.50 L229.93 260.51 L231.59 260.51 L233.26 260.52 L234.93 260.53 L236.59 260.53 L238.26 260.54 L239.92 260.55 L241.60 260.55 L243.27 260.56 L244.93 260.56 L246.60 260.57 L248.26 260.58 L249.93 260.58 L251.59 260.59 L253.27 260.59 L254.94 260.60 L256.61 260.60 L258.27 260.60 L259.94 260.61 L261.60 260.61 L263.27 260.61 L264.95 260.62 L266.61 260.62 L268.28 260.62 L269.94 260.63 L271.61 260.63 L273.27 260.63 L274.94 260.63 L276.62 260.63 L278.28 260.64 L279.95 260.64 L281.62 260.64 L283.28 260.64 L284.95 260.64 L286.61 260.64 L288.28 260.64 L289.96 260.64 L291.62 260.64 L293.29 260.64 L294.95 260.64 L296.62 260.64 L298.28 260.64 L299.95 260.65 L301.63 260.65 L303.30 260.65 L304.96 260.65 L306.63 260.65 L308.29 260.65 L309.96 260.65 L311.62 260.65 L313.30 260.65 L314.97 260.65 L316.63 260.65 L318.30 260.65 L319.96 260.65 L321.63 260.65 L323.30 260.65 L324.98 260.65 L326.64 260.64 L328.31 260.64 L329.97 260.64 L331.64 260.64 L333.30 260.64 L334.97 260.64 L336.65 260.64 L338.31 260.64 L339.98 260.64 L341.64 260.64 L343.31 260.64 L344.97 260.64 L346.64 260.64 L348.32 260.64 L349.99 260.64 L351.65 260.64 L353.32 260.64 L354.98 260.64 L356.65 260.64 L358.31 260.64 L359.98 260.64 L361.66 260.64 L363.32 260.64 L364.99 260.64 L366.65 260.64 L368.32 260.64 L369.99 260.64 L371.65 260.64 L373.33 260.64 L375.00 260.64 L376.66 260.64 L378.33 260.64 L379.99 260.64 L381.66 260.64 L383.32 260.64 L385.00 260.64 L386.67 260.64 L388.33 260.64 L390.00 260.64" class="doit-force-curve"/>
+          <path data-landing-cursor d="M48 55 V270" class="doit-plot-cursor"/>
+          <circle data-landing-compression-point cx="48" cy="270" r="5" class="doit-compression-point"/>
+          <circle data-landing-force-point cx="48" cy="270" r="5" class="doit-force-point"/>
+        </svg>
+        <figcaption>
+          <span class="doit-compression-key">Compression</span> · <span class="doit-force-key">Gear force</span><br>
+          Time after touchdown
+        </figcaption>
+      </figure>
+    </div>
+    <div class="doit-landing-controls" hidden>
+      <div class="doit-control-label">
+        <label for="landing-progress">Follow the landing</label><output data-landing-time>Approaching the surface</output>
+      </div>
+      <input id="landing-progress" type="range" min="0" max="240" step="1" value="0" aria-valuetext="Approaching the surface">
+      <div class="doit-landing-actions">
+        <button type="button" data-landing-play>Play landing</button><button type="button" data-landing-reset>Reset</button>
+      </div>
+    </div>
+    <p class="doit-landing-note">
+      Playback is slowed. The rover and plot follow the same solved vertical-motion model. Compression and force are normalized separately so the
+      response shapes are visible without revealing the numerical design solution. The spring–dashpot model retains footpad contact and settles;
+      irreversible crush absorption is a separate design option.
+    </p>
+    <p class="doit-landing-error" hidden>Interactive playback could not load. Reload to retry, or explore the landing challenge below.</p>
+    <div class="doit-landing-next">
+      <div>
+        <h3>From touchdown to a design</h3>
+      </div>
+      <dl class="doit-studies">
+        <dt>Absorb the impact</dt>
+        <dd>Compare energy storage with damping or irreversible crushing. Make stopping distance part of the design.</dd>
+        <dt>Share the load</dt>
+        <dd>Consider uneven touchdown: fewer legs may have to carry the impact.</dd>
+        <dt>Size the structure</dt>
+        <dd>Check tube stress, off-axis bending, and buckling before turning the concept into CAD.</dd>
+      </dl>
+    </div>
+  </section>
+  <footer class="doit-outro">
+    <p>Looking for research-oriented theses and supervised projects?</p>
+    <a href="{{ '/teaching/student-supervision/' | relative_url }}">Explore student supervision</a>
+  </footer>
+</article>
+<script src="{{ '/assets/js/do-it-labs.js' | relative_url }}?v=branch-cutaway-3" type="module"></script>

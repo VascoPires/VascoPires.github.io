@@ -4,6 +4,7 @@ title: "Stress Tensor Visualizer"
 description: Interactive 3D demo for rotating stress states and principal directions.
 img:
 importance: 4
+resource_section: teaching-tools
 tags: ["Demo", "Interactive"]
 redirect: /tensor-vis/
 ---

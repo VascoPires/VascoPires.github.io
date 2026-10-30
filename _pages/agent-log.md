@@ -4,6 +4,8 @@ title: agent log
 permalink: /agent-log/
 nav: false
 description: Running notes for assistant work sessions.
+robots: noindex, nofollow
+sitemap: false
 ---
 
 ## Session 2025-11-24

@@ -1,0 +1,52 @@
+themes:
+  - id: checkout-stability
+    title: Checkout stability
+    question: When does a package slide or fall?
+    summary: Motion, friction, and tipping on an accelerating supermarket checkout belt.
+    introduction: Everyday motion becomes a mechanics investigation. Explore how an object's geometry and the belt's acceleration affect sliding, tipping, and recovery.
+    studies:
+      - title: Sliding and tipping
+        context: Student investigation
+        description: Force balance, friction, and the position of the centre of mass define the simplified motion model.
+      - title: Acceleration histories
+        context: Modeling and comparison
+        description: Compare motion under different acceleration profiles and examine how object geometry changes the response.
+  - id: hanging-chains
+    title: Hanging chains
+    question: Why do chains sag?
+    summary: Catenary geometry, fixed supports, and the effects of changing length.
+    introduction: A hanging chain turns a small change in length into a visible change in sag. Explore its initial shape and how an assumed creep law changes it over time.
+    studies:
+      - title: The shape of a hanging chain
+        context: Student investigation
+        description: Analytical catenary equations and a length constraint connect support spacing, chain length, and sag.
+      - title: Length change over time
+        context: Numerical scenario
+        description: An assumed creep law adds length under sustained load. Re-solving the catenary shows how sag evolves between fixed supports.
+  - id: tree-mechanics
+    title: Tree mechanics
+    question: How do trees carry loads and adapt?
+    summary: Branch shape, knots and holes, wood grain, and simulated growth within one theme.
+    introduction: Bring the earlier student shape analysis and the later hole, grain, and growth studies together. Different models explore related questions about how geometry and material direction affect the mechanical response.
+    studies:
+      - title: Branch and junction shape
+        context: Earlier student investigation
+        description: Compare branch-junction shapes, branch angles, and wood anisotropy in simplified finite-element models.
+      - title: Knots, holes, and wood grain
+        context: Computational extension
+        description: Use a hole in a plate as a starting point for studying stress concentration and stress-following grain around knots and branches.
+      - title: Growing around a weak spot
+        context: Ongoing computational extension
+        description: Explore changes in shape and local material amount around holes and branches through simulated growth iterations.
+  - id: lunar-landing
+    title: Lunar landing
+    question: How can a rover touch down and stay down?
+    summary: Energy absorption, landing-leg motion, uneven load sharing, structural stress, and buckling.
+    introduction: Turn touchdown energy into an engineering challenge, from spring rebound and damping to strength and CAD.
+    studies:
+      - title: Absorb the impact
+        context: Teaching model
+        description: Compare reversible spring storage, damping, and irreversible crush absorption.
+      - title: Size the legs
+        context: Engineering design challenge
+        description: Explore stopping distance, uneven load sharing, bending, and buckling.
