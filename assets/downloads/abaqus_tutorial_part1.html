@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Part 1: Setting a Quick Model | Vasco D. C. Pires</title>
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/mdb.min.css">
+<link rel="stylesheet" href="assets/css/jekyll-pygments-themes-github.css">
+<link rel="shortcut icon" href="assets/img/web_icon.ico">
+<link rel="stylesheet" href="assets/css/tutorial-fonts.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+d-article figure.article-figure { text-align: center; margin: 1.5rem 0 0.25rem; }
+d-article figure.article-figure img { display: block; width: auto; max-width: min(100%, 360px); height: auto; max-height: 1000px; margin-inline: auto; }
+d-article figure.article-figure img.tut-landscape { width: 100%; max-width: 100%; max-height: none; }
+d-article figure.article-figure video { width: 100%; height: auto; background: #000; }
+.tutorial-nav .btn { text-transform: none; }
+.tut-icon { height: 1.6em; vertical-align: middle; }
+.callout .callout-body > :last-child { margin-bottom: 0; }
+</style>
+<script src="assets/vendor/jquery.min.js"></script>
+<script>window.MathJax = { tex: { tags: "ams" } };</script>
+<script defer src="assets/vendor/mathjax/tex-mml-chtml.js"></script>
+<script src="assets/js/distillpub/template.v2.js"></script>
+<script src="assets/js/distillpub/transforms.v2.js"></script>
+<script src="assets/js/distillpub/overrides.js"></script>
+</head>
+<body>
+<d-front-matter><script async type="text/json">{"title": "Part 1: Setting a Quick Model", "description": "2D Plate with a Hole", "authors": []}</script></d-front-matter>
+<div class="post distill">
+<d-title><h1>Part 1: Setting a Quick Model</h1><p>2D Plate with a Hole</p></d-title>
+<d-article>
+<div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mb-3"><a class="btn btn-outline-primary" href="index.html">&larr; Back to tutorial overview</a><div class="d-flex gap-2"><a class="btn btn-primary" href="abaqus_tutorial_part2.html">Next: Part 2 &rarr;</a></div></div>
+<p>Now that we have covered some fundamentals and learned how to operate within Abaqus/CAE, let's start with a simple example: a plate with a hole, as shown in <a href="#fig-tikz-dd9b307b2331">Figure 1</a>.</p>
+<figure class="article-figure" id="fig-tikz-dd9b307b2331"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/tikz-dd9b307b2331.svg" alt=""><figcaption class="caption"><em>Sketch of the 2D plate with a central hole.</em></figcaption></figure>
+
+<table>
+<thead>
+<tr>
+<th>⚙️ Parameter</th>
+<th>📏 Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plate length, <span class="arithmatex">\(L\)</span></td>
+<td>100 mm</td>
+</tr>
+<tr>
+<td>Plate height, <span class="arithmatex">\(H\)</span></td>
+<td>20 mm</td>
+</tr>
+<tr>
+<td>Hole diameter, <span class="arithmatex">\(D\)</span></td>
+<td>10 mm</td>
+</tr>
+</tbody>
+</table>
+<div class="caption table-caption" id="tab-1"><strong>Table 1:</strong> <em>Geometric dimensions of the 2D plate with a hole.</em>  </div>
+
+<hr />
+<h2 id="setting-up-the-project">🗂️ Setting up the Project</h2>
+<p>The first step is to set up the working directory. After opening Abaqus, either manually select the working directory from the top of the GUI or open the command prompt in the desired folder and type:</p>
+<pre><code class="language-cmd">abaqus cae
+</code></pre>
+<p>After that, in the <strong>Start Session</strong> dialog, choose <code>Standard/Explicit Model</code> to begin.<br />
+<a href="#fig-welcome-window">Figure 2</a> shows the initial window of Abaqus/CAE.</p>
+<figure class="article-figure" id="fig-welcome-window"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/welcome-window.png" alt="Start-up dialog in Abaqus/CAE 2023."><figcaption class="caption">Start-up dialog in Abaqus/CAE 2023.</figcaption></figure>
+
+<hr />
+<h2 id="geometry">🧩Geometry</h2>
+<p>The first step of any model is defining the geometry.<br />
+In the <strong>Part</strong> module, select:
+$$
+\text{Create Part} \; \rightarrow \; \text{2D Planar} \; \rightarrow \; \text{Deformable} \; \rightarrow \; \text{Shell}.
+$$</p>
+<p>This means we are creating a 2D deformable part using the <em>Shell</em> option, which defines an area.  If we had chosen <em>Wire</em> instead, we would have created a 1D part (for example, a truss). </p>
+<div class="callout warning">
+<div class="callout-title"><span class="callout-icon">⚠️</span><span>Shell definition</span></div>
+<div class="callout-body">
+<p>A common source of confusion is the difference between the <strong>3D shell</strong> and <strong>2D planar</strong> options. When you are modelling a <em>Part</em> they can look almost the same, but they are fundamentally different. A 3D shell is a shell or plate embedded in full 3D space, so out-of-plane behaviour is included and you work with <strong>shell sections</strong> and <strong>shell elements</strong>. A 2D planar model, on the other hand, is truly two-dimensional (plane stress/plane strain or axisymmetric), and there you use <strong>solid sections</strong> and <strong>continuum elements</strong> instead.</p>
+</div>
+</div>
+<figure class="article-figure" id="fig-part-module"><img class="img-fluid rounded tut-portrait" src="assets/img/tutorials/abaqus_plate_with_hole/part-module.png" alt="Abaqus part module."><figcaption class="caption">Abaqus part module.</figcaption></figure>
+
+<p>First, select the 🟦 rectangle tool (<em>Create Lines: Rectangle (4 Lines)</em>) and draw it roughly at the center.  Next, add horizontal and vertical construction lines through the midpoint of the sketch. These construction lines serve as auxiliary references and do not form part of the geometry.  </p>
+<p>At this point, your sketch should look similar to <a href="#fig-sketch-2d">Figure 4</a>.<br />
+Now, add a circular hole at the center by selecting the circle tool and clicking in the middle of the plate.  Ensure the sketch forms a closed contour - Abaqus requires closed profiles for part creation. Open profiles will cause an error.</p>
+<figure class="article-figure" id="fig-sketch-2d"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/sketch-2d.png" alt="Initial 2D sketch of the plate."><figcaption class="caption">Initial 2D sketch of the plate.</figcaption></figure>
+
+<p>Next, apply the dimensions according to Table <a href="#tab-1">1</a>.<br />
+Use the dimension tool (<em>second column, fourth row</em>) from the sketch toolbar.</p>
+<figure class="article-figure" id="fig-sketch-dim"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/sketch-dim.png" alt="Sketch of the plate with the dimensional constraints applied."><figcaption class="caption">Sketch of the plate with the dimensional constraints applied.</figcaption></figure>
+
+<p>Finally, center the sketch at the origin.  Create a point at <span class="arithmatex">\((0,0)\)</span>, apply the <strong>Fixed</strong> constraint to it, and then use the <strong>Coincident</strong> constraint to align the circle center with this point.  </p>
+<p>When a sketch is <em>fully defined</em>, all lines appear green (see <a href="#fig-sketch-fully-defined">Figure 6</a>).  If it becomes <em>overdefined</em> ⚠️ (e.g., due to conflicting constraints), the lines turn yellow and the conflicting constraints appear in purple.</p>
+<figure class="article-figure" id="fig-sketch-fully-defined"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/sketch-fully-defined.png" alt="Fully defined sketch of the plate with a hole."><figcaption class="caption">Fully defined sketch of the plate with a hole.</figcaption></figure>
+
+<p>Press <strong>Done</strong> ✔️ at the bottom of the sketch window to create the part.<br />
+At this point, you have your part created inside the Part module, as shown in <a href="#fig-plate-part">Figure 7</a>.   With this, the geometry section of the model is complete.</p>
+<figure class="article-figure" id="fig-plate-part"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/plate-part.png" alt="Final part geometry of the plate with a hole."><figcaption class="caption">Final part geometry of the plate with a hole.</figcaption></figure>
+
+<h2 id="materialsection-property">🧪Material/Section Property</h2>
+<p>In Abaqus, material properties are defined within the <em>Property</em> module 🧱.  So let's create a PMA material with the following elastic properties (isotropic): <span class="arithmatex">\(E=3 \; \text{GPa}\)</span>  ; <span class="arithmatex">\(\nu = 0.4\)</span>. For this we are going to create a material and then select:</p>
+<div class="arithmatex">\[
+\text{Mechanical} \; \rightarrow \; \text{Elasticity} \; \rightarrow \; \text{Elastic}
+\]</div>
+<p>as shown in <a href="#fig-material-property">Figure 8</a>. Then, select "Isotropic" (as shown in <a href="#fig-material-prop2">Figure 9</a>) as the type and insert the young's modulus and the poison coefficient. Pay attention to the <strong>units</strong> ⚠️! Since we are working in <strong>millimeters (mm)</strong> and <strong>newtons (N)</strong>, our elastic properties must be in <strong>megapascals (MPa)</strong> to maintain dimensional consistency 📏.</p>
+<figure class="article-figure" id="fig-material-property"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/material-property.png" alt=""></figure>
+
+<figure class="article-figure" id="fig-material-prop2"><img class="img-fluid rounded tut-portrait" src="assets/img/tutorials/abaqus_plate_with_hole/material-prop2.png" alt=""></figure>
+
+<p>The second step is defining a <strong>section</strong>.  A section is, in essence, the <em>middle layer</em> between the material definition and the geometry. While the <strong>material</strong> defines <em>how</em> a material behaves, the <strong>section</strong> specifies <em>how</em> that material will be represented or simplified in your model. For instance, with the same material, you could create a <strong>solid</strong>, <strong>shell</strong>, or <strong>beam</strong> section - each producing different structural behaviors depending on the modeling assumptions. So even if this feels a bit abstract now, it’s enough to remember that the <em>section</em> combines both the material and the modeling approach. Every element in your model must be assigned a section, and this step ensures that Abaqus knows how to interpret the material response of your geometry.</p>
+<figure class="article-figure" id="fig-section"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/section.png" alt=""></figure>
+
+<figure class="article-figure" id="fig-section-assign"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/section-assign.png" alt=""></figure>
+
+<h2 id="assembly-and-mesh">🧩 Assembly and Mesh</h2>
+<p>Moving on to the <strong>assembly</strong> and <strong>mesh</strong> steps.  The assembly module represents what the <strong>solver actually sees</strong> . You might create several parts in the Part module, but only those you instantiate in the assembly will be used for simulation. Even if you have just one part, you still need to create an assembly instance of it.  you’re essentially telling the solver: “here’s the part I want to analyze.</p>
+<p>To do this, create an <strong>Instance</strong>.  An instance is a placed copy of a part within the assembly. You can have multiple instances of the same part, for example, a connection with 10 identical bolts can be modeled using one bolt geometry and section, but repeated as multiple instances.</p>
+<figure class="article-figure" id="fig-assembly"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/assembly.png" alt="Creation of an instance in the model&#x27;s assembly."><figcaption class="caption">Creation of an instance in the model&#x27;s assembly.</figcaption></figure>
+
+<p>When creating an instance, Abaqus will ask whether it should be <strong>dependent</strong> or <strong>independent</strong>.  A <strong>dependent instance</strong> means the mesh is created at the <em>part level</em>, while an <strong>independent instance</strong> allows meshing at the <em>assembly level</em>.</p>
+<p>The distinction mainly affects how nodes and elements are numbered:</p>
+<ul>
+<li>
+<p>In an <strong>independent instance</strong>, all nodes and elements share a <em>global numbering system</em> across the entire assembly (no duplicates).</p>
+</li>
+<li>
+<p>In a <strong>dependent instance</strong>, each part maintains its own numbering (so, for example, Element ID = 1 could exist in multiple parts).</p>
+</li>
+</ul>
+<p>The conceptual difference is shown in <a href="#fig-2d-plate-with-a-hole-2025-10-07-153912">Figure 13</a>.</p>
+<figure class="article-figure" id="fig-2d-plate-with-a-hole-2025-10-07-153912"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/2d-plate-with-a-hole-2025-10-07-153912.svg" alt="Difference between dependent and independent instances in Abaqus."><figcaption class="caption">Difference between dependent and independent instances in Abaqus.</figcaption></figure>
+
+<p>For this example, we’ll keep things simple and use a <strong>dependent instance</strong> .  Once the instance is created, we can leave the Assembly module and move to the <strong>Mesh</strong> module.</p>
+<p>Now, onto the <strong>meshing</strong> step.<br />
+Meshing is one of the most important parts of any finite element analysis, but here we’ll focus on the basics just to get our model running.</p>
+<p>Start by defining a <strong>global seed size</strong> of approximately <em>1.6</em>.  Then, click on the <strong>mesh icon</strong> (second row, first position) to generate the mesh for your part.  The expected result is shown in <a href="#fig-mesh">Figure 14</a>.</p>
+<figure class="article-figure" id="fig-mesh"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/mesh.png" alt="Mesh of the plate with a 2D hole."><figcaption class="caption">Mesh of the plate with a 2D hole.</figcaption></figure>
+
+<p>At this stage, you can perform several operations, such as assigning <strong>element types</strong>, changing the <strong>meshing scheme</strong>, or adjusting <strong>seed sizes</strong>. However, since this is just an introductory example, we’ll leave those for later sections.</p>
+<h2 id="boundary-conditions">🧷 Boundary Conditions</h2>
+<p>The final step before running the simulation is to apply the <strong>boundary conditions</strong>.<br />
+Before doing so, take a look at the initial sketch and think about which boundary conditions make physical sense here.</p>
+<p>But first, let’s create a <strong>step</strong>  -  this defines the simulation’s time frame.  In Abaqus, analyses can generally be <strong>static</strong> or <strong>dynamic</strong>.</p>
+<ul>
+<li>
+<p>In a <em>dynamic (explicit or implicit)</em> simulation, the time variable represents <em>real physical time</em>.</p>
+</li>
+<li>
+<p>In a <em>static</em> analysis, time is <em>not physical</em> but simply a <em>loading parameter</em>, indicating how loads are gradually applied.</p>
+</li>
+</ul>
+<p>For this example, we’ll perform a <strong>static analysis</strong>, the simplest type.</p>
+<p>Create a new step by navigating to:  </p>
+<div class="arithmatex">\[
+\text{Step} \; \rightarrow \; \text{Procedure type: General} \; \rightarrow \; \text{Static, General}
+\]</div>
+<p>and name it <code>loading_step</code>, as shown in <a href="#fig-step">Figure 15</a>.</p>
+<figure class="article-figure" id="fig-step"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/step.png" alt="Step creation."><figcaption class="caption">Step creation.</figcaption></figure>
+
+<p>Now, we can define the <strong>boundary conditions</strong>.<br />
+According to the sketch, we want to apply a <strong>displacement</strong> on both sides of the plate.<br />
+Click the boundary condition icon (second row, first column) and select:</p>
+<div class="arithmatex">\[
+\text{Mechanical} \; \rightarrow \; \text{Displacement/Rotation} \; \rightarrow \; \text{U1:} \; \pm 1.5 \; \rightarrow \; \text{Amplitude: Ramp}
+\]</div>
+<p>This applies a displacement of <span class="arithmatex">\(u_x = 1.5\)</span> mm on both sides.  </p>
+<div class="callout warning">
+<div class="callout-title"><span class="callout-icon">⚠️</span><span>Displacement Direction</span></div>
+<div class="callout-body">
+<p>By default, <strong>U1</strong> corresponds to the <em>x-axis direction</em> in the assembly.<br />
+On the <strong>left side</strong>, apply a <strong>negative displacement</strong> (−1.5 mm), and on the <strong>right side</strong>, apply a <strong>positive displacement</strong> (+1.5 mm) to simulate <strong>tension</strong>.</p>
+</div>
+</div>
+<figure class="article-figure" id="fig-bc-config"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/bc-config.png" alt=""></figure>
+
+<figure class="article-figure" id="fig-disp-bc"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/disp-bc.png" alt=""></figure>
+
+<hr />
+<h2 id="job-submission-and-output">🚀 Job Submission and Output</h2>
+<p>Now that the model is ready, let’s create and submit a <strong>job</strong>.<br />
+The job module is where we tell Abaqus to actually run the simulation we’ve set up.</p>
+<ol>
+<li>Go to the <strong>Job</strong> module and create a new job:</li>
+<li>Assign a name to the job (e.g., <code>plate_with_hole</code>) and verify that it references your current model.</li>
+<li>In the job settings, you can see basic options such as analysis type, description, and memory allocation.</li>
+</ol>
+<figure class="article-figure" id="fig-job-creation"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/job-creation.png" alt="Job creation window."><figcaption class="caption">Job creation window.</figcaption></figure>
+
+<p>Once everything is ready, click <strong>Submit</strong> ▶️ to start the analysis. You can monitor its progress in the <strong>Job Monitor</strong>, which displays information such as completion status, warnings, and estimated time.</p>
+<figure class="article-figure" id="fig-submit-job"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/submit-job.png" alt="Job submission."><figcaption class="caption">Job submission.</figcaption></figure>
+
+<p>When the analysis finishes, open the <strong>Visualization module</strong> to check the results.<br />
+<a href="#fig-mises-2d-plate">Figure 20</a> shows the <strong>von Mises stress contour</strong> for the plate under tension and the stress concentration around the hole is clearly visible, as expected.</p>
+<figure class="article-figure" id="fig-mises-2d-plate"><img class="img-fluid rounded tut-landscape" src="assets/img/tutorials/abaqus_plate_with_hole/mises-2d-plate.png" alt="Stress contour of the plate with a hole."><figcaption class="caption">Stress contour of the plate with a hole.</figcaption></figure>
+<div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mb-3"><a class="btn btn-outline-primary" href="index.html">&larr; Back to tutorial overview</a><div class="d-flex gap-2"><a class="btn btn-primary" href="abaqus_tutorial_part2.html">Next: Part 2 &rarr;</a></div></div>
+</d-article>
+</div>
+<footer class="sticky-bottom mt-5" role="contentinfo"><div class="container">
+&copy; Vasco D. C. Pires &middot; also online at
+<a href="https://vascodcpires.com/courses/abaqus_plate_with_hole/" target="_blank" rel="noopener">vascodcpires.com</a>
+</div></footer>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/mdb.min.js"></script>
+</body>
+</html>
