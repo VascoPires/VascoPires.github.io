@@ -11,8 +11,6 @@ resource_sections:
     title: Teaching tools
   - id: courses-tutorials
     title: Courses & tutorials
-  - id: structural-modeling
-    title: Structural Modeling and Simulation
   - id: student-projects
     title: Student projects
     hidden: true # remove to show the section again
