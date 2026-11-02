@@ -520,9 +520,12 @@ def write_jekyll(series, pages, conv, *, include_offline=True):
         (SITE / "_courses" / f"{pg.part['slug']}.md").write_text(text, encoding="utf-8")
 
     fm = {"layout": "page", "title": series["title"], "img": series.get("cover", ""),
-          "importance": series.get("importance", 4), "tags": series.get("tags", []),
-          "giscus_comments": False, "date": str(series.get("date", "")), "toc": False,
-          "permalink": f"/courses/{series['id']}/"}
+          "importance": series.get("importance", 4)}
+    if series.get("resource_section"):
+        fm["resource_section"] = series["resource_section"]
+    fm |= {"tags": series.get("tags", []), "giscus_comments": False,
+           "date": str(series.get("date", "")), "toc": False,
+           "permalink": f"/courses/{series['id']}/"}
     zip_name = series.get("offline_zip", f"{series['id']}_offline.zip")
     content = overview_html(series, web_link, lambda p: "../../" + p,
                             zip_href=f"../../assets/downloads/{zip_name}"
