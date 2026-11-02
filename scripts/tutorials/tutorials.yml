@@ -12,6 +12,10 @@
 # To add a part: write the note in Obsidian, add an entry under `parts`, run the script.
 # `publish: false` keeps a part out of the website and the zip (links to it become plain text).
 # To add a new series: copy the whole block below and change the fields.
+#
+# A course (under `courses`, at the end) groups series as its classes: the script writes
+#   _courses/<course id>.md               course page with one card per class
+# and the series it lists are then reached from the course page instead of the teaching page.
 
 vault: "C:/Users/p2321038/Dropbox/My Second Brain"
 
@@ -86,7 +90,6 @@ series:
     cover: assets/img/controller/cover.png
     date: 2026-10-29
     importance: 4
-    resource_section: structural-modeling
     tags: ["ABAQUS", "Tutorial"]
     parts:
       - note: "L05 - Controller lower shell"
@@ -108,7 +111,6 @@ series:
     cover: assets/img/beam_shell_solid/cover.png
     date: 2026-10-29
     importance: 4
-    resource_section: structural-modeling
     tags: ["ABAQUS", "Tutorial"]
     parts:
       - note: "Solid Shell or Beam"
@@ -117,3 +119,16 @@ series:
         subtitle: ""          # no line under the title on the page
         card: "Finish a solid, a beam and a shell model of the same I-beam, compare the results and price the RAM."
         thumb: assets/img/beam_shell_solid/cover.png
+
+courses:
+  - id: structural_modeling_simulation
+    title: "Structural Modeling and Simulation"
+    intro: >-
+      Practicals of the Structural Modeling and Simulation course in Abaqus/CAE: choosing between
+      solid, shell and beam models, and building thin-walled parts from shells, beams and couplings.
+    cover: assets/img/beam_shell_solid/cover.png
+    importance: 4
+    tags: ["ABAQUS", "Course"]
+    classes:                    # series ids, in class order
+      - abaqus_beam_shell_solid
+      - abaqus_controller_shell
