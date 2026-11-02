@@ -11,8 +11,11 @@ resource_sections:
     title: Teaching tools
   - id: courses-tutorials
     title: Courses & tutorials
+  - id: structural-modeling
+    title: Structural Modeling and Simulation
   - id: student-projects
     title: Student projects
+    hidden: true # remove to show the section again
 ---
 
 Teaching tools, courses, and tutorials for students, educators, and anyone curious about mechanics and materials.
@@ -51,6 +54,7 @@ Teaching tools, courses, and tutorials for students, educators, and anyone curio
 {% assign visible_courses = site.courses | where_exp: "item", "item.hidden != true" %}
 {% assign sorted_courses = visible_courses | sort: "importance" | reverse %}
 {% for section in page.resource_sections %}
+{% if section.hidden %}{% continue %}{% endif %}
 
 <section class="teaching-section" aria-labelledby="{{ section.id }}">
   <h2 id="{{ section.id }}">{{ section.title }}</h2>

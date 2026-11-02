@@ -3,6 +3,7 @@ layout: page
 title: 'Abaqus Tutorial: Solid, Shell or Beam?'
 img: assets/img/beam_shell_solid/cover.png
 importance: 4
+resource_section: structural-modeling
 tags:
 - ABAQUS
 - Tutorial

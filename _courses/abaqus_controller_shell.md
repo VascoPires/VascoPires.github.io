@@ -3,6 +3,7 @@ layout: page
 title: 'Abaqus Tutorial: Lower Shell of a Game Controller'
 img: assets/img/controller/cover.png
 importance: 4
+resource_section: structural-modeling
 tags:
 - ABAQUS
 - Tutorial

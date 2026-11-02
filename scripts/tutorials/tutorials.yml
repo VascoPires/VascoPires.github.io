@@ -86,6 +86,7 @@ series:
     cover: assets/img/controller/cover.png
     date: 2026-10-29
     importance: 4
+    resource_section: structural-modeling
     tags: ["ABAQUS", "Tutorial"]
     parts:
       - note: "L05 - Controller lower shell"
@@ -107,6 +108,7 @@ series:
     cover: assets/img/beam_shell_solid/cover.png
     date: 2026-10-29
     importance: 4
+    resource_section: structural-modeling
     tags: ["ABAQUS", "Tutorial"]
     parts:
       - note: "Solid Shell or Beam"
