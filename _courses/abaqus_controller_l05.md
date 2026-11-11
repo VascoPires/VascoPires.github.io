@@ -1,7 +1,7 @@
 ---
 layout: distill
 title: 'L05: Lower Shell of a Game Controller'
-description: 'Lower shell of a game controller: shells, beams and couplings'
+description: 'Game controller: shells and beams'
 img: assets/img/controller/part1.png
 permalink: /courses/abaqus_controller_l05/
 date: '2026-10-29'
@@ -17,7 +17,7 @@ _styles: >
   d-article figure.article-figure img.tut-landscape { width: 100%; max-width: 100%; max-height: none; }
   d-article figure.article-figure video { width: 100%; height: auto; background: #000; }
   .tutorial-nav .btn { text-transform: none; }
-  .tut-icon { height: 1.6em; vertical-align: middle; }
+  .tut-icon { height: 1.2em; vertical-align: -0.2em; }
   .callout .callout-body > :last-child { margin-bottom: 0; }
   
   @media (max-width: 767.98px) {
@@ -30,9 +30,15 @@ _styles: >
 {% raw %}
 <div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mb-3"><a class="btn btn-outline-primary" href="../structural_modeling_simulation/">&larr; Back to course overview</a><div class="d-flex gap-2"></div></div>
 
-We model the lower shell of a game controller and check what happens when a player squeezes the grips. Like the Steam Controller in [Figure 1](#fig-steam-left), the case is a thin plastic shell stiffened by bosses and ribs, so we mesh it with shells for the walls and beams for the ribs.
+In this class we model the lower shell of a game controller and check what happens when somebody tries to break it. Thin plastic housings like this one are in most consumer products, so it pays off to know how to model them.
 
-<figure class="article-figure" id="fig-steam-left"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/steam-left.mp4" controls muted playsinline preload="metadata"></video><figcaption class="caption">Inside the lower case of the Steam Controller, with its screw bosses and ribs. CAD from Valve&#x27;s open Steam Controller release (CC BY-NC-SA 4.0).</figcaption></figure>
+For example, look inside the Steam Controller in [Figure 1](#fig-steam-left). The case is a thin plastic shell stiffened by bosses and ribs. Walls of 2 mm on a part of 130 mm would need several solid elements through the thickness. Modelling wise it is very inefficient since this parts are so thin. What we can do instead is using other modelling concepts which still capture the local geometry accurately while being more efficient. If you remember the previous tutorial [Solid, Shell or Beam?](https://vascodcpires.com/courses/abaqus_beam_shell_solid_tutorial/), there we saw that using shells or beams elements can significantly improve computing time while still being accurate. Now we are applying those modelling techniques to a real product. 
+
+<figure class="article-figure" id="fig-steam-left"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/steam-left.mp4" controls muted playsinline preload="metadata"></video><figcaption class="caption">Inside the lower case of the Steam Controller. CAD from Valve&#x27;s open Steam Controller release (CC BY-NC-SA 4.0).</figcaption></figure>
+
+A real case like this has far more detail than one practical class can cover, so let's start with a simpler controller instead.  Let's focus on the lower shell which is the main structural component ([Figure 2](#fig-snes-explode)) and define the ribs ourselves.
+
+<figure class="article-figure" id="fig-snes-explode"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/snes-explode.mp4" controls muted playsinline preload="metadata"></video><figcaption class="caption">The pad we start from, taken apart. Top shell, buttons and lower shell come apart, and only the lower shell (teal) is kept for the model.</figcaption></figure>
 
 | Material | $$E$$ (MPa) | $$\nu$$ | $$\sigma_y$$ (MPa) |
 | -------- | --------- | ----- | ---------------- |
@@ -40,79 +46,243 @@ We model the lower shell of a game controller and check what happens when a play
 
 <div class="caption table-caption" id="tab-1"><strong>Table 1:</strong> <em>Material of the controller. Units are mm, N and MPa.</em></div>
 
-## 🧩 Geometry and mesh
+When do we call this product failed? Two things matter here. The ABS must stay below yield, about 40 MPa, and the circuit board inside must stay flat. The first is a stress check, the second a displacement check, and we are going to check both at the end.
 
-The STEP file (`shell_controller_lower.STEP`) holds only surfaces. The part is symmetric about $$x = 0$$, so we model half of it.
+## 🧩 Geometry and shell sections
+The STEP file (`shell_controller_lower.STEP`) holds only surfaces. The part is symmetric about $$x = 0$$, so partition it at $$x = 0$$ and remove the other half.
 
-<figure class="article-figure" id="fig-l05-sections"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-sections.png" alt="Floor (red), walls (blue) and bosses (orange). (a) Surfaces from the STEP. (b) Shell thickness rendered."><figcaption class="caption">Floor (red), walls (blue) and bosses (orange). (a) Surfaces from the STEP. (b) Shell thickness rendered.</figcaption></figure>
+<figure class="article-figure" id="fig-half-model-controler"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/half-model-controler.mp4" controls muted playsinline preload="metadata"></video><figcaption class="caption">Partitioning the imported surfaces at x = 0 and removing the other half.</figcaption></figure>
 
-| Region      | Section        | Thickness (mm) | Offset      |
-| ----------- | -------------- | -------------- | ----------- |
-| Floor       | `bottom_shell` | 2.1            | Top surface |
-| Outer walls | `outer_walls`  | 1.9            | Top surface |
-| Bosses      | `supports`     | 1.25           | Top surface |
+As in the [Solid, Shell or Beam?](https://vascodcpires.com/courses/abaqus_beam_shell_solid_tutorial/) tutorial, each region gets a shell section of its own (Table 2).
+
+| Region         | Section        | Thickness (mm) | Offset         |
+| -------------- | -------------- | -------------- | -------------- |
+| Floor          | `bottom_shell` | 2.1            | Top surface    |
+| Outer walls    | `outer_walls`  | 1.9            | Top surface    |
+| Bosses         | `Supports`     | 1.25           | Top surface    |
+| Triangular rib | `rib`          | 1.0            | Middle surface |
 
 <div class="caption table-caption" id="tab-2"><strong>Table 2:</strong> <em>Shell sections.</em></div>
 
-The surfaces are the inside faces of the part and all normals point into the controller. With the *Top surface* offset the thickness then grows outwards. Check it with *Render shell thickness*.
+The imported surfaces (STEP surface) are the inside faces of the part and all normals point into the controller. *Top surface* means the drawn face is the top of the shell, so the material goes to the other side, outwards (the figure below).
 
-The ribs (1 × 3 mm) are wires on the floor meshed with B31 beams. Use a TRAPEZOID profile with its origin on the bottom edge, so the rib stands on the floor, and check the orientation with *Render beam profiles*.
+<figure class="article-figure" id="fig-tikz-0496621be4fb"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/tikz-0496621be4fb.svg" alt=""><figcaption class="caption"><em>Controller surfaces and the corresponding surface offsets for each region.</em></figcaption></figure>
 
-The shells are meshed with S4R at a 1.5 mm seed. Floor, walls and bosses share nodes, so no ties are needed.
+You can check it yourself. *Assign → Element Normal* shows the normals and *View → Part Display Options → Render shell thickness* shows the offsets.
 
-<figure class="article-figure" id="fig-l05-mesh"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-mesh.png" alt="(a) S4R mesh, 1.5 mm seed. (b) Close-up of a boss."><figcaption class="caption">(a) S4R mesh, 1.5 mm seed. (b) Close-up of a boss.</figcaption></figure>
+<figure class="article-figure" id="fig-shell-assignment"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/shell-assignment.mp4" controls muted playsinline preload="metadata"></video><figcaption class="caption">Assigning the shell sections with the Top surface offset, then checking the normals and the rendered thickness.</figcaption></figure>
 
-## 🏋️ Case A step by step
+A wall whose thickness grows inwards has a flipped normal. Flip it with *Assign → Element Normal → Flip*, as in the video.
 
-The centre line is held and the grip is pushed down by 12 N at the snap-fit rim.
+<figure class="article-figure" id="fig-l05-sections"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-sections.png" alt="Half model with floor (red), walls (blue), bosses (orange) and ribs (grey). (a) Surfaces from the imported geometry. (b) Shell thickness rendered with the Top surface offset, so the floor grows downwards and the walls outwards."><figcaption class="caption">Half model with floor (red), walls (blue), bosses (orange) and ribs (grey). (a) Surfaces from the imported geometry. (b) Shell thickness rendered with the Top surface offset, so the floor grows downwards and the walls outwards.</figcaption></figure>
 
-<figure class="article-figure" id="fig-l05-setup-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-setup-a.png" alt="Set-up of case A. Symmetry and held centre line at $x = 0$, and RP-1 coupled to the rim (yellow)."><figcaption class="caption">Set-up of case A. Symmetry and held centre line at \(x = 0\), and RP-1 coupled to the rim (yellow).</figcaption></figure>
+## 🛤️ Ribs as beams and shells
 
-1. Create a *Static, General* step.
-2. Apply XSYMM on all edges at $$x = 0$$, $$U_3 = 0$$ on the floor centre line and $$U_2 = 0$$ at one node.
-3. Create a reference point at the rim centroid $$(54.7, 11.4, 6)$$ and a *Distributing* coupling to the rim edges.
-4. Apply $$CF_3 = -12$$ N on the RP.
-5. Run and plot Mises as an *envelope* over the section points.
+We are going to add two types of ribs: ones using beams and a triangular one as a shell. 
 
-<figure class="article-figure" id="fig-l05-mises-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-mises-a.png" alt="Case A, Mises envelope, deformation ×10. Peak 13.0 MPa at the waist of the back wall."><figcaption class="caption">Case A, Mises envelope, deformation ×10. Peak 13.0 MPa at the waist of the back wall.</figcaption></figure>
+### How to add ribs
 
-The peak is **13.0 MPa** and the RP moves down **1.17 mm**. The peak sits on a sharp kink, so compare cases at the same mesh rather than trusting the number.
+The (beam) ribs are lines drawn on the floor with *Tools → Partition → Face → Sketch*, or with the <img class="tut-icon" src="../../assets/img/tutorials/abaqus_controller_shell/icon-partition-face-sketch.png" alt=""> tool. Pick the floor face, sketch the rib lines and press *Done*. [Figure 7](#fig-l05-rib-sketch) (a) shows an example of the lines seen from above. Here I would really suggest that you come up with a pattern that you like or to sketch what you think is the best way to reinforce the shell. Here an example is shown:
+
+<figure class="article-figure" id="fig-l05-rib-sketch"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-rib-sketch.png" alt="(a) The rib lines sketched on the floor, seen from above. (b) The side sketch of the small triangular rib next to the boss."><figcaption class="caption">(a) The rib lines sketched on the floor, seen from above. (b) The side sketch of the small triangular rib next to the boss.</figcaption></figure>
+
+The small triangular rib next to the boss is modelled as a shell face of its own (section `rib`, 1 mm, middle surface). It stands in a vertical plane through the centre of the screw hole. A planar shell is sketched on a plane, so we first create a datum plane there <img class="tut-icon" src="../../assets/img/tutorials/abaqus_controller_shell/icon-datum-plane-offset.png" alt=""> and then sketch the triangle on it with *Shape → Shell → Planar* <img class="tut-icon" src="../../assets/img/tutorials/abaqus_controller_shell/icon-shell-planar.png" alt="">.
+
+<figure class="article-figure" id="fig-shell-creation"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/shell-creation.mp4" controls muted playsinline preload="metadata"></video></figure>
 
 <div class="callout warning" markdown="1">
-<div class="callout-title"><span class="callout-icon">⚠️</span><span>Two common mistakes</span></div>
+<div class="callout-title"><span class="callout-icon">⚠️</span><span>Do not forget to add a shell section to the triangular rib.</span></div>
 <div class="callout-body" markdown="1">
 
-**RP off the rim centroid.** With the RP 14.8 mm away from the centroid, the force also twists the grip and the peak rises to 17.6 MPa ([Figure 6](#fig-l05-rp-mistake)). Put the RP on the line of action of the load.
-
-**Nothing holds $$U_2$$.** The part can slide in $$y$$ and Abaqus warns about zero pivots. Hold $$U_2$$ at one node and always read the `.msg` file.
+In Abaqus, every piece of geometry always needs a section or a property assigned.
 
 </div>
 </div>
 
-<figure class="article-figure" id="fig-l05-rp-mistake"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-rp-mistake.png" alt="Same 12 N load. (a) RP off the centroid, 17.6 MPa. (b) RP at the centroid, 13.0 MPa."><figcaption class="caption">Same 12 N load. (a) RP off the centroid, 17.6 MPa. (b) RP at the centroid, 13.0 MPa.</figcaption></figure>
+For the beams that we are modelling as ribs, we are going to use the edges on the floor. Abaqus does not know that they should be beams. Using the stringer feature is how we tell Abaqus this. In the *Property* module use *Special → Stringer → Create* (or the icon <img class="tut-icon" src="../../assets/img/tutorials/abaqus_controller_shell/icon-stringer.png" alt="">), select the rib lines and press *Done*. The beam section of the next step is then assigned to this stringer. Because the rib lines are partition edges of the floor, the beam elements of the stringer use the floor's own nodes. So, the connection is done automatically by Abaqus.
 
-## 🎛️ Cases B–D
+<figure class="article-figure" id="fig-tikz-ec07d3413ab8"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/tikz-ec07d3413ab8.svg" alt=""><figcaption class="caption"><em>The B31 beams on the rib edge and the S4R shells of the floor share the nodes.</em></figcaption></figure>
 
-These are already set up in `class_example_cases.cae`.
+<figure class="article-figure" id="fig-stringer-creation"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/stringer-creation.mp4" controls muted playsinline preload="metadata"></video></figure>
 
-| Case | Prescribed                   | Symmetry | Result      | Peak Mises |
-| ---- | ---------------------------- | -------- | ----------- | ---------- |
-| A    | 12 N down at the rim RP      | XSYMM    | RP −1.17 mm | 13.0 MPa   |
-| B    | 1 mm down at the rim RP      | XSYMM    | 10.3 N      | 11.2 MPa   |
-| C    | Grip turned 1° about $$y$$     | XSYMM    | 0.13 N m    | 4.3 MPa    |
-| D    | Grip turned 1° about $$x$$     | XASYMM   | 0.08 N m    | 2.6 MPa    |
+### Profile and section
 
-<div class="caption table-caption" id="tab-3"><strong>Table 3:</strong> <em>Load cases of the half model.</em></div>
+1. *Profile → Create → Trapezoidal* with $$a = 1$$, $$b = 3$$, $$c = 1$$, $$d = 0$$. Here $$a$$ is the width at the base, $$c$$ the width at the top and $$b$$ the height.
+2. *Section → Create → Beam*, choose the profile and ABS.
+3. *Assign → Section* on the stringer of the rib lines (set `ribs_beams`).
 
-Twisting (D) is antisymmetric, so the half model needs XASYMM and must be mirrored antisymmetrically to show the full part. The Visualization mirror is always symmetric, so `mirror_odb.py` writes the copy.
+$$d$$ is where the beam line sits in the profile. With $$d = 0$$ the beam line is on the base, so the rib grows away from the floor ([Figure 11](#fig-l05-beam-d)).
 
-<figure class="article-figure" id="fig-l05-twist-full"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-twist-full.png" alt="Case D mirrored antisymmetrically. (a) Full lower shell. (b) The two grips turn in opposite directions."><figcaption class="caption">Case D mirrored antisymmetrically. (a) Full lower shell. (b) The two grips turn in opposite directions.</figcaption></figure>
+<figure class="article-figure" id="fig-l05-beam-d"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-beam-d.png" alt="The same 1 × 3 rib seen on Abaqus. (a) d = 0, the rib stands on the floor. (b) d = b/2, half of it is inside the floor. (c) d = b, it hangs under the floor."><figcaption class="caption">The same 1 × 3 rib seen on Abaqus. (a) d = 0, the rib stands on the floor. (b) d = b/2, half of it is inside the floor. (c) d = b, it hangs under the floor.</figcaption></figure>
 
-## 🚧 Limits
+### Orientation
+Even if we assign a section with a given profile to a stringer, it can have any orientation around that line. Since the tangent vector already runs along the edge, we need to define another vector to fully define the orientation of the profile. Therefore, we need to specify one of these vectors so Abaqus knows how to orient the beam profile.
 
-- Only the lower shell is modelled. It is an open section and much softer than the closed controller.
-- The analysis is linear. ABS yields at about three times the 12 N load.
-- Peak values sit on sharp corners and depend on the mesh.
+For that, the $$\mathbf{n}_1$$ vector can be defined, which for our profile corresponds to the local horizontal coordinate system as shown below.
+
+<figure class="article-figure" id="fig-tikz-7cab0ae93c7d"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/tikz-7cab0ae93c7d.svg" alt=""><figcaption class="caption"><em>Local axes of a rib. t runs along the edge from its first to its second point, n1 is what you type in and n2 = t × n1. The profile&#x27;s 1 axis is n1 and its 2 axis, along the height b, is n2.</em></figcaption></figure>
+
+- $$t$$ comes from the edge, from its first point to its second. It depends on the direction in which the line was drawn.
+- $$n_1$$ is what you type in *Assign → Beam Section Orientation*.
+- $$n_2 = t \times n_1$$, and the profile height $$b$$ goes along $$n_2$$. This is computed automatically by Abaqus.
+
+<figure class="article-figure" id="fig-l05-beam-orient"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-beam-orient.png" alt="In Abaqus. (a) *Assign Beam Orientation* asks for an approximate n1 direction, here (0, 1, 0). (b) The beam axes shown on the rib. (c) *Render beam profiles* shows the rib standing on the floor."><figcaption class="caption">In Abaqus. (a) <em>Assign Beam Orientation</em> asks for an approximate n1 direction, here (0, 1, 0). (b) The beam axes shown on the rib. (c) <em>Render beam profiles</em> shows the rib standing on the floor.</figcaption></figure>
+
+<figure class="article-figure" id="fig-beam-profile-orientation"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/beam-profile-orientation.mp4" controls muted playsinline preload="metadata"></video></figure>
+
+### Make sure to check every rib
+
+Once a section and the orientation are assigned to a line, we can visualize our beam with *View → Part Display Options → Render beam profiles* (scale factor 1). [Figure 15](#fig-plan-beam-mistakes) shows the three common results you can get.
+
+<figure class="article-figure" id="fig-plan-beam-mistakes"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/plan-beam-mistakes.png" alt="Three possible results, depending on the $n_1$ typed in and on the direction in which the line was drawn."><figcaption class="caption">Three possible results, depending on the \(n_1\) typed in and on the direction in which the line was drawn.</figcaption></figure>
+
+Of course, there are multiple valid ways of assigning the orientation and beam profile. For example, if the beam is at the bottom, we can either change the profile and move it up or we can flip the direction. Both options are valid.
+
+## 🕸️ Mesh
+
+The shells are meshed with S4R at a seed of about 0.5 mm, which gives about 23,000 nodes in the half model. 
+
+<figure class="article-figure" id="fig-l05-mesh"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-mesh.png" alt="(a) S4R mesh of the half model, about 0.5 mm seed. (b) Close-up of a boss."><figcaption class="caption">(a) S4R mesh of the half model, about 0.5 mm seed. (b) Close-up of a boss.</figcaption></figure>
+
+## Bending the controller
+
+The centre line is held and the grip is pushed down by 12 N at the snap-fit rim. 
+
+<figure class="article-figure" id="fig-l05-setup-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-setup-a.png" alt="Boundary conditions and applied load. Symmetry and the held centre line at $x = 0$ (left), and RP-1 coupled to the snap-fit rim (yellow)."><figcaption class="caption">Boundary conditions and applied load. Symmetry and the held centre line at \(x = 0\) (left), and RP-1 coupled to the snap-fit rim (yellow).</figcaption></figure>
+
+1. Create a *Static, General* step.
+2. Apply XSYMM on all edges at $$x = 0$$, $$U_3 = 0$$ on the floor centre line and $$U_2 = 0$$ at one node, which removes the rigid body motion that is left.
+3. Create a reference point at the rim centroid $$(54.66, 11.53, 6.0)$$ and a *Coupling → Distributing → Structural* with uniform weights and all six DOFs to the rim edges. The next section shows where this point comes from.
+4. Apply $$CF_3 = -12$$ N (already includes a safety coefficient of 1.5) on the RP.
+5. Run and plot Mises as an *envelope* over the section points.
+
+<figure class="article-figure" id="fig-rp-coupling"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/rp-coupling.mp4" controls muted playsinline preload="metadata"></video></figure>
+
+## 📍 How do we choose the RP?
+
+The coupling spreads the load on the RP over the rim nodes, so that the node forces give the same force and the same moment as the load. With equal weights every node takes the same share $$F/n$$ only when the RP sits at the centroid of the rim. Anywhere else the same force would apply a twist in the snap-fit. 
+
+The rim is a line. Its centroid can be taken from the rim nodes or from the rim as a line in terms of geometry:
+
+$$\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i \qquad\qquad \bar{x} = \frac{1}{L}\int_L x\,\mathrm{d}s$$
+
+and both give the same point ([Figure 19](#fig-l05-centroids)). These values of course depend on how accurate the discretization of the geometry is, since we are performing a numerical calculation at the end of the day. Here $$\overline{x}$$ is the in-plane position of the centroid of the snap-fit.
+
+<figure class="article-figure" id="fig-l05-centroids"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-centroids.png" alt="Centroid of the snap-fit rim, seen from above. (a) Average of the 184 rim nodes, (54.73, 11.38) mm, with a close-up of the nodes. (b) The rim as a line, (54.72, 11.62) mm."><figcaption class="caption">Centroid of the snap-fit rim, seen from above. (a) Average of the 184 rim nodes, (54.73, 11.38) mm, with a close-up of the nodes. (b) The rim as a line, (54.72, 11.62) mm.</figcaption></figure>
+
+The values can be obtained by using this small script below. 
+
+<details markdown="1">
+<summary>Code: the centroid from the rim nodes</summary>
+
+Abaqus can also average the rim nodes directly, which is what a coupling with uniform weights uses. Save these lines as a `.py` file and run it with *File → Run Script*. The model must be meshed.
+
+```python
+from abaqus import *
+import mesh
+
+MODEL, SET = 'Model-1', 'snap_fit'
+
+m = mdb.models[MODEL]
+a = m.rootAssembly
+nodes = {}                     # by label, so a node shared by two edges counts once
+for e in a.sets[SET].edges:
+    inst = a.instances[e.instanceName]
+    src = m.parts[inst.partName] if inst.dependent else inst   # a dependent instance keeps its mesh on the part
+    for n in src.edges[e.index].getNodes():
+        nodes[n.label] = n.coordinates
+c = [0.0, 0.0, 0.0]            # a plain loop, because 'from abaqus import *' replaces Python's sum
+for xyz in nodes.values():
+    for k in range(3):
+        c[k] += xyz[k] / len(nodes)
+print('%s: %d nodes, centroid = (%.2f, %.2f, %.2f)' % (SET, len(nodes), c[0], c[1], c[2]))
+```
+
+For the class model it prints `snap_fit: 184 nodes, centroid = (54.73, 11.38, 6.00)`, within 0.2 mm of the strip result.
+
+</details>
+
+However, the same point can also be obtained with a trick using the Query function inside Abaqus.
+### Finding it using the Query function
+
+In the Assembly module, *Tools → Query → Mass properties* can be used to find the centroid of an area. Since Abaqus does not natively support finding the centroid of a line, we can still find it by simply querying the surface below the snap-fit and then ignore the coordinate $$z$$.
+
+$$\bar{x}_{strip} = \underbrace{\color{orange}{\frac{1}{A}\int_A x\,\mathrm{d}A}}_{\text{Abaqus: Query}} = \frac{\int_L x\,h\,\mathrm{d}s}{h\,L} = \frac{1}{L}\int_L x\,\mathrm{d}s = \bar{x}_{line}$$
+
+So we partition the wall below the rim into a strip of constant height $$h$$ and query only the strip faces. Abaqus computes the area centroid of the strip, the orange part below. Because every slice of the strip has $$\mathrm{d}A = h\,\mathrm{d}s$$, the height cancels and what is left is the centroid of the rim line.
+
+The query also returns $$z = h/2 = 3$$. However, we can ignore it, since we know that we need to apply our RP at the same height as the snap fit $$z=6$$ ([Figure 20](#fig-l05-strip)).
+
+<figure class="article-figure" id="fig-l05-strip"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-strip.png" alt="The strip below the snap-fit rim (yellow), its centroid (54.66, 11.53, 3.0) and the RP straight above it at the rim, (54.66, 11.53, 6.0)."><figcaption class="caption">The strip below the snap-fit rim (yellow), its centroid (54.66, 11.53, 3.0) and the RP straight above it at the rim, (54.66, 11.53, 6.0).</figcaption></figure>
+
+<div class="callout tip" markdown="1">
+<div class="callout-title"><span class="callout-icon">💡</span><span>Tip</span></div>
+<div class="callout-body" markdown="1">
+
+Select only the strip faces below the snap-fit rim. Any other face in the selection moves the centroid.
+
+</div>
+</div>
+
+<figure class="article-figure" id="fig-centroid"><video class="img-fluid rounded" src="../../assets/img/tutorials/abaqus_controller_shell/centroid.mp4" controls muted playsinline preload="metadata"></video></figure>
+
+## 📏 Failure of the controller?
+
+<figure class="article-figure" id="fig-l05-mises-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-mises-a.png" alt="Mises envelope, deformation ×10."><figcaption class="caption">Mises envelope, deformation ×10.</figcaption></figure>
+
+For the beam configuration defined here, we get a peak stress of around **13.0 MPa**, and the RP moves down **1.17 mm**.
+
+For this case we pass the stress check, since we are quite far from the yield strength. However, that is only one of the two checks from the start. The circuit board is screwed onto the five bosses, so whatever the boss tops do, the board has to do too. Solder joints and small ceramic parts crack long before the ABS yields, so here the board decides whether the controller breaks.
+
+### What to read, and what not
+
+The board only bends when the boss tops move by different amounts, so that they no longer lie on a straight line (a plane, in 3D), as in the figure below. 
+
+<figure class="article-figure" id="fig-tikz-8ab5b99c70e3"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/tikz-8ab5b99c70e3.svg" alt=""><figcaption class="caption"><em>Side view of the board (green) on three bosses. (a) Unloaded. (b) The outer boss tops drop \(\delta\) below the middle one, and the board has to bend to reach them. The dashed line is where a flat board through the middle boss would be.</em></figcaption></figure>
+
+### Reading the boss tops
+
+1. In *Visualization*, mirror the result about the symmetry plane with *View → ODB Display Options → Mirror/Pattern → YZ plane*, so you see the whole shell and all five bosses.
+2. Plot $$U_3$$ with *Result → Field Output*, variable `U`, component `U3`.
+3. Use *Tools → Query → Probe Values* on nodes of the top edge of each boss and write down $$U_3$$. Only three bosses are in the half model. With XSYMM the mirrored boss has the same $$U_3$$. Make sure you select nodes and not elements.
+
+<figure class="article-figure" id="fig-l05-boss-u3-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-boss-u3-a.png" alt="Case A, U3 in mm on the mirrored shell, deformation ×10, with U3 at the top of each of the five bosses."><figcaption class="caption">Case A, U3 in mm on the mirrored shell, deformation ×10, with U3 at the top of each of the five bosses.</figcaption></figure>
+
+Both grip bosses go down 1.42 mm, the two front bosses 0.31 mm and the centre boss stays where it is ([Figure 24](#fig-l05-boss-u3-a)). 
+
+So, for our analysis, only the difference between the middle boss and the displacement of the furthest bosses matters. So, the initially flat board got bent as shown below:
+
+<figure class="article-figure" id="fig-l05-boss-bow-a"><img class="img-fluid rounded tut-landscape" src="../../assets/img/tutorials/abaqus_controller_shell/l05-boss-bow-a.png" alt="Boss tops seen from the front. The grip bosses drop $\delta = 1.42$ mm below the centre boss, so the board has to bend."><figcaption class="caption">Boss tops seen from the front. The grip bosses drop \(\delta = 1.42\) mm below the centre boss, so the board has to bend.</figcaption></figure>
+
+### The limit
+
+The bow of a board is $$\delta / L$$. Boards with surface-mounted parts are usually allowed a bow of at most 0.75 % of their length (IPC-6012), and we use that as the limit the housing may force on the board. 
+
+<div class="callout info" markdown="1">
+<div class="callout-title"><span class="callout-icon">ℹ️</span><span>About these values</span></div>
+<div class="callout-body" markdown="1">
+
+The exact values used here are not important. If you were designing a controller like this one, these requirements would be given to you by someone else.
+
+</div>
+</div>
+
+$$\frac{\delta}{L} = \frac{1.42}{124} = 1.14\,\% \;>\; 0.75\,\% \qquad\Rightarrow\qquad \delta_{allow} = 0.0075 \times 124 = 0.93~\text{mm}$$
+
+So for this load case our board would fail, although the ABS is only at a third of its yield stress. The model is linear, so the board limit is reached at $$12 \times 0.93 / 1.42 \approx 8$$ N on the grip. **The displacement check is the defining factor here, not the stress check.**
+
+<div class="callout info" markdown="1">
+<div class="callout-title"><span class="callout-icon">ℹ️</span><span>What do we do?</span></div>
+<div class="callout-body" markdown="1">
+
+Here is where experience as a designer or an engineer comes in. If the boss area is deforming too much, then we need to increase the bending stiffness along the span of the controller. This could mean adding more ribs, changing the material of the ribs, using a bigger profile, increasing the shell thickness, etc.
+Ideally, you can increase the stiffness of your model for the least cost, e.g., material cost, weight, etc.
+
+</div>
+</div>
+
+ 
+Try a few of those changes and see if you can fulfil both conditions at the same time.
 
 <div class="d-flex justify-content-between flex-wrap gap-2 tutorial-nav mb-3"><a class="btn btn-outline-primary" href="../structural_modeling_simulation/">&larr; Back to course overview</a><div class="d-flex gap-2"></div></div>
 {% endraw %}
