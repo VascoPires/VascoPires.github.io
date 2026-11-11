@@ -82,6 +82,7 @@ series:
 
   - id: abaqus_controller_shell
     title: "Abaqus Tutorial: Lower Shell of a Game Controller"
+    offline_overview: false     # one page: the zip opens straight on it, like the beam/shell/solid series
     folder: "800 Teaching/Abaqus Tutorials/Controller"      # inside the vault
     intro: >-
       A thin-walled plastic part modelled with shells and beams in Abaqus/CAE (practical L05). The
@@ -97,6 +98,11 @@ series:
         title: "L05: Lower Shell of a Game Controller"
         card: "S4R shells with offsets, B31 rib beams, the shell-to-solid tie trap, a three-point bend through a coupled RP, and four load cases."
         thumb: assets/img/controller/part1.png
+        text_overrides:         # the beam tutorial is another series: link to its web page
+          - from: "the previous tutorial [[../Beam Shell Solid/Solid Shell or Beam|Solid Shell or Beam]]"
+            to: "the previous tutorial [Solid, Shell or Beam?](https://vascodcpires.com/courses/abaqus_beam_shell_solid_tutorial/)"
+          - from: "As in the [[../Beam Shell Solid/Solid Shell or Beam|Solid Shell or Beam]] tutorial"
+            to: "As in the [Solid, Shell or Beam?](https://vascodcpires.com/courses/abaqus_beam_shell_solid_tutorial/) tutorial"
 
   - id: abaqus_beam_shell_solid
     title: "Abaqus Tutorial: Solid, Shell or Beam?"

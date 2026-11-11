@@ -268,6 +268,10 @@ class Converter:
                 continue                                   # Obsidian table-of-contents boxes
             label = title or CALLOUT_TITLES.get(kind, kind.capitalize())
             cls = CALLOUT_CLASS.get(kind, "info")
+            if fold:                                       # [!x]- folded, [!x]+ open: a toggle the reader clicks
+                out += ["", f'<details{" open" if fold == "+" else ""} markdown="1">',
+                        f"<summary>{self.inline_md(label)}</summary>", ""] + body + ["", "</details>", ""]
+                continue
             # same markup as the site's _sass/_callouts.scss expects
             out += ["", f'<div class="callout {cls}" markdown="1">',
                     f'<div class="callout-title"><span class="callout-icon">{CALLOUT_ICON[cls]}</span>'
@@ -419,7 +423,7 @@ d-article figure.article-figure img { display: block; width: auto; max-width: mi
 d-article figure.article-figure img.tut-landscape { width: 100%; max-width: 100%; max-height: none; }
 d-article figure.article-figure video { width: 100%; height: auto; background: #000; }
 .tutorial-nav .btn { text-transform: none; }
-.tut-icon { height: 1.6em; vertical-align: middle; }
+.tut-icon { height: 1.2em; vertical-align: -0.2em; }
 .callout .callout-body > :last-child { margin-bottom: 0; }
 """
 WEBSITE_CSS = """
